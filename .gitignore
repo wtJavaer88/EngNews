@@ -1,0 +1,59 @@
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+bin/
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+*.class
+
+# Windows shortcuts
+*.lnk
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+*.bak
+*.class
+*.tmp
+*.dex
+*.cache
+*.apk
+*.class
+
+bin/
+bin/classes/com/wnc/srtlearn/R$id.class
+bin/classes/com/wnc/srtlearn/R$layout.class
+bin/classes/com/wnc/srtlearn/R$raw.class
+bin/classes/com/wnc/srtlearn/R$string.class
+bin/classes/com/wnc/srtlearn/R$style.class
+.settings/
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
