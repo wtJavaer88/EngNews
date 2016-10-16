@@ -1,4 +1,4 @@
-package com.wnc.news.api;
+package com.wnc.news.api.soccer;
 
 import com.wnc.basic.BasicStringUtil;
 import com.wnc.string.PatternUtil;

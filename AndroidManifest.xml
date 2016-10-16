@@ -14,9 +14,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -26,12 +24,11 @@
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <!-- 蓝牙录音检测耳机状态 -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    
-        <!-- 获取当前运行任务 -->
+
+    <!-- 获取当前运行任务 -->
     <uses-permission android:name="android.permission.GET_TASKS" />
-    
-	<uses-permission android:name="android.permission.CHANGE_CONFIGURATION"/>
-	
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+
     <uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="17" />
@@ -42,15 +39,17 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.wnc.news.engnews.NewsListActivity"
+            android:name="com.wnc.news.engnews.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-         <activity android:name="com.wnc.news.engnews.MainActivity"></activity>
+        <activity android:name="com.wnc.news.engnews.NewsContentActivity" >
+        </activity>
+        <activity android:name="com.wnc.news.engnews.NewsListActivity" >
+        </activity>
     </application>
 
 </manifest>

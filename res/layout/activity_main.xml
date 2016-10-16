@@ -1,34 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+    android:orientation="vertical" android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:gravity="center" >
 
+    <Button
+        android:id="@+id/btn_nba"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="篮球"
+         />
+
+    <Button
+        android:id="@+id/btn_soccer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+    	android:layout_marginTop="40dp"
+        android:text="足球" />
     
 
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:scrollbars="vertical" >
-
-        <TextView
-            android:id="@+id/tv_img"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-             />
-    </ScrollView>
-
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:scrollbars="vertical" >
-
-        <TextView
-            android:id="@+id/tv_content"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </ScrollView>
 </LinearLayout>

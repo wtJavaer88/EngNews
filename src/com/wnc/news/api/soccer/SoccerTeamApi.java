@@ -1,4 +1,4 @@
-package com.wnc.news.api;
+package com.wnc.news.api.soccer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,16 +10,21 @@ import org.jsoup.select.Elements;
 import com.wnc.basic.BasicStringUtil;
 import com.wnc.string.PatternUtil;
 
-public class TeamApi
+public class SoccerTeamApi
 {
 	private String LATEST_SAVE_DATE;
 	String team;
 	final int MAX_PAGES = 5;
 	final String FORMAT = "http://www.squawka.com/teams/%s/news?getitems=true&ajax=true&pg=%d";
+	WebSite webSite;
 
-	public TeamApi(String team)
+	public SoccerTeamApi(String team)
 	{
 		this.team = team;
+		webSite = new WebSite();
+		webSite.setName("basketballinsiders");
+		webSite.setNews_class(".entry-content p");
+		webSite.setMain_div(".news-sub");
 	}
 
 	public List<NewsInfo> getAllNews()
@@ -27,7 +32,7 @@ public class TeamApi
 		LATEST_SAVE_DATE = getLatestSaveDate();
 		List<NewsInfo> list = new ArrayList<NewsInfo>();
 		Document doc = null;
-		for (int i = 1; i <= MAX_PAGES; i++)
+		for (int i = 0; i < MAX_PAGES; i++)
 		{
 			try
 			{
@@ -65,6 +70,7 @@ public class TeamApi
 	{
 		NewsInfo newsInfo = new NewsInfo();
 		newsInfo.addKeyWord(team);
+		newsInfo.setWebsite(webSite);
 
 		Element dateDiv = mainDiv.select("div").get(1);
 		if (dateDiv != null)

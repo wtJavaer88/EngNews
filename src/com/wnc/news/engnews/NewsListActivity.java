@@ -17,8 +17,9 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
 import com.example.engnews.R;
-import com.wnc.news.api.NewsInfo;
-import com.wnc.news.api.TeamApi;
+import com.wnc.news.api.nba.NbaTeamApi;
+import com.wnc.news.api.soccer.NewsInfo;
+import com.wnc.news.api.soccer.SoccerTeamApi;
 
 public class NewsListActivity extends ListActivity
 {
@@ -26,6 +27,7 @@ public class NewsListActivity extends ListActivity
 	private EditText et_item;
 	private ArrayList<HashMap<String, Object>> listItems; // 存放文字、图片信息
 	private SimpleAdapter listItemAdapter; // 适配器
+	private String type;
 
 	@Override
 	public void onCreate(Bundle icicle)
@@ -36,7 +38,10 @@ public class NewsListActivity extends ListActivity
 		bt_add = (Button) findViewById(R.id.bt_add);
 		et_item = (EditText) findViewById(R.id.et_item);
 
-		// initListView();
+		if (getIntent() != null && getIntent().hasExtra("type"))
+		{
+			type = getIntent().getStringExtra("type");
+		} // initListView();
 		new Thread(new Runnable()
 		{
 
@@ -45,7 +50,14 @@ public class NewsListActivity extends ListActivity
 			{
 				Message msg = new Message();
 				msg.what = 1;
-				msg.obj = new TeamApi("arsenal").getAllNews();
+				if (type.equalsIgnoreCase("nba"))
+				{
+					msg.obj = new NbaTeamApi("san-antonio-spurs").getAllNews();
+				}
+				else
+				{
+					msg.obj = new SoccerTeamApi("arsenal").getAllNews();
+				}
 				handler.sendMessage(msg);
 			}
 		}).start();
@@ -88,7 +100,8 @@ public class NewsListActivity extends ListActivity
 			map.put("date", news.get(i).getDate());
 			map.put("sub_text", news.get(i).getSub_text());
 			map.put("url", news.get(i).getUrl());
-			map.put("head_pic", news.get(i).getHead_pic());
+			map.put("news_pic", news.get(i).getHead_pic());
+			map.put("news_class", news.get(i).getWebsite().getNews_class());
 			listItems.add(map);
 		}
 		// 生成适配器的Item和动态数组对应的元素
@@ -106,7 +119,7 @@ public class NewsListActivity extends ListActivity
 	{
 		setTitle("你点击第" + position + "行");
 		HashMap<String, Object> map = (HashMap<String, Object>) lv.getItemAtPosition(position);
-		startActivity(new Intent(this, MainActivity.class).putExtra("news_url", map.get("url").toString()));
+		startActivity(new Intent(this, NewsContentActivity.class).putExtra("news_url", map.get("url").toString()).putExtra("news_pic", map.get("news_pic").toString()).putExtra("news_class", map.get("news_class").toString()));
 	}
 
 	class ClickEvent implements OnClickListener

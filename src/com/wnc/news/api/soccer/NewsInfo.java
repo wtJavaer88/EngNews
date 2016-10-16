@@ -1,10 +1,11 @@
-package com.wnc.news.api;
+package com.wnc.news.api.soccer;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class NewsInfo
 {
+	WebSite website;
 	String title;
 	String url;
 	String sub_text;
@@ -75,6 +76,26 @@ public class NewsInfo
 	@Override
 	public String toString()
 	{
-		return "NewsInfo [title=" + title + ", url=" + url + ", sub_text=" + sub_text + ", date=" + date + ", head_pic=" + head_pic + ", keywords=" + keywords + "]";
+		return "NewsInfo [website=" + website + ", title=" + title + ", url=" + url + ", sub_text=" + sub_text + ", date=" + date + ", head_pic=" + head_pic + ", keywords=" + keywords + "]";
+	}
+
+	public WebSite getWebsite()
+	{
+		return website;
+	}
+
+	public void setWebsite(WebSite website)
+	{
+		this.website = website;
+	}
+
+	public Set<String> getKeywords()
+	{
+		return keywords;
+	}
+
+	public void setKeywords(Set<String> keywords)
+	{
+		this.keywords = keywords;
 	}
 }

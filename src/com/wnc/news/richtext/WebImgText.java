@@ -20,6 +20,9 @@ public class WebImgText implements RichText
 		return Html.fromHtml(this.text, imageGetter, null);
 	}
 
+	final int maxWidth = 800;
+	final int maxHeight = 640;
+
 	final Html.ImageGetter imageGetter = new Html.ImageGetter()
 	{
 
@@ -39,7 +42,8 @@ public class WebImgText implements RichText
 				e.printStackTrace();
 				return null;
 			}
-			drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+			double scale = Math.min(maxWidth / drawable.getIntrinsicWidth(), maxHeight / drawable.getIntrinsicHeight());
+			drawable.setBounds(0, 0, (int) (drawable.getIntrinsicWidth() * scale), (int) (drawable.getIntrinsicHeight() * scale));
 			return drawable;
 		};
 	};
