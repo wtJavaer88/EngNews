@@ -1,4 +1,4 @@
-package com.wnc.news.engnews;
+package com.wnc.news.engnews.ui;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 

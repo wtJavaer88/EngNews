@@ -47,16 +47,16 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.wnc.news.engnews.MainActivity"
+            android:name="com.wnc.news.engnews.ui.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.wnc.news.engnews.NewsContentActivity" >
+        <activity android:name="com.wnc.news.engnews.ui.NewsContentActivity" >
         </activity>
-        <activity android:name="com.wnc.news.engnews.NewsListActivity" >
+        <activity android:name="com.wnc.news.engnews.ui.NewsListActivity" >
         </activity>
     </application>
 
