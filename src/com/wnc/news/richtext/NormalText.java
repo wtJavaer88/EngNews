@@ -1,4 +1,4 @@
-package com.example.richtext;
+package com.wnc.news.richtext;
 
 public class NormalText implements RichText
 {

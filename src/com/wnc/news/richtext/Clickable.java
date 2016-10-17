@@ -1,4 +1,4 @@
-package com.example.richtext;
+package com.wnc.news.richtext;
 
 import android.app.Activity;
 import android.text.style.ClickableSpan;
