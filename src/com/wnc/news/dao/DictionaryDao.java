@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import word.DicWord;
+import word.Topic;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -43,10 +45,14 @@ public class DictionaryDao
         return database != null && database.isOpen();
     }
 
-    static Set<String> topics = new HashSet<String>();
+    static Set<DicWord> topics = new HashSet<DicWord>();
 
-    public synchronized static Set<String> initTopics()
+    public synchronized static void initTopics()
     {
+        if (topics.size() > 0)
+        {
+            return;
+        }
         try
         {
             openDatabase();
@@ -58,14 +64,19 @@ public class DictionaryDao
             {
                 // word_third word_done word_pl word_ing word_past word_er
                 // word_est
-                topics.add(c.getString(c.getColumnIndex("word_third")));
-                topics.add(c.getString(c.getColumnIndex("word_done")));
-                topics.add(c.getString(c.getColumnIndex("word_pl")));
-                topics.add(c.getString(c.getColumnIndex("word_ing")));
-                topics.add(c.getString(c.getColumnIndex("word_past")));
-                topics.add(c.getString(c.getColumnIndex("word_er")));
-                topics.add(c.getString(c.getColumnIndex("word_est")));
-                topics.add(c.getString(c.getColumnIndex("topic_word")));
+                DicWord dicWord = new DicWord();
+                dicWord.setBase_word(c.getString(c.getColumnIndex("topic_word")));
+                dicWord.setTopic_id(c.getString(c.getColumnIndex("topic_id")));
+                dicWord.setWord_third(c.getString(c
+                        .getColumnIndex("word_third")));
+                dicWord.setWord_done(c.getString(c.getColumnIndex("word_done")));
+                dicWord.setWord_er(c.getString(c.getColumnIndex("word_er")));
+                dicWord.setWord_est(c.getString(c.getColumnIndex("word_est")));
+                dicWord.setWord_ing(c.getString(c.getColumnIndex("word_ing")));
+                dicWord.setWord_pl(c.getString(c.getColumnIndex("word_pl")));
+                dicWord.setWord_past(c.getString(c.getColumnIndex("word_past")));
+                dicWord.setCn_mean(c.getString(c.getColumnIndex("mean_cn")));
+                topics.add(dicWord);
                 c.moveToNext();
             }
             // topics.remove("target");
@@ -75,30 +86,73 @@ public class DictionaryDao
         }
         catch (Exception e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         finally
         {
             closeDatabase();
         }
-        return topics;
     }
 
-    public static Set<String> findCETWords(String dialog)
+    public static Set<Topic> findCETWords(String dialog)
     {
-        Set<String> finds = new HashSet<String>();
-        wordAndChars = WordSplit.getWordAndChars(dialog.replaceAll("<.*?>", "")
-                .replaceAll("<a>.*?</a>", ""));
+        Set<Topic> finds = new HashSet<Topic>();
+        wordAndChars = WordSplit
+                .getWordAndChars(dialog.replaceAll("<.*?>", ""));
         for (String string : wordAndChars)
         {
             if (string.trim().length() > 3)
             {
-                for (String t : topics)
+                for (DicWord t : topics)
                 {
-                    if (t.equalsIgnoreCase(string.trim()))
+                    final Topic topic = new Topic(t);
+                    if (t.getBase_word().equalsIgnoreCase(string.trim()))
                     {
-                        finds.add(t);
+                        topic.setMatched_word(t.getBase_word());
+                        topic.setState("getBase_word");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_er().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_er());
+                        topic.setState("word_er");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_done().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_done());
+                        topic.setState("word_done");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_est().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_est());
+                        topic.setState("word_est");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_ing().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_ing());
+                        topic.setState("word_ing");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_past().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_past());
+                        topic.setState("word_past");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_pl().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_pl());
+                        topic.setState("word_pl");
+                        finds.add(topic);
+                    }
+                    else if (t.getWord_third().equalsIgnoreCase(string.trim()))
+                    {
+                        topic.setMatched_word(t.getWord_third());
+                        topic.setState("word_third");
+                        finds.add(topic);
                     }
                 }
             }

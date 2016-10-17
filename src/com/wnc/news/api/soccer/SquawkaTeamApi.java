@@ -1,4 +1,4 @@
-package com.wnc.news.api.nba;
+package com.wnc.news.api.soccer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,19 +7,23 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.wnc.basic.BasicStringUtil;
+import com.wnc.news.api.common.DateUtil;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.TeamApi;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
+import com.wnc.string.PatternUtil;
 import common.utils.JsoupHelper;
 
-public class NbaTeamApi implements TeamApi
+public class SquawkaTeamApi implements TeamApi
 {
+    private String LATEST_SAVE_DATE;
     String team;
-    int MAX_PAGES = 5;
-    WebSite webSite = WebSiteUtil.getBasketballInsiders();
+    int MAX_PAGES = 1;
+    WebSite webSite = WebSiteUtil.getSquawka();
 
-    public NbaTeamApi(String team)
+    public SquawkaTeamApi(String team)
     {
         this.team = team;
 
@@ -62,20 +66,27 @@ public class NbaTeamApi implements TeamApi
     @Override
     public List<NewsInfo> getAllNews()
     {
+        LATEST_SAVE_DATE = getLatestSaveDate();
         List<NewsInfo> list = new ArrayList<NewsInfo>();
         Document doc = null;
-        for (int i = 1; i <= MAX_PAGES; i++)
+        for (int i = 0; i < MAX_PAGES; i++)
         {
             try
             {
                 String page = String.format(webSite.getFormat(), team, i);
-                doc = common.utils.JsoupHelper.getDocumentResult(page);
+                doc = JsoupHelper.getDocumentResult(page);
                 if (doc != null)
                 {
                     Elements news_divs = doc.select(webSite.getMain_div());
                     for (Element mainDiv : news_divs)
                     {
                         NewsInfo newsInfo = getNewsInfo(mainDiv);
+                        if (BasicStringUtil.isNotNullString(LATEST_SAVE_DATE)
+                                && newsInfo.getDate().compareTo(
+                                        LATEST_SAVE_DATE) < 0)
+                        {
+                            return list;
+                        }
                         list.add(newsInfo);
                     }
                 }
@@ -88,6 +99,12 @@ public class NbaTeamApi implements TeamApi
         return list;
     }
 
+    private String getLatestSaveDate()
+    {
+        // TODO 获取最近新闻日期
+        return "20161001";
+    }
+
     @Override
     public NewsInfo getNewsInfo(Element mainDiv)
     {
@@ -95,20 +112,36 @@ public class NbaTeamApi implements TeamApi
         newsInfo.addKeyWord(team);
         newsInfo.setWebsite(webSite);
 
-        Element imgDiv = mainDiv.select(".blog-layout1-img").first();
+        Element dateDiv = mainDiv.select("div").get(1);
+        if (dateDiv != null)
+        {
+            newsInfo.setDate(DateUtil.getDateFromEngMonth(dateDiv.text()));
+        }
+        Element imgDiv = mainDiv.select(".news-sub-image").first();
         if (imgDiv != null)
         {
-            String url = imgDiv.select("a").first().absUrl("href");
+            String url = imgDiv.absUrl("href");
             String img = imgDiv.select("img").first().absUrl("src");
             newsInfo.setUrl(url);
             newsInfo.setHead_pic(img);
         }
-        Element titleDiv = mainDiv.select(".blog-layout1-text").first();
+        Element titleDiv = mainDiv.select(".news-sub-heading").first();
         if (titleDiv != null)
         {
-            String title = titleDiv.select("a").first().text();
+            String title = titleDiv.text();
             newsInfo.setTitle(title);
-            newsInfo.setSub_text(titleDiv.select("p").first().text());
+        }
+        // news-sub-text
+        Element subTextDiv = mainDiv.select(".news-sub-text").first();
+        if (subTextDiv != null)
+        {
+            String text = PatternUtil.getFirstPatternGroup(subTextDiv.text(),
+                    "(.*?\\[…\\])");
+            if (BasicStringUtil.isNullString(text))
+            {
+                text = subTextDiv.text();
+            }
+            newsInfo.setSub_text(text);
         }
         return newsInfo;
     }
@@ -119,4 +152,5 @@ public class NbaTeamApi implements TeamApi
         // TODO Auto-generated method stub
         return false;
     }
+
 }

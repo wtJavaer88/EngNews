@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="red">#ffff0000</color>
+    <color name="black">#ff000000</color>
+    <color name="black_25">#40000000</color>
+    <color name="black_50">#80000000</color>
+    <color name="white">#ffffffff</color>
+    <color name="white_25">#40ffffff</color>
+    <color name="white_50">#80ffffff</color>
+    <color name="grey">#fff0f0f0</color>
+    <color name="gray">#808080ff</color>
+    <color name="transparent">#00000000</color>
+    <color name="budget_balance_tips_for_addexpense_normal">#ff63594a</color>
+    <color name="budget_balance_tips_for_addexpense_red">#ffad2525</color>
+    <color name="budget_list_item_bg">#ffefefef</color>
+    <color name="transaction_payout_amount">#ff2c5e00</color>
+    <color name="transaction_income_amount">#ff8d2626</color>
+    <color name="transaction_blance_amount">#ff353a42</color>
+    <color name="transaction_normal_amount">#ff575757</color>
+    <color name="buy_sync_service_seleted_color">#ffff9900</color>
+    <color name="add_trans_paper_row_name_tv_selected">#ff5c240b</color>
+    <color name="add_trans_paper_row_label_tv_normal">#ff6f6961</color>
+    <color name="widget_wheel_datepicker_currentitem_textcolor">#ff2a6fe2</color>
+    <color name="transfer_account_cost">#ff4d2e06</color>
+    <color name="float_text_aligntop_toast_textcolor">#ff461400</color>
+    <color name="memo_line_et_linecolor">#ffd1c1a2</color>
+    <color name="textColor">#15C0C9</color>
+    <color name="purple">#820072</color>
+    <color name="yellow">#fa800a</color>
+</resources>

@@ -1,4 +1,4 @@
-package com.wnc.news.api.soccer;
+package com.wnc.news.api.common;
 
 public class Club
 {

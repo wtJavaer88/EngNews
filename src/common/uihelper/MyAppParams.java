@@ -13,19 +13,13 @@ public class MyAppParams
     private String appPath;
 
     private final static String workPath = Environment
-            .getExternalStorageDirectory().getPath() + "/wnc/app/srtlearn/";
+            .getExternalStorageDirectory().getPath() + "/wnc/app/news/";
     private String localLogPath;
-    public final static String SWF_FOLDER = Environment
-            .getExternalStorageDirectory().getPath() + "/wnc/res/swf/";
-    public static final String SRT_FOLDER = Environment
-            .getExternalStorageDirectory().getPath() + "/wnc/res/srt/";
-    public final static String VIDEO_FOLDER = Environment
-            .getExternalStorageDirectory().getPath() + "/wnc/res/video/";
-    public final static String THUMB_PICFOLDER = Environment
-            .getExternalStorageDirectory().getPath() + "/wnc/res/srtpic/";
     public final static String FAVORITE_TXT = workPath + "favorite.txt";
-    public final static String SRT_DB = workPath + "srt.db";
-    public final static String DICTIONARY_DB = workPath + "dictionary.db";
+    public final static String NEWS_DB = workPath + "news.db";
+    public final static String DICTIONARY_DB = Environment
+            .getExternalStorageDirectory().getPath()
+            + "/wnc/app/srtlearn/dictionary.db";
     public final static String FAVORITE_DB = workPath + "favorite.db";
 
     public static Activity mainActivity;
@@ -48,9 +42,6 @@ public class MyAppParams
 
         BasicFileUtil.makeDirectory(this.localLogPath);
         BasicFileUtil.makeDirectory(this.backupDbPath);
-        BasicFileUtil.makeDirectory(SWF_FOLDER);
-        BasicFileUtil.makeDirectory(SRT_FOLDER);
-        BasicFileUtil.makeDirectory(THUMB_PICFOLDER);
         BasicFileUtil.makeDirectory(this.zipPath);
     }
 
