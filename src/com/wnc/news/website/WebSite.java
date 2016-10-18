@@ -6,6 +6,7 @@ public class WebSite
     String news_class;
     String main_div;
     String format;
+    String db_id;
 
     public String getName()
     {
@@ -31,7 +32,8 @@ public class WebSite
     public String toString()
     {
         return "WebSite [name=" + name + ", news_class=" + news_class
-                + ", main_div=" + main_div + "]";
+                + ", main_div=" + main_div + ", format=" + format + ", db_id="
+                + db_id + "]";
     }
 
     public String getMain_div()
@@ -52,5 +54,15 @@ public class WebSite
     public void setFormat(String format)
     {
         this.format = format;
+    }
+
+    public String getDb_id()
+    {
+        return db_id;
+    }
+
+    public void setDb_id(String db_id)
+    {
+        this.db_id = db_id;
     }
 }

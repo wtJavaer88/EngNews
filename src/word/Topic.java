@@ -9,11 +9,9 @@ public class Topic
     private String mean_cn;
     private String state;
 
-    public Topic(DicWord word)
+    public Topic()
     {
-        setMean_cn(word.getCn_mean());
-        setTopic_base_word(word.getBase_word());
-        setTopic_id(word.getTopic_id());
+
     }
 
     public String getBookName()

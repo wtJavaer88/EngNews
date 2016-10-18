@@ -8,7 +8,7 @@ public interface TeamApi
 {
     public List<NewsInfo> getAllNews();
 
-    public boolean hasReachOldLine();
+    public boolean hasReachOldLine(NewsInfo newsInfo);
 
     public NewsInfo getNewsInfo(Element mainDiv);
 

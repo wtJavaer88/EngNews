@@ -7,11 +7,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.wnc.news.api.autocache.NewsContentService;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.TeamApi;
+import com.wnc.news.dao.NewsDao;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
-import common.utils.JsoupHelper;
 
 public class NbaTeamApi implements TeamApi
 {
@@ -36,27 +37,10 @@ public class NbaTeamApi implements TeamApi
     @Override
     public List<NewsInfo> getAllNewsWithContent()
     {
-        final List<NewsInfo> allNews = getAllNews();
-        Document doc;
-        for (NewsInfo info : allNews)
-        {
-            try
-            {
-                doc = JsoupHelper.getDocumentResult(info.getUrl());
-                final Elements contents = doc.select(info.getWebsite()
-                        .getNews_class());
-                if (contents != null)
-                {
-                    info.setHtml_content(contents.toString());
-                }
-            }
-            catch (Exception e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        return allNews;
+        final NewsContentService newsContentService = new NewsContentService(
+                getAllNews());
+        newsContentService.execute();
+        return newsContentService.getResult();
     }
 
     @Override
@@ -76,7 +60,17 @@ public class NbaTeamApi implements TeamApi
                     for (Element mainDiv : news_divs)
                     {
                         NewsInfo newsInfo = getNewsInfo(mainDiv);
-                        list.add(newsInfo);
+                        if (newsInfo != null)
+                        {
+                            if (hasReachOldLine(newsInfo))
+                            {
+                                // return list;
+                            }
+                            else
+                            {
+                                list.add(newsInfo);
+                            }
+                        }
                     }
                 }
             }
@@ -91,32 +85,39 @@ public class NbaTeamApi implements TeamApi
     @Override
     public NewsInfo getNewsInfo(Element mainDiv)
     {
-        NewsInfo newsInfo = new NewsInfo();
-        newsInfo.addKeyWord(team);
-        newsInfo.setWebsite(webSite);
-
-        Element imgDiv = mainDiv.select(".blog-layout1-img").first();
-        if (imgDiv != null)
+        NewsInfo newsInfo = null;
+        try
         {
-            String url = imgDiv.select("a").first().absUrl("href");
-            String img = imgDiv.select("img").first().absUrl("src");
-            newsInfo.setUrl(url);
-            newsInfo.setHead_pic(img);
+            newsInfo = new NewsInfo();
+            newsInfo.addKeyWord(team);
+            newsInfo.setWebsite(webSite);
+            Element imgDiv = mainDiv.select(".blog-layout1-img").first();
+            if (imgDiv != null)
+            {
+                String url = imgDiv.select("a").first().absUrl("href");
+                String img = imgDiv.select("img").first().absUrl("src");
+                newsInfo.setUrl(url);
+                newsInfo.setHead_pic(img);
+            }
+            Element titleDiv = mainDiv.select(".blog-layout1-text").first();
+            if (titleDiv != null)
+            {
+                String title = titleDiv.select("a").first().text();
+                newsInfo.setTitle(title);
+                newsInfo.setSub_text(titleDiv.select("p").first().text());
+            }
         }
-        Element titleDiv = mainDiv.select(".blog-layout1-text").first();
-        if (titleDiv != null)
+        catch (Exception e)
         {
-            String title = titleDiv.select("a").first().text();
-            newsInfo.setTitle(title);
-            newsInfo.setSub_text(titleDiv.select("p").first().text());
+            e.printStackTrace();
+            newsInfo = null;
         }
         return newsInfo;
     }
 
     @Override
-    public boolean hasReachOldLine()
+    public boolean hasReachOldLine(NewsInfo newsInfo)
     {
-        // TODO Auto-generated method stub
-        return false;
+        return NewsDao.isExistUrl(newsInfo.getUrl());
     }
 }

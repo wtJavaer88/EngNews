@@ -40,16 +40,16 @@ public class LeagueApi
                         Club club = new Club();
                         JSONObject jsonObject = (JSONObject) arr.get(i);
                         club.setClub_id(BasicNumberUtil.getNumber(jsonObject
-                                .get("club_id").toString()));
-                        club.setAbbreviation(jsonObject.get("abbreviation")
-                                .toString());
-                        club.setShort_name(jsonObject.get("short_name")
-                                .toString());
-                        club.setPhoto(jsonObject.get("photo").toString());
-                        club.setClub_stats_url(jsonObject.get("club_stats_url")
-                                .toString());
+                                .getString("club_id")));
+                        club.setLeague(league_id);
+                        club.setAbbreviation(jsonObject
+                                .getString("abbreviation"));
+                        club.setShort_name(jsonObject.getString("short_name"));
+                        club.setPhoto(jsonObject.getString("photo"));
+                        club.setClub_stats_url(jsonObject
+                                .getString("club_stats_url"));
                         club.setFull_name(PatternUtil.getFirstPatternGroup(
-                                jsonObject.get("club_stats_url").toString(),
+                                jsonObject.getString("club_stats_url"),
                                 "teams/(.*?)/stats"));
                         clubs.add(club);
                     }

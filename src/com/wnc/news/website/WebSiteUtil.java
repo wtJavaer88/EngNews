@@ -17,6 +17,7 @@ public class WebSiteUtil
         {
             squawka = new WebSite();
             squawka.setName("squawka");
+            squawka.setDb_id("3");
             squawka.setNews_class(".entry-content p");
             squawka.setMain_div(".news-sub");
             squawka.setFormat("http://www.squawka.com/teams/%s/news?getitems=true&ajax=true&pg=%d");
@@ -30,10 +31,12 @@ public class WebSiteUtil
         {
             skysports = new WebSite();
             skysports.setName("skysports");
+            skysports.setDb_id("2");
             skysports.setNews_class(".article__body p");
             skysports.setMain_div(".news-list__body");
-            skysports
-                    .setFormat("http://www.skysports.com/football/ajax/digrevMoreNewsByBasketId/11670/20/%d");
+            skysports.setFormat("http://www.skysports.com/%s-news/more/%d");
+            // skysports
+            // .setFormat("http://www.skysports.com/football/ajax/digrevMoreNewsByBasketId/11670/20/%d");
         }
         return skysports;
     }
@@ -43,6 +46,7 @@ public class WebSiteUtil
         if (basketballinsiders == null)
         {
             basketballinsiders = new WebSite();
+            basketballinsiders.setDb_id("1");
             basketballinsiders.setName("basketballinsiders");
             basketballinsiders.setNews_class("#content-area p");
             basketballinsiders.setMain_div(".infinite-post");

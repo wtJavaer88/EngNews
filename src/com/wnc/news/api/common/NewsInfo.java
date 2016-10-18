@@ -15,6 +15,7 @@ public class NewsInfo
     String head_pic;
     String html_content;
     String db_id;
+    String cet_topics;
     Set<String> keywords = new HashSet<String>();
 
     public boolean addKeyWord(String keyword)
@@ -83,7 +84,8 @@ public class NewsInfo
         return "NewsInfo [website=" + website + ", title=" + title + ", url="
                 + url + ", sub_text=" + sub_text + ", date=" + date
                 + ", head_pic=" + head_pic + ", html_content=" + html_content
-                + ", db_id=" + db_id + ", keywords=" + keywords + "]";
+                + ", db_id=" + db_id + ", cet_topics=" + cet_topics
+                + ", keywords=" + keywords + "]";
     }
 
     public WebSite getWebsite()
@@ -124,5 +126,15 @@ public class NewsInfo
     public void setDb_id(String db_id)
     {
         this.db_id = db_id;
+    }
+
+    public String getCet_topics()
+    {
+        return cet_topics;
+    }
+
+    public void setCet_topics(String cet_topics)
+    {
+        this.cet_topics = cet_topics;
     }
 }
