@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.wnc.basic.BasicStringUtil;
+import com.wnc.string.PatternUtil;
 
 public class WordSplit
 {
@@ -52,6 +53,20 @@ public class WordSplit
             list.add(s.substring(i, j));
         }
         return list;
+    }
+
+    public static List<String> getUniqueWords(String s)
+    {
+        List<String> list = PatternUtil.getAllPatternGroup(s, "\\w+");
+        List<String> list2 = new ArrayList<String>();
+        for (String string : list)
+        {
+            if (!list2.contains(string))
+            {
+                list2.add(string);
+            }
+        }
+        return list2;
     }
 
     private static boolean isEngChar(int charAt)

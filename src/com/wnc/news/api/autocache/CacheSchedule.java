@@ -43,7 +43,7 @@ public class CacheSchedule
                 for (String team : teams)
                 {
                     List<NewsInfo> allNews;
-                    int count = 0;
+                    int newsCount = 0;
                     if (isSoccerTeam(team))
                     {
                         System.out.println("SkySportsTeamApi开始:" + team);
@@ -53,8 +53,9 @@ public class CacheSchedule
                         allNews = skySportsTeamApi.getAllNewsWithContent();
                         NewsDao.insertNews(allNews);
                         cetTopicCache.executeTasks(allNews);
-                        count += allNews.size();
-                        System.out.println("SkySportsTeamApi结束:" + team);
+                        newsCount += allNews.size();
+                        System.out.println("SkySportsTeamApi结束:" + team
+                                + " 缓存数:" + allNews.size());
 
                         System.out.println("SquawkaTeamApi开始:" + team);
                         final SquawkaTeamApi squawkaTeamApi = new SquawkaTeamApi(
@@ -62,9 +63,10 @@ public class CacheSchedule
                         squawkaTeamApi.setMaxPages(3);
                         allNews = squawkaTeamApi.getAllNewsWithContent();
                         NewsDao.insertNews(allNews);
-                        count += allNews.size();
+                        newsCount += allNews.size();
 
-                        System.out.println("SquawkaTeamApi结束:" + team);
+                        System.out.println("SquawkaTeamApi结束:" + team + " 缓存数:"
+                                + allNews.size());
                         cetTopicCache.executeTasks(allNews);
                     }
                     else
@@ -74,16 +76,21 @@ public class CacheSchedule
                         squawkaTeamApi.setMaxPages(3);
                         allNews = squawkaTeamApi.getAllNewsWithContent();
                         NewsDao.insertNews(allNews);
-                        count += allNews.size();
-                        System.out.println("NbaTeamApi结束:" + team);
+                        newsCount += allNews.size();
+                        System.out.println("NbaTeamApi结束:" + team + " 缓存数:"
+                                + allNews.size());
                         cetTopicCache.executeTasks(allNews);
                     }
-                    if (count > 0)
+                    if (newsCount > 0)
                     {
-                        map.put(team, count);
+                        map.put(team, newsCount);
                     }
                 }
+                cetTopicCache.shutdown();
+                cetTopicCache.ifOver();
+
             }
+
         }).start();
 
     }

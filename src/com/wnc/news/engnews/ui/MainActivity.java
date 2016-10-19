@@ -3,21 +3,25 @@ package com.wnc.news.engnews.ui;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.engnews.R;
+import com.wnc.basic.BasicDateUtil;
 import com.wnc.news.api.autocache.CacheSchedule;
-import com.wnc.news.dao.DictionaryDao;
 import common.app.ConfirmUtil;
+import common.app.Log4jUtil;
+import common.app.SysInit;
+import common.uihelper.MyAppParams;
 import common.uihelper.PositiveEvent;
 
 public class MainActivity extends Activity implements OnClickListener,
@@ -28,6 +32,8 @@ public class MainActivity extends Activity implements OnClickListener,
     private Button btn_cache, btn_cache_clear;
     private TextView proTv;
 
+    Logger log = Logger.getLogger(MainActivity.class);
+
     @Override
     public void onCreate(Bundle icicle)
     {
@@ -35,23 +41,20 @@ public class MainActivity extends Activity implements OnClickListener,
         setContentView(R.layout.activity_main);
         Thread.setDefaultUncaughtExceptionHandler(this);
 
+        Log4jUtil.configLog(MyAppParams.LOG_FOLDER
+                + BasicDateUtil.getCurrentDateString() + ".txt");
+        log.info("App Start...");
+
         initView();
         new Thread(new Runnable()
         {
             @Override
             public void run()
             {
-                // List<Club> allClubs = new LeagueApi(712).getAllClubs();
-                // System.out.println("allClubs数量:" + allClubs.size());
-                // NewsDao.insertClubs(allClubs);
-                // allClubs = new LeagueApi(682).getAllClubs();
-                // System.out.println("allClubs数量:" + allClubs.size());
-                // NewsDao.insertClubs(allClubs);
-                // allClubs = new LeagueApi(717).getAllClubs();
-                // System.out.println("allClubs数量:" + allClubs.size());
-                // NewsDao.insertClubs(allClubs);
-                // System.out.println(NewsDao.isSoccerTeam("barcelona"));
-                DictionaryDao.initTopics();
+                SysInit.init(MainActivity.this);
+                new NewsTest().topicUpdate();
+
+                // new NewsTest().test();
             }
         }).start();
     }
@@ -101,15 +104,9 @@ public class MainActivity extends Activity implements OnClickListener,
         case R.id.btn_cache:
             System.out.println("开始缓存!");
             final CacheSchedule cacheSchedule = new CacheSchedule();
-            // cacheSchedule.addTeam("arsenal");
-            // cacheSchedule.addTeam("barcelona");
-            cacheSchedule.addTeam("manchester-united");
-            cacheSchedule.addTeam("manchester-city");
-            cacheSchedule.addTeam("liverpool");
-            cacheSchedule.addTeam("tottenham-hotspur");
-            cacheSchedule.addTeam("real-madrid");
-            cacheSchedule.addTeam("san-antonio-spurs");
-            cacheSchedule.teamCache();
+            new NewsTest().cacheTeams(cacheSchedule);
+            // new NewsTest().cacheArsenal(cacheSchedule);
+
             final Thread thread = new Thread(new Runnable()
             {
 
@@ -119,7 +116,7 @@ public class MainActivity extends Activity implements OnClickListener,
                     while (true)
                     {
                         Map<String, Integer> map = cacheSchedule.getMap();
-                        String process = "";
+                        String process = "正在缓存... ";
                         for (Map.Entry<String, Integer> entry : map.entrySet())
                         {
                             process += entry.getKey() + " 缓存的新闻数:"
@@ -164,10 +161,6 @@ public class MainActivity extends Activity implements OnClickListener,
     @Override
     public void uncaughtException(Thread arg0, Throwable ex)
     {
-        Log.i("AAA", "uncaughtException   " + ex);
-        for (StackTraceElement o : ex.getStackTrace())
-        {
-            System.out.println(o.toString());
-        }
+        log.error("uncaughtException   ", ex);
     }
 }

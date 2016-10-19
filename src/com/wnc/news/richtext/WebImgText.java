@@ -5,6 +5,10 @@ import java.net.URL;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
 
+import com.example.engnews.R;
+import common.app.BasicPhoneUtil;
+import common.uihelper.MyAppParams;
+
 public class WebImgText implements RichText
 {
     private String text;
@@ -21,7 +25,7 @@ public class WebImgText implements RichText
     }
 
     final int maxWidth = 800;
-    final int maxHeight = 640;
+    int maxHeight = 600;
 
     final Html.ImageGetter imageGetter = new Html.ImageGetter()
     {
@@ -34,23 +38,50 @@ public class WebImgText implements RichText
             URL url;
             try
             {
-                url = new URL(source);
-                drawable = Drawable.createFromStream(url.openStream(), "");
+                if (BasicPhoneUtil
+                        .isWifiConnect(MyAppParams.getInstance().mainActivity)
+                        && BasicPhoneUtil.ping())
+                {
+                    url = new URL(source);
+                    drawable = Drawable.createFromStream(url.openStream(), "");
+                    if (drawable != null)
+                    {
+                        final int intrinsicWidth = drawable.getIntrinsicWidth();
+                        final int intrinsicHeight = drawable
+                                .getIntrinsicHeight();
+                        if (intrinsicWidth > 0 && intrinsicHeight > 0)
+                        {
+                            double scale = Math.min(maxWidth / intrinsicWidth,
+                                    maxHeight / intrinsicHeight);
+                            drawable.setBounds(0, 0,
+                                    (int) (intrinsicWidth * scale),
+                                    (int) (intrinsicHeight * scale));
+                        }
+                    }
+                }
+                else
+                {
+                    drawable = Drawable.createFromStream(
+                            MyAppParams.getInstance().getResources()
+                                    .openRawResource(R.drawable.icon_news_bg2),
+                            "");
+                    drawable.setBounds(0, 0, maxWidth, maxWidth / 2);
+                }
             }
             catch (Exception e)
             {
-                e.printStackTrace();
-                return null;
+                System.out.println("not found " + source);
+                drawable = Drawable
+                        .createFromStream(
+                                MyAppParams
+                                        .getInstance()
+                                        .getResources()
+                                        .openRawResource(
+                                                R.drawable.icon_not_found), "");
+                drawable.setBounds(0, 0, maxWidth, maxWidth / 2);
+
             }
-            final int intrinsicWidth = drawable.getIntrinsicWidth();
-            final int intrinsicHeight = drawable.getIntrinsicHeight();
-            if (drawable != null && intrinsicWidth > 0 && intrinsicHeight > 0)
-            {
-                double scale = Math.min(maxWidth / intrinsicWidth, maxHeight
-                        / intrinsicHeight);
-                drawable.setBounds(0, 0, (int) (intrinsicWidth * scale),
-                        (int) (intrinsicHeight * scale));
-            }
+
             return drawable;
         };
     };

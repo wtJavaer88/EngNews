@@ -12,6 +12,7 @@ public class DicWord
     private String word_er;
     private String word_est;
     private String cn_mean;
+    private String book_name;
 
     public String getTopic_id()
     {
@@ -111,6 +112,27 @@ public class DicWord
     public void setCn_mean(String cn_mean)
     {
         this.cn_mean = cn_mean;
+    }
+
+    public String getBook_name()
+    {
+        return book_name;
+    }
+
+    public void setBook_name(String book_name)
+    {
+        this.book_name = book_name;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "DicWord [topic_id=" + topic_id + ", base_word=" + base_word
+                + ", word_third=" + word_third + ", word_done=" + word_done
+                + ", word_pl=" + word_pl + ", word_ing=" + word_ing
+                + ", word_past=" + word_past + ", word_er=" + word_er
+                + ", word_est=" + word_est + ", cn_mean=" + cn_mean
+                + ", book_name=" + book_name + "]";
     }
 
 }

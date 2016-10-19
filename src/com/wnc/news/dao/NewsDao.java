@@ -3,6 +3,9 @@ package com.wnc.news.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -14,6 +17,7 @@ import common.uihelper.MyAppParams;
 public class NewsDao
 {
     static SQLiteDatabase database;
+    static Logger log = Logger.getLogger(NewsDao.class);
 
     public static void openDatabase()
     {
@@ -29,7 +33,8 @@ public class NewsDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error("", e);
+
         }
     }
 
@@ -56,7 +61,8 @@ public class NewsDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error("", e);
+
         }
         finally
         {
@@ -81,7 +87,8 @@ public class NewsDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(url, e);
+
         }
         finally
         {
@@ -104,20 +111,22 @@ public class NewsDao
                             { newsInfo.getTitle(), newsInfo.getUrl(),
                                     newsInfo.getSub_text(), newsInfo.getDate(),
                                     newsInfo.getHead_pic(),
-                                    newsInfo.getKeywords(),
+                                    newsInfo.getKeywords().toString(),
                                     newsInfo.getHtml_content(),
                                     newsInfo.getWebsite().getDb_id() });
                 }
                 catch (Exception e)
                 {
+                    log.error(newsInfo.getUrl(), e);
                     System.out.println(newsInfo.getUrl() + "插入异常");
-                    e.printStackTrace();
+
                 }
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error("新闻总条数:" + news.size(), e);
+
         }
         finally
         {
@@ -144,13 +153,15 @@ public class NewsDao
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    log.error("俱乐部名:" + club.getFull_name(), e);
+
                 }
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error("俱乐部总条数:" + clubs.size(), e);
+
         }
         finally
         {
@@ -164,8 +175,8 @@ public class NewsDao
         try
         {
             openDatabase();
-            String sql = "select * from news where url='" + url
-                    + "' order by date desc";
+            String sql = "select * from news where url='"
+                    + StringEscapeUtils.escapeSql(url) + "' order by date desc";
             Cursor c = database.rawQuery(sql, null);
             c.moveToFirst();
             while (!c.isAfterLast())
@@ -177,7 +188,8 @@ public class NewsDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(url, e);
+
         }
         finally
         {
@@ -192,7 +204,8 @@ public class NewsDao
         try
         {
             openDatabase();
-            String sql = "select * from club where full_name like '%" + team
+            String sql = "select * from club where full_name like '%"
+                    + StringEscapeUtils.escapeSql(team)
                     + "%' and league in(641,682,712,717)";
             Cursor c = database.rawQuery(sql, null);
             c.moveToFirst();
@@ -204,7 +217,8 @@ public class NewsDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(team, e);
+
         }
         finally
         {
@@ -233,7 +247,8 @@ public class NewsDao
             String f = "";
             for (String s : keys)
             {
-                f += " or url like '%" + s + "%'";
+                f += " or url like '%" + StringEscapeUtils.escapeSql(s.trim())
+                        + "%'";
             }
             String sql = "select * from news where 1=2 " + f
                     + " order by date desc";
@@ -251,13 +266,14 @@ public class NewsDao
                 info.setTitle(c.getString(c.getColumnIndex("title")));
                 info.setDate(c.getString(c.getColumnIndex("date")));
                 info.setDb_id(c.getString(c.getColumnIndex("id")));
+                info.setUrl(c.getString(c.getColumnIndex("url")));
                 list.add(info);
                 c.moveToNext();
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(url_filter, e);
         }
         finally
         {

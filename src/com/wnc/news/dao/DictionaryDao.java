@@ -1,8 +1,11 @@
 package com.wnc.news.dao;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 import word.DicWord;
 import word.Topic;
@@ -16,8 +19,9 @@ public class DictionaryDao
 {
     static SQLiteDatabase database;
     private static List<String> wordAndChars;
+    static Logger log = Logger.getLogger(DictionaryDao.class);
 
-    public static void openDatabase()
+    public static synchronized void openDatabase()
     {
         try
         {
@@ -27,11 +31,12 @@ public class DictionaryDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(e);
+
         }
     }
 
-    public static void closeDatabase()
+    public static synchronized void closeDatabase()
     {
         if (database != null)
         {
@@ -40,7 +45,7 @@ public class DictionaryDao
         }
     }
 
-    public static boolean isConnect()
+    public static synchronized boolean isConnect()
     {
         return database != null && database.isOpen();
     }
@@ -90,7 +95,8 @@ public class DictionaryDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(word, e);
+
         }
         finally
         {
@@ -109,7 +115,7 @@ public class DictionaryDao
         {
             openDatabase();
 
-            String sql = "select e.*,d.topic_word,d.mean_cn FROM word_exchange E LEFT JOIN dictionary D ON E.topic_id=D.topic_id";
+            String sql = "select * from topic_resource res left join dictionary dict on res.topic=dict.topic_id left join books on books.id=res.book_id LEFT JOIN word_exchange ex on ex.topic_id=res.topic order by book_id desc";
             Cursor c = database.rawQuery(sql, null);
             c.moveToFirst();
             while (!c.isAfterLast())
@@ -128,6 +134,8 @@ public class DictionaryDao
                 dicWord.setWord_pl(c.getString(c.getColumnIndex("word_pl")));
                 dicWord.setWord_past(c.getString(c.getColumnIndex("word_past")));
                 dicWord.setCn_mean(c.getString(c.getColumnIndex("mean_cn")));
+                dicWord.setBook_name(c.getString(c.getColumnIndex("name")));
+
                 cetDicWords.add(dicWord);
                 c.moveToNext();
             }
@@ -138,7 +146,7 @@ public class DictionaryDao
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error("", e);
         }
         finally
         {
@@ -146,72 +154,75 @@ public class DictionaryDao
         }
     }
 
-    public static Set<Topic> findCETWords(String dialog)
+    public static List<Topic> findCETWords(String dialog)
     {
-        Set<Topic> finds = new HashSet<Topic>();
-        wordAndChars = WordSplit
-                .getWordAndChars(dialog.replaceAll("<.*?>", ""));
-        for (String string : wordAndChars)
+        List<Topic> finds = new ArrayList<Topic>();
+        wordAndChars = WordSplit.getUniqueWords(dialog);
+        for (String word : wordAndChars)
         {
-            if (string.trim().length() > 3)
+            for (DicWord dw : cetDicWords)
             {
-                for (DicWord t : cetDicWords)
+                final Topic topic = new Topic();
+                topic.setTopic_id(dw.getTopic_id());
+                topic.setTopic_base_word(dw.getBase_word());
+                topic.setMean_cn(dw.getCn_mean());
+                topic.setBookName(dw.getBook_name());
+
+                if (hasFind(finds, word, dw.getBase_word(), topic, "base"))
                 {
-                    final Topic topic = new Topic();
-                    topic.setTopic_id(t.getTopic_id());
-                    topic.setTopic_base_word(t.getBase_word());
-                    topic.setMean_cn(t.getCn_mean());
-                    if (t.getBase_word().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getBase_word());
-                        topic.setState("base");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_er().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_er());
-                        topic.setState("word_er");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_done().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_done());
-                        topic.setState("word_done");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_est().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_est());
-                        topic.setState("word_est");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_ing().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_ing());
-                        topic.setState("word_ing");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_past().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_past());
-                        topic.setState("word_past");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_pl().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_pl());
-                        topic.setState("word_pl");
-                        finds.add(topic);
-                    }
-                    else if (t.getWord_third().equalsIgnoreCase(string.trim()))
-                    {
-                        topic.setMatched_word(t.getWord_third());
-                        topic.setState("word_third");
-                        finds.add(topic);
-                    }
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_er(), topic, "word_er"))
+                {
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_est(), topic,
+                        "word_est"))
+                {
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_done(), topic,
+                        "word_done"))
+                {
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_ing(), topic,
+                        "word_ing"))
+                {
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_past(), topic,
+                        "word_past"))
+                {
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_pl(), topic, "word_pl"))
+                {
+                    break;
+                }
+                else if (hasFind(finds, word, dw.getWord_third(), topic,
+                        "word_third"))
+                {
+                    break;
                 }
             }
         }
         return finds;
+    }
+
+    private static boolean hasFind(List<Topic> finds, String word,
+            String dwStr, final Topic topic, String desc)
+    {
+        if (dwStr != null && dwStr.equalsIgnoreCase(word))
+        {
+            topic.setMatched_word(word);
+            topic.setState(desc);
+            if (!finds.contains(topic))
+            {
+                finds.add(topic);
+            }
+            return true;
+        }
+        return false;
     }
 }

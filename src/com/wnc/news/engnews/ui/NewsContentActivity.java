@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.selectabletv.SelectableTextView;
 
+import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
@@ -15,11 +16,12 @@ import word.Topic;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,23 +32,32 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.engnews.R;
+import com.wnc.basic.BasicFileUtil;
+import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.api.autocache.CETTopicCache;
+import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
+import com.wnc.news.engnews.helper.SrtVoiceHelper;
 import com.wnc.news.engnews.helper.WordTipTextThread;
+import com.wnc.news.engnews.ui.MorePopWindow.WordMenuListener;
 import com.wnc.news.richtext.WebImgText;
+import com.wnc.string.PatternUtil;
 import common.app.BasicPhoneUtil;
+import common.uihelper.MyAppParams;
 import common.utils.JsoupHelper;
 
 public class NewsContentActivity extends Activity implements
         UncaughtExceptionHandler, OnClickListener
 {
+    static Logger log = Logger.getLogger(NewsContentActivity.class);
+
     public static final int MESSAGE_ON_WORD_DISPOSS_CODE = 100;
     TextView newsImgTv;
     List<Topic> allFind = new ArrayList<Topic>();
     public static NewsInfo news_info;
 
-    private Button topicListBt;
+    private Button topicListBt, wordMenuBtn;
     TextView wordTipTv;
 
     private SelectableTextView mTextView;
@@ -54,6 +65,7 @@ public class NewsContentActivity extends Activity implements
     private int mTouchY;
 
     WordTipTextThread wordTipTextThread;
+    MorePopWindow morePopWindow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -65,12 +77,19 @@ public class NewsContentActivity extends Activity implements
         wordTipTextThread = new WordTipTextThread(this);
         wordTipTextThread.start();
         initView();
-
         if (news_info != null)
         {
+            setTitle(news_info.getTitle());
             initData();
         }
 
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        morePopWindow.dismiss();
+        super.onDestroy();
     }
 
     private void initData()
@@ -81,15 +100,11 @@ public class NewsContentActivity extends Activity implements
             @Override
             public void run()
             {
-                if (BasicPhoneUtil.isWifiConnect(getApplicationContext()))
-                {
-                    Message msg2 = new Message();
-                    msg2.what = 2;
-                    msg2.obj = new WebImgText("<img src=\""
-                            + news_info.getHead_pic() + "\"/>")
-                            .getCharSequence();
-                    handler.sendMessage(msg2);
-                }
+                Message msg2 = new Message();
+                msg2.what = 2;
+                msg2.obj = new WebImgText("<img src=\""
+                        + news_info.getHead_pic() + "\"/>").getCharSequence();
+                handler.sendMessage(msg2);
             }
         }).start();
         new Thread(new Runnable()
@@ -104,17 +119,19 @@ public class NewsContentActivity extends Activity implements
                     if (news_info != null
                             && news_info.getHtml_content() != null)
                     {
-                        System.out.println("缓存数据");
+                        System.out.println("缓存数据字符数:"
+                                + news_info.getHtml_content().length());
+
                         String str = news_info.getCet_topics();
-                        try
+                        if (BasicStringUtil.isNotNullString(str))
                         {
                             allFind = JSONObject.parseArray(JSONObject
                                     .parseObject(str).getString("data"),
                                     Topic.class);
                         }
-                        catch (Exception e)
+                        else
                         {
-                            e.printStackTrace();
+                            log.error(news_info.getUrl() + " 没找到任何Topic!");
                         }
 
                         msg.obj = news_info.getHtml_content();
@@ -122,7 +139,7 @@ public class NewsContentActivity extends Activity implements
                     }
                     else
                     {
-                        System.out.println("解析网页");
+                        System.out.println("解析网页" + news_info.getUrl());
                         Document doc = JsoupHelper.getDocumentResult(news_info
                                 .getUrl());
                         contents = doc.select(news_info.getWebsite()
@@ -174,6 +191,7 @@ public class NewsContentActivity extends Activity implements
                 }
                 break;
             case 2:
+                System.out.println("hanlder.." + msg.obj);
                 newsImgTv.setText((CharSequence) msg.obj);
                 break;
             case MESSAGE_ON_WORD_DISPOSS_CODE:
@@ -228,10 +246,60 @@ public class NewsContentActivity extends Activity implements
 
     private void initView()
     {
+        morePopWindow = new MorePopWindow(this, new WordMenuListener()
+        {
+            @Override
+            public void doSound()
+            {
+                String voicePath = MyAppParams.VOICE_FOLDER + getCurrentWord()
+                        + ".mp3";
+                if (BasicFileUtil.isExistFile(voicePath))
+                {
+                    SrtVoiceHelper.play(voicePath);
+                }
+                else
+                {
+                    common.app.ToastUtil.showShortToast(
+                            getApplicationContext(), "找不到声音文件!");
+                    log.info("找不到声音文件:" + voicePath);
+                }
+            }
+
+            @Override
+            public void doCopy()
+            {
+                common.app.ClipBoardUtil
+                        .setNormalContent(getApplicationContext(), wordTipTv
+                                .getText().toString());
+                common.app.ToastUtil.showShortToast(getApplicationContext(),
+                        "操作成功!");
+            }
+
+            @Override
+            public void toNet()
+            {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse("http://m.iciba.com/" + getCurrentWord()));
+                startActivity(i);
+            }
+
+            @Override
+            public void doPassTopic()
+            {
+                BasicFileUtil.writeFileString(MyAppParams.PASS_TXT,
+                        getCurrentWord() + "\r\n", "UTF-8", true);
+                PassedTopicCache.getPassedTopics().add(getCurrentWord());
+                common.app.ToastUtil.showShortToast(getApplicationContext(),
+                        "操作成功!");
+                log.info("Pass: " + getCurrentWord());
+            }
+        });
+        wordMenuBtn = (Button) findViewById(R.id.btn_word_menu);
         topicListBt = (Button) findViewById(R.id.bt_topics);
         newsImgTv = (TextView) findViewById(R.id.tv_img);
         newsImgTv.setMovementMethod(LinkMovementMethod.getInstance());
 
+        wordMenuBtn.setOnClickListener(this);
         topicListBt.setOnClickListener(this);
         topicListBt.setVisibility(View.INVISIBLE);
         wordTipTv = (TextView) findViewById(R.id.tv_oneword_tip);
@@ -285,6 +353,12 @@ public class NewsContentActivity extends Activity implements
 
     }
 
+    private String getCurrentWord()
+    {
+        return PatternUtil.getFirstPatternGroup(wordTipTv.getText().toString(),
+                "\\w+");
+    }
+
     private void showSelectionCursors(int x, int y)
     {
         int start = mTextView.getPreciseOffset(x, y);
@@ -293,7 +367,7 @@ public class NewsContentActivity extends Activity implements
         {
             int end = start;
             CharSequence text = mTextView.getText();
-            while ((text.charAt(end) + "").matches("[0-9a-zA-Z]{1}"))
+            while ((text.charAt(end) + "").matches("[0-9a-zA-Z\\-]{1}"))
             {
                 end++;
                 if (end >= text.length())
@@ -304,7 +378,7 @@ public class NewsContentActivity extends Activity implements
 
             }
 
-            while ((text.charAt(start) + "").matches("[0-9a-zA-Z]{1}"))
+            while ((text.charAt(start) + "").matches("[0-9a-zA-Z\\-]{1}"))
             {
                 start--;
                 if (start < 0)
@@ -316,7 +390,7 @@ public class NewsContentActivity extends Activity implements
             mTextView.showSelectionControls(start + 1, end);
             CharSequence selectedText = mTextView.getCursorSelection()
                     .getSelectedText();
-            System.out.println("selectedText:" + selectedText);
+            log.info("selectedText:" + selectedText);
 
             wordTipTextThread.refresh();
             DicWord findWord = DictionaryDao.findWord(selectedText.toString());
@@ -326,17 +400,18 @@ public class NewsContentActivity extends Activity implements
                 wordTipTv.setText(findWord.getBase_word() + " "
                         + findWord.getCn_mean());
             }
+            else
+            {
+                wordTipTv.setVisibility(View.VISIBLE);
+                wordTipTv.setText(selectedText.toString());
+            }
         }
     }
 
     @Override
     public void uncaughtException(Thread arg0, Throwable ex)
     {
-        Log.i("AAA", "uncaughtException   " + ex);
-        for (StackTraceElement o : ex.getStackTrace())
-        {
-            System.out.println(o.toString());
-        }
+        log.error("uncaughtException", ex);
     }
 
     @Override
@@ -346,6 +421,10 @@ public class NewsContentActivity extends Activity implements
         {
         case R.id.bt_topics:
             showTopicList();
+            break;
+        case R.id.btn_word_menu:
+            wordTipTextThread.stopListen();
+            morePopWindow.showPopupWindow(wordMenuBtn);
             break;
         default:
             break;

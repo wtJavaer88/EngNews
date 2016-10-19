@@ -24,10 +24,20 @@
             android:visibility="invisible" />
 
         <Button
+            android:id="@+id/btn_word_menu"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="5dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/actionbar_more_icon" />
+
+        <Button
             android:id="@+id/bt_topics"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_marginTop="10dp"
             android:layout_alignParentRight="true"
+            android:layout_below="@+id/btn_word_menu"
             android:layout_centerVertical="true"
             android:background="@+color/red"
             android:text="3"

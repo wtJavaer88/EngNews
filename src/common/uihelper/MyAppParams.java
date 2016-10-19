@@ -14,9 +14,14 @@ public class MyAppParams
 
     private final static String workPath = Environment
             .getExternalStorageDirectory().getPath() + "/wnc/app/news/";
-    private String localLogPath;
     public final static String FAVORITE_TXT = workPath + "favorite.txt";
+    public final static String PASS_TXT = workPath + "pass.txt";
+
     public final static String NEWS_DB = workPath + "news.db";
+    public final static String VOICE_FOLDER = Environment
+            .getExternalStorageDirectory().getPath() + "/wnc/res/voice/";
+    public final static String LOG_FOLDER = workPath + "/logs/";
+
     public final static String DICTIONARY_DB = Environment
             .getExternalStorageDirectory().getPath()
             + "/wnc/app/srtlearn/dictionary.db";
@@ -35,13 +40,12 @@ public class MyAppParams
 
     private MyAppParams()
     {
-        this.localLogPath = this.workPath + "log/";
         this.backupDbPath = this.workPath + "backupdb/";
 
         this.zipPath = this.workPath + "zip/";
 
-        BasicFileUtil.makeDirectory(this.localLogPath);
         BasicFileUtil.makeDirectory(this.backupDbPath);
+        BasicFileUtil.makeDirectory(LOG_FOLDER);
         BasicFileUtil.makeDirectory(this.zipPath);
     }
 
@@ -129,11 +133,6 @@ public class MyAppParams
     public String getWorkPath()
     {
         return this.workPath;
-    }
-
-    public String getLocalLogPath()
-    {
-        return this.localLogPath;
     }
 
     public String getAppPath()

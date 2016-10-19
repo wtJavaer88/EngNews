@@ -6,7 +6,7 @@ import com.wnc.news.engnews.ui.NewsContentActivity;
 
 public class WordTipTextThread extends Thread
 {
-    int DISPOSS_TIME = 5000;
+    int DISPOSS_TIME = 6000;
     int process = 0;
     private static final int SLEEP_TIME = 500;
     NewsContentActivity activity;

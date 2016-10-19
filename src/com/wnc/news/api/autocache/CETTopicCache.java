@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
 
 import word.Topic;
 
@@ -16,9 +19,23 @@ import com.wnc.news.dao.NewsDao;
 
 public class CETTopicCache
 {
+    Logger log = Logger.getLogger(CETTopicCache.class);
+
     boolean isShutdown = false;
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors
             .newFixedThreadPool(3);
+
+    /**
+     * 在找词算法改变的时候,重新算,万不得已不用
+     */
+    public void update()
+    {
+        List<NewsInfo> findAllNews = NewsDao.findAllNews(" ");
+        log.info("待更新新闻数目:" + findAllNews.size());
+        executeTasks(findAllNews);
+        shutdown();
+        ifOver();
+    }
 
     public synchronized void executeTasks(List<NewsInfo> allNews)
     {
@@ -32,6 +49,11 @@ public class CETTopicCache
                     @Override
                     public void run()
                     {
+                        if (info.getCet_topics() != null
+                                && info.getCet_topics().length() > 10)
+                        {
+                            return;
+                        }
                         if (BasicStringUtil.isNotNullString(info
                                 .getHtml_content()))
                         {
@@ -57,33 +79,43 @@ public class CETTopicCache
     public void shutdown()
     {
         isShutdown = true;
+        executor.shutdown();
     }
 
     public String splitArticle(String article, List<Topic> allFind)
     {
         String ret = "";
-        Set<Topic> set = DictionaryDao.findCETWords(article.replace(
-                "target=\"_blank\"", ""));
-        if (set.size() == 0)
+        List<Topic> list = DictionaryDao.findCETWords(article.replaceAll(
+                "<.*?>", ""));
+        article = removeHtmlAttribute(article);
+        if (list.size() == 0)
         {
             ret = article;
         }
         else
         {
-            for (Topic topic : set)
+            Set<String> passedTopics = PassedTopicCache.getPassedTopics();
+            // 去掉已经过关的单词
+            for (Topic topic : list)
             {
-                if (!allFind.contains(topic))
+                if (!passedTopics.contains(topic.getTopic_base_word())
+                        && !allFind.contains(topic))
                 {
                     allFind.add(topic);
                 }
             }
-            ret = getDealResult(article, set);
-
+            ret = getDealResult(article, allFind);
         }
         return ret;
     }
 
-    private String getDealResult(String aString, Set<Topic> keys)
+    private String removeHtmlAttribute(String article)
+    {
+        return article.replaceAll("<a.*?(href=\".*?\").*?>", "<a $1>")
+                .replaceAll("<p.*?>", "<p>").replaceAll("<img.*?>", "");
+    }
+
+    private String getDealResult(String aString, List<Topic> keys)
     {
         StringBuilder result = new StringBuilder();
         int openTag = aString.indexOf("<a ");
@@ -93,8 +125,16 @@ public class CETTopicCache
             closeTag = aString.indexOf("</a>") + 4;
             String left = aString.substring(0, openTag);
             result.append(deal(left, keys));
-            result.append(aString.substring(openTag, closeTag));
-            aString = aString.substring(closeTag);
+            if (closeTag > openTag)
+            {
+                result.append(aString.substring(openTag, closeTag));
+                aString = aString.substring(closeTag);
+            }
+            else
+            {
+                // 如果出现异常情况,先有</a>后有<a>
+                aString = aString.substring(openTag);
+            }
 
             openTag = aString.indexOf("<a ");
         }
@@ -102,7 +142,7 @@ public class CETTopicCache
         return result.toString();
     }
 
-    private String deal(String s, Set<Topic> keys)
+    protected String deal(String s, List<Topic> keys)
     {
         for (Topic key : keys)
         {
@@ -111,5 +151,28 @@ public class CETTopicCache
                     + matched_word + "\">" + matched_word + "</a>");
         }
         return s;
+    }
+
+    public void ifOver()
+    {
+        waiting();
+        log.info("全部Topic结束!");
+    }
+
+    protected void waiting()
+    {
+        try
+        {
+            boolean loop = true;
+            do
+            { // 等待所有任务完成
+                loop = !executor.awaitTermination(2, TimeUnit.SECONDS); // 阻塞，直到线程池里所有任务结束
+            }
+            while (loop);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 }

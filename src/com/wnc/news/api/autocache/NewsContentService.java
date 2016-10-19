@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
@@ -18,6 +19,7 @@ public class NewsContentService
             .newFixedThreadPool(5);
     List<NewsInfo> allNews;
     List<NewsInfo> allNews2 = new ArrayList<NewsInfo>();
+    static Logger log = Logger.getLogger(NewsContentService.class);
 
     public NewsContentService(List<NewsInfo> allNews)
     {
@@ -34,14 +36,15 @@ public class NewsContentService
                 @Override
                 public void run()
                 {
-                    System.out.println(info.getUrl());
+                    System.out.println();
+                    log.info("获取新闻内容:" + info.getUrl());
                     Document doc;
                     try
                     {
                         doc = JsoupHelper.getDocumentResult(info.getUrl());
                         final Elements contents = doc.select(info.getWebsite()
                                 .getNews_class());
-                        if (contents != null)
+                        if (contents != null && contents.text().length() > 200)
                         {
                             info.setHtml_content(contents.toString());
                             allNews2.add(info);
@@ -49,6 +52,7 @@ public class NewsContentService
                     }
                     catch (Exception e)
                     {
+                        log.error(info.getUrl(), e);
                         e.printStackTrace();
                     }
                 }
@@ -60,7 +64,8 @@ public class NewsContentService
     public List<NewsInfo> getResult()
     {
         waiting();
-        System.out.println("allNews.size():" + allNews.size());
+        log.info("原有总数:" + allNews.size() + "  NewsContentService获取到的完整新闻数:"
+                + allNews2.size());
         return allNews2;
     }
 
