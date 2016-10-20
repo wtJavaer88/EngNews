@@ -206,8 +206,8 @@ public class NewsContentActivity extends Activity implements
                 break;
             case MESSAGE_ON_WORD_DISPOSS_CODE:
                 System.out.println("自动清空!");
-                wordTipTv.setVisibility(View.INVISIBLE);
-                wordMenuBtn.setVisibility(View.GONE);
+                hideVirtualBts();
+                hideWordZone();
                 break;
             default:
                 break;
@@ -369,12 +369,7 @@ public class NewsContentActivity extends Activity implements
         topicListBt.setOnClickListener(this);
         topicListBt.setVisibility(View.INVISIBLE);
         wordTipTv = (TextView) findViewById(R.id.tv_oneword_tip);
-        // newsContentTv.append(new NormalText("阿森纳扎卡").getCharSequence());
-        // newsContentTv.append(new
-        // HtmlRichText("<a href=\"http://www.squawka.com/news/arsenals-granit-xhaka-admits-being-a-football-freak-hell-even-watch-league-one/797163\">点击详情</a>").getCharSequence());
-        // newsContentTv.append(new ClickableWordRichText(this,
-        // " despite ").getCharSequence());
-        // newsContentTv.append("\n");
+
         mTextView = (SelectableTextView) findViewById(R.id.tv_content);
         mTextView.setMovementMethod(LinkMovementMethod.getInstance());
         mTextView.setDefaultSelectionColor(0x40FF00FF);
@@ -405,6 +400,8 @@ public class NewsContentActivity extends Activity implements
             @Override
             public void onClick(View arg0)
             {
+                wordTipTextThread.refresh();
+                hideWordZone();
                 hideCursor();
             }
         });
@@ -546,7 +543,8 @@ public class NewsContentActivity extends Activity implements
                 wordTipTv.setVisibility(View.VISIBLE);
                 wordTipTv.setText(selectedText);
                 wordMenuBtn.setVisibility(View.VISIBLE);
-                wordMenuPopWindow.showPopupWindow(wordMenuBtn);
+                wordTipTextThread.stopListen();
+                wordMenuPopWindow.showPopupWindow(topicListBt);
             }
         }
     }

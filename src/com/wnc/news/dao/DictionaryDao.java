@@ -55,12 +55,12 @@ public class DictionaryDao
     public synchronized static DicWord findWord(String word)
     {
         DicWord dicWord = null;
-        word = word.toLowerCase();
+        word = word.toLowerCase().toString();
         try
         {
             openDatabase();
 
-            String sql = "select e.*,d.topic_word,d.mean_cn FROM  dictionary D LEFT JOIN word_exchange E  ON E.topic_id=D.topic_id where topic_word='"
+            String sql = "select e.*,d.topic_word,d.mean_cn FROM  dictionary D LEFT JOIN word_exchange E  ON E.topic_id=D.topic_id where LOWER(topic_word)='"
                     + word
                     + "' or  word_third='"
                     + word

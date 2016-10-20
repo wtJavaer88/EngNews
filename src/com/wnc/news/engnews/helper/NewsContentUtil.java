@@ -32,8 +32,17 @@ public class NewsContentUtil
      */
     public static String getSuitWord(SelectableTextView mTextView, int start)
     {
+
+        String text = mTextView.getText().toString();
+        while (!(text.charAt(start) + "").matches("[0-9a-zA-Z]{1}"))
+        {
+            start++;
+        }
+        if (start >= text.length())
+        {
+            return "";
+        }
         int end = start;
-        CharSequence text = mTextView.getText();
         while ((text.charAt(end) + "").matches("[0-9a-zA-Z]{1}"))
         {
             end++;
@@ -44,7 +53,6 @@ public class NewsContentUtil
             }
 
         }
-
         while ((text.charAt(start) + "").matches("[0-9a-zA-Z]{1}"))
         {
             start--;
@@ -53,7 +61,7 @@ public class NewsContentUtil
                 break;
             }
         }
-
+        // 主要是调动CursorHand小手的位置
         mTextView.showSelectionControls(start + 1, end);
         return mTextView.getCursorSelection().getSelectedText().toString();
     }

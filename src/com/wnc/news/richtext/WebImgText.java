@@ -23,8 +23,8 @@ public class WebImgText implements RichText
         return Html.fromHtml(this.text, imageGetter, null);
     }
 
-    final int maxWidth = 800;
-    int maxHeight = 500;
+    final int maxWidth = (int) (MyAppParams.getScreenWidth() * 0.8);
+    int maxHeight = (int) (maxWidth * 0.625);
 
     final Html.ImageGetter imageGetter = new Html.ImageGetter()
     {
