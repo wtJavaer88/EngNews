@@ -118,7 +118,6 @@ public class NewsListActivity extends ListActivity
     @Override
     protected void onListItemClick(ListView lv, View v, int position, long id)
     {
-        setTitle("你点击第" + position + "行");
         HashMap<String, Object> map = (HashMap<String, Object>) lv
                 .getItemAtPosition(position);
         NewsContentActivity.news_info = (NewsInfo) map.get("news_info");

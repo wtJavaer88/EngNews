@@ -5,7 +5,6 @@ import java.net.URL;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
 
-import com.example.engnews.R;
 import common.app.BasicPhoneUtil;
 import common.uihelper.MyAppParams;
 
@@ -25,7 +24,7 @@ public class WebImgText implements RichText
     }
 
     final int maxWidth = 800;
-    int maxHeight = 600;
+    int maxHeight = 500;
 
     final Html.ImageGetter imageGetter = new Html.ImageGetter()
     {
@@ -61,24 +60,24 @@ public class WebImgText implements RichText
                 }
                 else
                 {
-                    drawable = Drawable.createFromStream(
-                            MyAppParams.getInstance().getResources()
-                                    .openRawResource(R.drawable.icon_news_bg2),
-                            "");
-                    drawable.setBounds(0, 0, maxWidth, maxWidth / 2);
+                    // drawable = Drawable.createFromStream(
+                    // MyAppParams.getInstance().getResources()
+                    // .openRawResource(R.drawable.icon_news_bg2),
+                    // "");
+                    // drawable.setBounds(0, 0, maxWidth, maxWidth / 2);
                 }
             }
             catch (Exception e)
             {
                 System.out.println("not found " + source);
-                drawable = Drawable
-                        .createFromStream(
-                                MyAppParams
-                                        .getInstance()
-                                        .getResources()
-                                        .openRawResource(
-                                                R.drawable.icon_not_found), "");
-                drawable.setBounds(0, 0, maxWidth, maxWidth / 2);
+                // drawable = Drawable
+                // .createFromStream(
+                // MyAppParams
+                // .getInstance()
+                // .getResources()
+                // .openRawResource(
+                // R.drawable.icon_not_found), "");
+                // drawable.setBounds(0, 0, maxWidth, maxWidth / 2);
 
             }
 

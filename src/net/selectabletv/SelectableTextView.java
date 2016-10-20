@@ -101,6 +101,11 @@ public class SelectableTextView extends TextView
 
     }
 
+    public int[] getCursorPoint()
+    {
+        return mTempCoords;
+    }
+
     @Override
     protected void onAttachedToWindow()
     {
@@ -1086,6 +1091,11 @@ public class SelectableTextView extends TextView
             {
                 mIsDragging = false;
                 mController.snapToSelection();
+                if (SelectableTextView.this.mOnCursorStateChangedListener != null)
+                {
+                    SelectableTextView.this.mOnCursorStateChangedListener
+                            .onDragStop(SelectableTextView.this);
+                }
                 break;
             }
             case MotionEvent.ACTION_MOVE:
@@ -1183,6 +1193,8 @@ public class SelectableTextView extends TextView
          *            the view the cursor belongs to
          */
         public void onHideCursors(View v);
+
+        public void onDragStop(View v);
 
         /**
          * What to do when the cursors show

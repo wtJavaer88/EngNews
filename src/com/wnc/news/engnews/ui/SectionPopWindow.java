@@ -7,22 +7,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 
 import com.example.engnews.R;
 
-public class MorePopWindow extends PopupWindow implements OnClickListener
+public class SectionPopWindow extends PopupWindow implements OnClickListener
 {
     private View conentView;
-    WordMenuListener menuListener;
+    WordSectionListener sectionListener;
 
-    public MorePopWindow(final Activity context, WordMenuListener menuListener)
+    public SectionPopWindow(final Activity context,
+            WordSectionListener sectionListener)
     {
-        this.menuListener = menuListener;
+        this.sectionListener = sectionListener;
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        conentView = inflater.inflate(R.layout.more_popup_dialog, null);
+        conentView = inflater.inflate(R.layout.section_popup_dialog, null);
         int w = common.app.BasicPhoneUtil.getScreenWidth(context);
         // 设置SelectPicPopupWindow的View
         this.setContentView(conentView);
@@ -43,29 +43,21 @@ public class MorePopWindow extends PopupWindow implements OnClickListener
         // 设置SelectPicPopupWindow弹出窗体动画效果
         this.setAnimationStyle(R.style.AnimationPreview);
 
-        LinearLayout layout1 = (LinearLayout) conentView
-                .findViewById(R.id.layout_word_sound);
-        LinearLayout layout2 = (LinearLayout) conentView
-                .findViewById(R.id.layout_word_copy);
-        LinearLayout layout3 = (LinearLayout) conentView
-                .findViewById(R.id.layout_word_net);
-        LinearLayout layout4 = (LinearLayout) conentView
-                .findViewById(R.id.layout_word_pass);
-        layout1.setOnClickListener(this);
-        layout2.setOnClickListener(this);
-        layout3.setOnClickListener(this);
-        layout4.setOnClickListener(this);
+        conentView.findViewById(R.id.layout_section_fav).setOnClickListener(
+                this);
+        conentView.findViewById(R.id.layout_section_copy).setOnClickListener(
+                this);
+        conentView.findViewById(R.id.layout_section_translate)
+                .setOnClickListener(this);
     }
 
-    public interface WordMenuListener
+    public interface WordSectionListener
     {
         public void doCopy();
 
-        public void doSound();
+        public void doFavorite();
 
-        public void toNet();
-
-        public void doPassTopic();
+        public void doTranslate();
     }
 
     public void showPopupWindow(View parent)
@@ -85,31 +77,25 @@ public class MorePopWindow extends PopupWindow implements OnClickListener
     {
         switch (v.getId())
         {
-        case R.id.layout_word_sound:
-            System.out.println("发音");
-            if (menuListener != null)
+        case R.id.layout_section_fav:
+            System.out.println("收藏");
+            if (sectionListener != null)
             {
-                menuListener.doSound();
+                sectionListener.doFavorite();
             }
             break;
-        case R.id.layout_word_copy:
+        case R.id.layout_section_copy:
             System.out.println("复制");
-            if (menuListener != null)
+            if (sectionListener != null)
             {
-                menuListener.doCopy();
+                sectionListener.doCopy();
             }
             break;
-        case R.id.layout_word_net:
-            System.out.println("网络");
-            if (menuListener != null)
+        case R.id.layout_section_translate:
+            System.out.println("翻译");
+            if (sectionListener != null)
             {
-                menuListener.toNet();
-            }
-            break;
-        case R.id.layout_word_pass:
-            if (menuListener != null)
-            {
-                menuListener.doPassTopic();
+                sectionListener.doTranslate();
             }
             break;
         default:

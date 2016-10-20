@@ -27,7 +27,7 @@ public class CETTopicUpdate
      */
     public void update()
     {
-        List<NewsInfo> findAllNews = NewsDao.findAllNews(" ");
+        List<NewsInfo> findAllNews = NewsDao.findErrContentNews();
         System.out.println(findAllNews.size());
         executeTasks(findAllNews);
         shutdown();
@@ -77,9 +77,9 @@ public class CETTopicUpdate
                                     needRemoveTopics.add(topic);
                                 }
                             }
-                            // System.out.println(info.getUrl()
-                            // + " needRemoveTopics:"
-                            // + needRemoveTopics.size());
+                            System.out.println(info.getUrl()
+                                    + " needRemoveTopics:"
+                                    + needRemoveTopics.size());
                             if (needRemoveTopics.size() > 0)
                             {
                                 String newContent = splitArticle(
@@ -100,6 +100,38 @@ public class CETTopicUpdate
                                         newContent, jobj.toString());
                                 // System.out.println(newContent);
                                 // System.out.println(jobj);
+                            }
+                            else
+                            {
+                                String s = info.getHtml_content();
+                                System.out.println(info.getTitle() + " "
+                                        + s.length());
+                                int i = s.indexOf("<a href=\">");
+                                if (i == -1)
+                                {
+                                    return;
+                                }
+
+                                int j = 0;
+                                String newstr = "";
+                                while (i > -1)
+                                {
+                                    j = s.substring(i).indexOf("</a>") + i;
+                                    if (j > -1)
+                                    {
+                                        newstr += s.substring(0, i)
+                                                + s.substring(i + 10, j);
+                                        s = s.substring(j + 4);
+                                    }
+                                    else
+                                    {
+                                        s = s.substring(i + 10);
+                                    }
+                                    i = s.indexOf("<a href=\">");
+                                }
+                                newstr += s;
+                                System.out.println(newstr.length());
+                                NewsDao.updateContent(info.getUrl(), newstr);
                             }
                         }
                     }

@@ -96,6 +96,30 @@ public class NewsDao
         }
     }
 
+    public synchronized static void updateContent(String url, String newContent)
+    {
+        try
+        {
+            openDatabase();
+            ContentValues cv = new ContentValues();
+            cv.put("html_content", newContent);
+            if (database.update("news", cv, "url = ?", new String[]
+            { url }) == 1)
+            {
+                System.out.println("成功更新");
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(url, e);
+
+        }
+        finally
+        {
+            closeDatabase();
+        }
+    }
+
     public synchronized static void insertNews(List<NewsInfo> news)
     {
         try
@@ -251,7 +275,7 @@ public class NewsDao
                         + "%'";
             }
             String sql = "select * from news where 1=2 " + f
-                    + " order by date desc";
+                    + " order by date desc ";
             Cursor c = database.rawQuery(sql, null);
             c.moveToFirst();
             NewsInfo info = new NewsInfo();
@@ -274,6 +298,48 @@ public class NewsDao
         catch (Exception e)
         {
             log.error(url_filter, e);
+        }
+        finally
+        {
+            closeDatabase();
+        }
+        return list;
+    }
+
+    /**
+     * 有的有点错误
+     * 
+     * @return
+     */
+    public static List<NewsInfo> findErrContentNews()
+    {
+        List<NewsInfo> list = new ArrayList<NewsInfo>();
+        try
+        {
+            openDatabase();
+            String sql = "select * from news where  html_content like '%<a href=\">%' order by date desc";
+            Cursor c = database.rawQuery(sql, null);
+            c.moveToFirst();
+            NewsInfo info = new NewsInfo();
+            while (!c.isAfterLast())
+            {
+                info = new NewsInfo();
+                info.setHtml_content(c.getString(c
+                        .getColumnIndex("html_content")));
+                info.setCet_topics(c.getString(c.getColumnIndex("cet_topics")));
+                info.setHead_pic(c.getString(c.getColumnIndex("head_pic")));
+                info.setSub_text(c.getString(c.getColumnIndex("sub_text")));
+                info.setTitle(c.getString(c.getColumnIndex("title")));
+                info.setDate(c.getString(c.getColumnIndex("date")));
+                info.setDb_id(c.getString(c.getColumnIndex("id")));
+                info.setUrl(c.getString(c.getColumnIndex("url")));
+                list.add(info);
+                c.moveToNext();
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("findall", e);
         }
         finally
         {
