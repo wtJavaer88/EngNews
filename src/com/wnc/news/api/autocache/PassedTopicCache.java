@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import com.wnc.news.service.NewsContentService;
 import com.wnc.tools.FileOp;
 import common.uihelper.MyAppParams;
 

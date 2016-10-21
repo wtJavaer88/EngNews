@@ -228,12 +228,6 @@ public class NewsContentActivity extends Activity implements
         }
     }
 
-    private void hideWordZone()
-    {
-        wordMenuBtn.setVisibility(View.GONE);
-        wordTipTv.setVisibility(View.INVISIBLE);
-    }
-
     @SuppressLint("NewApi")
     private void showTopicList()
     {
@@ -335,25 +329,29 @@ public class NewsContentActivity extends Activity implements
                 Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setData(Uri
                         .parse("http://fanyi.baidu.com/translate?aldtype=16047&query=&keyfrom=baidu&smartresult=dict&lang=auto2zh#en/zh/"
-                                + getCurrentSection()));
+                                + getCurrentSectionAndSetPos()));
                 startActivity(i);
+                log.info("翻译: " + getCurrentSectionAndSetPos());
             }
 
             @Override
             public void doFavorite()
             {
-                System.out.println(getCurrentSection());
-                // BasicFileUtil.writeFileString(MyAppParams.PASS_TXT,
-                // getCurrentSection() + "\r\n", "UTF-8", true);
+                System.out.println(getCurrentSectionAndSetPos());
+                BasicFileUtil.writeFileString(MyAppParams.FAVORITE_TXT,
+                        getCurrentSectionAndSetPos() + "\r\n", "UTF-8", true);
                 common.app.ToastUtil.showShortToast(getApplicationContext(),
                         "操作成功!");
-                log.info("收藏成功: ");
+                log.info("收藏成功: " + getCurrentSectionAndSetPos());
             }
 
             @Override
             public void doCopy()
             {
-
+                common.app.ClipBoardUtil.setNormalContent(
+                        getApplicationContext(), getCurrentSectionAndSetPos());
+                common.app.ToastUtil.showShortToast(getApplicationContext(),
+                        "操作成功!");
             }
         });
         newsMenuBtn = (ImageButton) findViewById(R.id.imgbt_news_menu);
@@ -446,6 +444,7 @@ public class NewsContentActivity extends Activity implements
                         if (selectedText.contains(" "))
                         {
                             hideWordZone();
+                            getCurrentSectionAndSetPos();
 
                             final int h = common.app.BasicPhoneUtil
                                     .getScreenHeight(NewsContentActivity.this);
@@ -465,6 +464,10 @@ public class NewsContentActivity extends Activity implements
                                 sectionPopWindow.showAtLocation(mTextView,
                                         Gravity.CENTER, 0, 0);
                             }
+                        }
+                        else
+                        {
+                            showWordZone(selectedText);
                         }
                     }
                 });
@@ -526,27 +529,37 @@ public class NewsContentActivity extends Activity implements
 
         if (start > -1)
         {
-            String selectedText = NewsContentUtil.getSuitWord(mTextView, start);
+            String selectedText = NewsContentUtil.getSuitWordAndSetPos(
+                    mTextView, start);
             log.info("selectedText:" + selectedText);
 
             wordTipTextThread.refresh();
             DicWord findWord = DictionaryDao.findWord(selectedText);
             if (findWord != null)
             {
-                wordTipTv.setVisibility(View.VISIBLE);
-                wordTipTv.setText(findWord.getBase_word() + " "
+                showWordZone(findWord.getBase_word() + " "
                         + findWord.getCn_mean());
-                wordMenuBtn.setVisibility(View.VISIBLE);
             }
             else
             {
-                wordTipTv.setVisibility(View.VISIBLE);
-                wordTipTv.setText(selectedText);
-                wordMenuBtn.setVisibility(View.VISIBLE);
+                showWordZone(selectedText);
                 wordTipTextThread.stopListen();
                 wordMenuPopWindow.showPopupWindow(topicListBt);
             }
         }
+    }
+
+    private void hideWordZone()
+    {
+        wordMenuBtn.setVisibility(View.INVISIBLE);
+        wordTipTv.setVisibility(View.INVISIBLE);
+    }
+
+    private void showWordZone(String text)
+    {
+        wordTipTv.setVisibility(View.VISIBLE);
+        wordTipTv.setText(text);
+        wordMenuBtn.setVisibility(View.VISIBLE);
     }
 
     private void setNewsTitle(String title)
@@ -598,11 +611,11 @@ public class NewsContentActivity extends Activity implements
                 "\\w+");
     }
 
-    private String getCurrentSection()
+    private String getCurrentSectionAndSetPos()
     {
-        return NewsContentUtil.getSection(mTextView.getText().toString(),
-                mTextView.getCursorSelection().getStart(), mTextView
-                        .getCursorSelection().getEnd());
+        return NewsContentUtil.getSectionAndSetPos(mTextView, mTextView
+                .getCursorSelection().getStart(), mTextView
+                .getCursorSelection().getEnd());
     }
 
     public Handler getHandler()

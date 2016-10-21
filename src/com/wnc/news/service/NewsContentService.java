@@ -1,4 +1,4 @@
-package com.wnc.news.api.autocache;
+package com.wnc.news.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,7 @@ public class NewsContentService
             .newFixedThreadPool(5);
     List<NewsInfo> allNews;
     List<NewsInfo> allNews2 = new ArrayList<NewsInfo>();
+    List<NewsInfo> news_lost = new ArrayList<NewsInfo>();
     static Logger log = Logger.getLogger(NewsContentService.class);
 
     public NewsContentService(List<NewsInfo> allNews)
@@ -48,6 +49,10 @@ public class NewsContentService
                             info.setHtml_content(contents.toString());
                             allNews2.add(info);
                         }
+                        else
+                        {
+                            news_lost.add(info);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -63,7 +68,13 @@ public class NewsContentService
     public List<NewsInfo> getResult()
     {
         waiting();
-        log.info("原有总数:" + allNews.size() + "  获取到的完整新闻数:" + allNews2.size());
+        final int size1 = allNews.size();
+        final int size2 = allNews2.size();
+        log.info("原有总数:" + size1 + "  获取到的完整新闻数:" + size2);
+        if (news_lost.size() > 0)
+        {
+            log.error("有些新闻内容为空或者过短:" + news_lost);
+        }
         return allNews2;
     }
 

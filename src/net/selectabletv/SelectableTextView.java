@@ -210,7 +210,10 @@ public class SelectableTextView extends TextView
      */
     public void removeSelection()
     {
-        mCursorSelection.remove();
+        if (mCursorSelection != null)
+        {
+            mCursorSelection.remove();
+        }
     }
 
     public void removeSelection(int delay)
@@ -243,8 +246,8 @@ public class SelectableTextView extends TextView
     }
 
     /**
-     * show the selection cursors and select the text between the specified
-     * offset
+     * show the selection cursors and select the text between the specified and
+     * remove previous one offset
      * 
      * @param start
      *            the start offset
@@ -257,7 +260,7 @@ public class SelectableTextView extends TextView
         assert (end >= 0);
         assert (start < getText().length());
         assert (end < getText().length());
-
+        removeSelection();
         mSelectionController.show(start, end);
     }
 
@@ -826,11 +829,11 @@ public class SelectableTextView extends TextView
         {
             if (mIsShowing)
             {
+                System.out.println("mIsShowing");
                 SelectableTextView.this.removeSelection();
                 mStartHandle.hide();
                 mEndHandle.hide();
                 mIsShowing = false;
-
                 if (mOnCursorStateChangedListener != null)
                 {
                     mOnCursorStateChangedListener

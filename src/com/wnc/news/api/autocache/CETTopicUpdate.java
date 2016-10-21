@@ -31,7 +31,7 @@ public class CETTopicUpdate
     public void update()
     {
         List<NewsInfo> findAllNews = NewsDao.findAllNewsWithUrlFilter("");
-        // System.out.println("findErrContentNews数目:" + findAllNews.size());
+        System.out.println("所有新闻数目:" + findAllNews.size());
         executeTasks(findAllNews);
         shutdown();
         ifOver();
@@ -80,8 +80,7 @@ public class CETTopicUpdate
                                     needRemoveTopics.add(topic);
                                 }
                             }
-                            System.out.println(info.getUrl()
-                                    + " needRemoveTopics:"
+                            log.info(info.getUrl() + " needRemoveTopics:"
                                     + needRemoveTopics.size());
                             if (needRemoveTopics.size() > 0)
                             {
@@ -107,8 +106,9 @@ public class CETTopicUpdate
                             else
                             {
                                 String s = info.getHtml_content();
-                                System.out.println(info.getTitle() + " "
-                                        + s.length());
+                                // System.out.println(info.getTitle() +
+                                // " 新闻html长度"
+                                // + s.length());
                                 int i = s.indexOf("<a href=\">");
                                 if (i == -1)
                                 {

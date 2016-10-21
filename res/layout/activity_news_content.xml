@@ -31,11 +31,11 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dip"
-                android:ellipsize="marquee" 
-        android:focusable="true" 
-        android:focusableInTouchMode="true"
-        android:marqueeRepeatLimit="marquee_forever" 
-        android:scrollHorizontally="true"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
                 android:singleLine="true"
                 android:textColor="@color/white"
                 android:textSize="15sp" />
@@ -75,8 +75,8 @@
             android:layout_height="30dp"
             android:layout_alignParentRight="true"
             android:layout_marginTop="5dp"
-            android:visibility="gone"
-            android:background="@drawable/actionbar_more_icon" />
+            android:background="@drawable/actionbar_more_icon"
+            android:visibility="invisible" />
 
         <Button
             android:id="@+id/bt_topics"
@@ -84,8 +84,8 @@
             android:layout_height="30dp"
             android:layout_alignParentRight="true"
             android:layout_below="@+id/btn_word_menu"
-            android:layout_marginTop="10dp"            
             android:layout_centerVertical="true"
+            android:layout_marginTop="10dp"
             android:background="@+color/red"
             android:visibility="visible" />
     </RelativeLayout>

@@ -52,7 +52,7 @@ public class MainActivity extends Activity implements OnClickListener,
             public void run()
             {
                 SysInit.init(MainActivity.this);
-                // new NewsTest().topicUpdate();
+                new NewsTest().topicUpdate();
 
                 // new NewsTest().test();
             }

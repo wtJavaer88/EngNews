@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 
-import com.wnc.news.api.autocache.NewsContentService;
 import com.wnc.news.api.common.AbstractHtmlPicker;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.TeamApi;
+import com.wnc.news.service.NewsContentService;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
 
