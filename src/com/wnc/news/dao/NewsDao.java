@@ -12,44 +12,41 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.wnc.news.api.common.Club;
 import com.wnc.news.api.common.NewsInfo;
-import common.uihelper.MyAppParams;
+import com.wnc.news.db.DatabaseManager;
 
 public class NewsDao
 {
-    static SQLiteDatabase database;
     static Logger log = Logger.getLogger(NewsDao.class);
+    static SQLiteDatabase database;
 
     public static void openDatabase()
     {
-        if (isConnect())
-        {
-            return;
-        }
+        database = DatabaseManager.getInstance().openDatabase();
+    }
+
+    public static void closeDatabase()
+    {
+        DatabaseManager.getInstance().closeDatabase();
+    }
+
+    public synchronized static void deleteTestNews()
+    {
         try
         {
-            String databaseFilename = MyAppParams.NEWS_DB;
-            database = SQLiteDatabase.openOrCreateDatabase(databaseFilename,
-                    null);
+            openDatabase();
+            int delete = database.delete("news", "title like ?", new String[]
+            { "%new Ozil%" });
+            log.info("删除条数:" + delete);
         }
         catch (Exception e)
         {
             log.error("", e);
 
         }
-    }
-
-    public static void closeDatabase()
-    {
-        if (database != null)
+        finally
         {
-            database.close();
-            database = null;
+            closeDatabase();
         }
-    }
-
-    public static boolean isConnect()
-    {
-        return database != null && database.isOpen();
     }
 
     public synchronized static void deleteAllNews()
@@ -57,7 +54,8 @@ public class NewsDao
         try
         {
             openDatabase();
-            database.delete("news", null, null);
+            int delete = database.delete("news", null, null);
+            log.info("删除条数:" + delete);
         }
         catch (Exception e)
         {
@@ -79,10 +77,16 @@ public class NewsDao
             ContentValues cv = new ContentValues();
             cv.put("html_content", newContent);
             cv.put("cet_topics", cetTopics);
-            if (database.update("news", cv, "url = ?", new String[]
-            { url }) == 1)
+            final int updateCounts = database.update("news", cv, "url = ?",
+                    new String[]
+                    { url });
+            if (updateCounts == 1)
             {
-                System.out.println("成功更新");
+                log.info("成功更新");
+            }
+            else
+            {
+                log.info("成功失败,更新条数:" + updateCounts);
             }
         }
         catch (Exception e)
@@ -103,16 +107,21 @@ public class NewsDao
             openDatabase();
             ContentValues cv = new ContentValues();
             cv.put("html_content", newContent);
-            if (database.update("news", cv, "url = ?", new String[]
-            { url }) == 1)
+            final int updateCounts = database.update("news", cv, "url = ?",
+                    new String[]
+                    { url });
+            if (updateCounts == 1)
             {
-                System.out.println("成功更新");
+                log.info("成功更新");
+            }
+            else
+            {
+                log.info("成功失败,更新条数:" + updateCounts);
             }
         }
         catch (Exception e)
         {
             log.error(url, e);
-
         }
         finally
         {
@@ -142,7 +151,6 @@ public class NewsDao
                 catch (Exception e)
                 {
                     log.error(newsInfo.getUrl(), e);
-                    System.out.println(newsInfo.getUrl() + "插入异常");
 
                 }
             }
@@ -150,7 +158,6 @@ public class NewsDao
         catch (Exception e)
         {
             log.error("新闻总条数:" + news.size(), e);
-
         }
         finally
         {
@@ -158,7 +165,7 @@ public class NewsDao
         }
     }
 
-    public synchronized static void insertClubs(List<Club> clubs)
+    public static void insertClubs(SQLiteDatabase db, List<Club> clubs)
     {
         try
         {
@@ -193,19 +200,18 @@ public class NewsDao
         }
     }
 
-    public static boolean isExistUrl(String url)
+    public static boolean isExistUrl(SQLiteDatabase db, String url)
     {
         boolean flag = false;
         try
         {
-            openDatabase();
             String sql = "select * from news where url='"
                     + StringEscapeUtils.escapeSql(url) + "' order by date desc";
-            Cursor c = database.rawQuery(sql, null);
+            Cursor c = db.rawQuery(sql, null);
             c.moveToFirst();
             while (!c.isAfterLast())
             {
-                System.out.println("find url:" + url);
+                log.info("find url:" + url);
                 flag = true;
                 break;
             }
@@ -215,23 +221,18 @@ public class NewsDao
             log.error(url, e);
 
         }
-        finally
-        {
-            closeDatabase();
-        }
         return flag;
     }
 
-    public static boolean isSoccerTeam(String team)
+    public static boolean isSoccerTeam(SQLiteDatabase db, String team)
     {
         boolean flag = false;
         try
         {
-            openDatabase();
             String sql = "select * from club where full_name like '%"
                     + StringEscapeUtils.escapeSql(team)
                     + "%' and league in(641,682,712,717)";
-            Cursor c = database.rawQuery(sql, null);
+            Cursor c = db.rawQuery(sql, null);
             c.moveToFirst();
             while (!c.isAfterLast())
             {
@@ -244,66 +245,40 @@ public class NewsDao
             log.error(team, e);
 
         }
-        finally
-        {
-            closeDatabase();
-        }
         return flag;
     }
 
     public static List<NewsInfo> findAllNBANews()
     {
-        return findAllNews("basketballinsiders");
+        return findAllNewsWithUrlFilter("basketballinsiders");
     }
 
     public static List<NewsInfo> findAllSoccerNews()
     {
-        return findAllNews("squawka,skysports");
+        return findAllNewsWithUrlFilter("squawka,skysports");
     }
 
-    public static List<NewsInfo> findAllNews(String url_filter)
+    public static List<NewsInfo> findAllNewsWithUrlFilter(String url_filter)
     {
-        List<NewsInfo> list = new ArrayList<NewsInfo>();
-        try
+        String[] keys = url_filter.split("[, ]");
+        String f = "";
+        if (url_filter.trim().length() == 0)
         {
-            openDatabase();
-            String[] keys = url_filter.split(",");
-            String f = "";
+            f = "or url is not null ";
+        }
+        else
+        {
             for (String s : keys)
             {
                 f += " or url like '%" + StringEscapeUtils.escapeSql(s.trim())
                         + "%'";
             }
-            String sql = "select * from news where 1=2 " + f
-                    + " order by date desc ";
-            Cursor c = database.rawQuery(sql, null);
-            c.moveToFirst();
-            NewsInfo info = new NewsInfo();
-            while (!c.isAfterLast())
-            {
-                info = new NewsInfo();
-                info.setHtml_content(c.getString(c
-                        .getColumnIndex("html_content")));
-                info.setCet_topics(c.getString(c.getColumnIndex("cet_topics")));
-                info.setHead_pic(c.getString(c.getColumnIndex("head_pic")));
-                info.setSub_text(c.getString(c.getColumnIndex("sub_text")));
-                info.setTitle(c.getString(c.getColumnIndex("title")));
-                info.setDate(c.getString(c.getColumnIndex("date")));
-                info.setDb_id(c.getString(c.getColumnIndex("id")));
-                info.setUrl(c.getString(c.getColumnIndex("url")));
-                list.add(info);
-                c.moveToNext();
-            }
         }
-        catch (Exception e)
-        {
-            log.error(url_filter, e);
-        }
-        finally
-        {
-            closeDatabase();
-        }
-        return list;
+
+        String sql = "select * from news where 1=2 " + f
+                + " order by date desc ";
+        return findAllNewsBySql(sql);
+
     }
 
     /**
@@ -313,11 +288,23 @@ public class NewsDao
      */
     public static List<NewsInfo> findErrContentNews()
     {
+        String sql = "select * from news where  html_content like '%<a href=\">%' order by date desc";
+        return findAllNewsBySql(sql);
+    }
+
+    public static List<NewsInfo> search(String keyword)
+    {
+        String sql = "select * from news where  html_content like '%" + keyword
+                + "%' or  keywords like '%" + keyword + "%' order by date desc";
+        return findAllNewsBySql(sql);
+    }
+
+    private synchronized static List<NewsInfo> findAllNewsBySql(String sql)
+    {
         List<NewsInfo> list = new ArrayList<NewsInfo>();
         try
         {
             openDatabase();
-            String sql = "select * from news where  html_content like '%<a href=\">%' order by date desc";
             Cursor c = database.rawQuery(sql, null);
             c.moveToFirst();
             NewsInfo info = new NewsInfo();
@@ -347,4 +334,14 @@ public class NewsDao
         }
         return list;
     }
+
+    public static void test()
+    {
+        SQLiteDatabase db = DatabaseManager.getInstance().openDatabase();
+        Cursor c = db.rawQuery("select * from news", null);
+        c.moveToFirst();
+        log.info("test测试结果:" + c.getCount());
+        DatabaseManager.getInstance().closeDatabase();
+    }
+
 }

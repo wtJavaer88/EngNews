@@ -52,7 +52,7 @@ public class MainActivity extends Activity implements OnClickListener,
             public void run()
             {
                 SysInit.init(MainActivity.this);
-                new NewsTest().topicUpdate();
+                // new NewsTest().topicUpdate();
 
                 // new NewsTest().test();
             }
@@ -116,16 +116,33 @@ public class MainActivity extends Activity implements OnClickListener,
                     while (true)
                     {
                         Map<String, Integer> map = cacheSchedule.getMap();
-                        String process = "正在缓存... ";
+                        String process = "";
+
+                        final boolean allCached = cacheSchedule.isAllCached();
+                        int sum = 0;
                         for (Map.Entry<String, Integer> entry : map.entrySet())
                         {
                             process += entry.getKey() + " 缓存的新闻数:"
                                     + entry.getValue() + "  ";
+                            sum += entry.getValue();
                         }
+                        String head = "";
                         Message msg = new Message();
                         msg.what = 1;
-                        msg.obj = process;
-                        handler.sendMessage(msg);
+
+                        if (allCached)
+                        {
+                            head = " 缓存全部结束(" + sum + ")\n";
+                            msg.obj = head + process;
+                            handler.sendMessage(msg);
+                            break;
+                        }
+                        else
+                        {
+                            head = "正在缓存... (" + sum + ")\n";
+                            msg.obj = head + process;
+                            handler.sendMessage(msg);
+                        }
                         try
                         {
                             Thread.sleep(5000);

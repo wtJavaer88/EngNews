@@ -84,7 +84,7 @@ public final class R {
         public static final int add_tag_dialg_no=0x7f0a001d;
         public static final int add_tag_dialg_ok=0x7f0a001e;
         public static final int add_tag_dialg_title=0x7f0a001b;
-        public static final int bt_add=0x7f0a000e;
+        public static final int bt_search=0x7f0a000e;
         public static final int bt_topics=0x7f0a0009;
         public static final int btn_cache=0x7f0a0002;
         public static final int btn_cache_clear=0x7f0a0004;

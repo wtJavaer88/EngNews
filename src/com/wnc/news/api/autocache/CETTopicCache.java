@@ -1,6 +1,8 @@
 package com.wnc.news.api.autocache;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -30,7 +32,7 @@ public class CETTopicCache
      */
     public void update()
     {
-        List<NewsInfo> findAllNews = NewsDao.findAllNews(" ");
+        List<NewsInfo> findAllNews = NewsDao.findAllNewsWithUrlFilter(" ");
         log.info("待更新新闻数目:" + findAllNews.size());
         executeTasks(findAllNews);
         shutdown();
@@ -82,6 +84,13 @@ public class CETTopicCache
         executor.shutdown();
     }
 
+    /**
+     * allFind要返回给调用方,要保证顺序
+     * 
+     * @param article
+     * @param allFind
+     * @return
+     */
     public String splitArticle(String article, List<Topic> allFind)
     {
         String ret = "";
@@ -115,8 +124,26 @@ public class CETTopicCache
                 .replaceAll("<p.*?>", "<p>").replaceAll("<img.*?>", "");
     }
 
+    /**
+     * 新闻内容处理时用到的需要进行单词长度排序
+     * 
+     * @param aString
+     * @param keys
+     * @return
+     */
     private String getDealResult(String aString, List<Topic> keys)
     {
+        List<Topic> sortedKeys = new ArrayList<Topic>(keys);
+        Collections.sort(sortedKeys, new Comparator<Topic>()
+        {
+            @Override
+            public int compare(Topic arg0, Topic arg1)
+            {
+
+                return arg0.getMatched_word().length()
+                        - arg1.getMatched_word().length();
+            }
+        });
         StringBuilder result = new StringBuilder();
         int openTag = aString.indexOf("<a ");
         int closeTag;
@@ -147,8 +174,9 @@ public class CETTopicCache
         for (Topic key : keys)
         {
             final String matched_word = key.getMatched_word();
-            s = s.replace(matched_word, "<a href=\"http://m.iciba.com/"
-                    + matched_word + "\">" + matched_word + "</a>");
+            s = s.replaceAll("([^a-zA-Z])" + matched_word + "([^a-zA-Z])",
+                    "$1<a href=\"http://m.iciba.com/" + matched_word + "\">"
+                            + matched_word + "</a>$2");
         }
         return s;
     }

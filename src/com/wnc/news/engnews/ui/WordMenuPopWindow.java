@@ -79,21 +79,18 @@ public class WordMenuPopWindow extends PopupWindow implements OnClickListener
         switch (v.getId())
         {
         case R.id.layout_word_sound:
-            System.out.println("发音");
             if (menuListener != null)
             {
                 menuListener.doSound();
             }
             break;
         case R.id.layout_word_copy:
-            System.out.println("复制");
             if (menuListener != null)
             {
                 menuListener.doCopy();
             }
             break;
         case R.id.layout_word_net:
-            System.out.println("网络");
             if (menuListener != null)
             {
                 menuListener.toNet();

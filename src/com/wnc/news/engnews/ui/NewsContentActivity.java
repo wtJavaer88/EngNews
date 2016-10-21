@@ -135,14 +135,14 @@ public class NewsContentActivity extends Activity implements
                     {
                         totalWords = PatternUtil.getAllPatternGroup(
                                 news_info.getHtml_content(), "['\\w]+").size();
-                        System.out.println("缓存数据单词数:" + totalWords);
+                        log.info("该缓存新闻单词数:" + totalWords);
                         String str = news_info.getCet_topics();
                         if (BasicStringUtil.isNotNullString(str))
                         {
                             allFind = JSONObject.parseArray(JSONObject
                                     .parseObject(str).getString("data"),
                                     Topic.class);
-                            System.out.println("缓存数据关键词数:" + allFind.size());
+                            log.info("该缓存新闻关键词数:" + allFind.size());
                         }
                         else
                         {
@@ -154,7 +154,7 @@ public class NewsContentActivity extends Activity implements
                     }
                     else
                     {
-                        System.out.println("解析网页" + news_info.getUrl());
+                        log.info("解析网页" + news_info.getUrl());
                         Document doc = JsoupHelper.getDocumentResult(news_info
                                 .getUrl());
                         contents = doc.select(news_info.getWebsite()

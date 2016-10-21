@@ -2,32 +2,40 @@ package com.wnc.news.engnews.ui;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import word.Topic;
+import android.database.sqlite.SQLiteDatabase;
 
 import com.wnc.news.api.autocache.CETTopicUpdate;
 import com.wnc.news.api.autocache.CacheSchedule;
 import com.wnc.news.api.common.Club;
-import com.wnc.news.api.soccer.LeagueApi;
+import com.wnc.news.api.soccer.SquawkaLeagueApi;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.NewsDao;
+import com.wnc.news.db.DatabaseManager;
 import common.utils.JsoupHelper;
 
 public class NewsTest
 {
+    static Logger log = Logger.getLogger(NewsTest.class);
+
     public void getClubs()
     {
-        List<Club> allClubs = new LeagueApi(712).getAllClubs();
-        System.out.println("allClubs数量:" + allClubs.size());
-        NewsDao.insertClubs(allClubs);
-        allClubs = new LeagueApi(682).getAllClubs();
-        System.out.println("allClubs数量:" + allClubs.size());
-        NewsDao.insertClubs(allClubs);
-        allClubs = new LeagueApi(717).getAllClubs();
-        System.out.println("allClubs数量:" + allClubs.size());
-        NewsDao.insertClubs(allClubs);
+        SQLiteDatabase db = DatabaseManager.getInstance().openDatabase();
+
+        List<Club> allClubs = new SquawkaLeagueApi(712).getAllClubs();
+        log.info("allClubs数量:" + allClubs.size());
+        NewsDao.insertClubs(db, allClubs);
+        allClubs = new SquawkaLeagueApi(682).getAllClubs();
+        log.info("allClubs数量:" + allClubs.size());
+        NewsDao.insertClubs(db, allClubs);
+        allClubs = new SquawkaLeagueApi(717).getAllClubs();
+        log.info("allClubs数量:" + allClubs.size());
+        NewsDao.insertClubs(db, allClubs);
+        DatabaseManager.getInstance().closeDatabase();
 
     }
 
@@ -39,7 +47,9 @@ public class NewsTest
 
     public void ifSoccerTeam()
     {
-        System.out.println(NewsDao.isSoccerTeam("barcelona"));
+        log.info(NewsDao.isSoccerTeam(DatabaseManager.getInstance()
+                .openDatabase(), "barcelona"));
+        DatabaseManager.getInstance().closeDatabase();
     }
 
     public void cacheArsenal(CacheSchedule cacheSchedule)
@@ -61,7 +71,7 @@ public class NewsTest
         cacheSchedule.teamCache();
     }
 
-    public void test()
+    public void testSingleNews()
     {
         // http://www.basketballinsiders.com/nba-am-the-quadruple-double/
         Document doc;
@@ -72,10 +82,10 @@ public class NewsTest
             final Elements contents = doc.select("#content-area p");
             if (contents != null && contents.text().length() > 200)
             {
-                System.out.println(contents.text());
+                log.info(contents.text());
                 List<Topic> findCETWords = DictionaryDao.findCETWords(contents
                         .text());
-                System.out.println(findCETWords.size());
+                log.info(findCETWords.size());
             }
         }
         catch (Exception e)

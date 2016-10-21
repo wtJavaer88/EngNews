@@ -3,6 +3,8 @@ package com.wnc.news.api.soccer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wnc.basic.BasicNumberUtil;
@@ -11,11 +13,12 @@ import com.wnc.news.api.common.Club;
 import com.wnc.string.PatternUtil;
 import common.utils.JsoupHelper;
 
-public class LeagueApi
+public class SquawkaLeagueApi
 {
     int league_id;
+    Logger log = Logger.getLogger(SquawkaLeagueApi.class);
 
-    public LeagueApi(int league_id)
+    public SquawkaLeagueApi(int league_id)
     {
         this.league_id = league_id;
     }
@@ -55,14 +58,14 @@ public class LeagueApi
                     }
                     catch (Exception e)
                     {
-                        System.out.println("俱乐部数据解析失败.");
+                        log.info("俱乐部数据解析失败.");
                         e.printStackTrace();
                     }
                 }
             }
             else
             {
-                System.out.println("获取联赛俱乐部数据失败!");
+                log.info("获取联赛俱乐部数据失败!");
             }
         }
         catch (Exception e)

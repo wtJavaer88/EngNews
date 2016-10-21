@@ -36,7 +36,6 @@ public class NewsContentService
                 @Override
                 public void run()
                 {
-                    System.out.println();
                     log.info("获取新闻内容:" + info.getUrl());
                     Document doc;
                     try
@@ -64,8 +63,7 @@ public class NewsContentService
     public List<NewsInfo> getResult()
     {
         waiting();
-        log.info("原有总数:" + allNews.size() + "  NewsContentService获取到的完整新闻数:"
-                + allNews2.size());
+        log.info("原有总数:" + allNews.size() + "  获取到的完整新闻数:" + allNews2.size());
         return allNews2;
     }
 

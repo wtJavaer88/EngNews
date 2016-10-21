@@ -58,7 +58,7 @@ public class Topic
     public String toString()
     {
         return "Topic [topic_base_word=" + topic_base_word + ", bookName="
-                + bookName + ", topic_id=" + topic_id + ", topic_word="
+                + bookName + ", topic_id=" + topic_id + ", matched_word="
                 + matched_word + ", mean_cn=" + mean_cn + ", state=" + state
                 + "]";
     }

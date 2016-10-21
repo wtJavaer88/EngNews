@@ -7,6 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
+
 import word.Topic;
 
 import com.alibaba.fastjson.JSONObject;
@@ -19,6 +21,7 @@ public class CETTopicUpdate
     boolean isShutdown = false;
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors
             .newFixedThreadPool(3);
+    static Logger log = Logger.getLogger(CETTopicUpdate.class);
 
     int x = 0;
 
@@ -27,8 +30,8 @@ public class CETTopicUpdate
      */
     public void update()
     {
-        List<NewsInfo> findAllNews = NewsDao.findErrContentNews();
-        System.out.println(findAllNews.size());
+        List<NewsInfo> findAllNews = NewsDao.findAllNewsWithUrlFilter("");
+        // System.out.println("findErrContentNews数目:" + findAllNews.size());
         executeTasks(findAllNews);
         shutdown();
         ifOver();
@@ -64,7 +67,7 @@ public class CETTopicUpdate
                             else
                             {
                                 x++;
-                                System.out.println(info.getUrl()
+                                log.info(info.getUrl()
                                         + " 没有Topics.................总数:"
                                         + (++x));
                             }
@@ -172,7 +175,7 @@ public class CETTopicUpdate
     public void ifOver()
     {
         waiting();
-        System.out.println("全部Topic清理完成!");
+        log.info("全部Topic清理完成!");
     }
 
     protected void waiting()

@@ -78,21 +78,18 @@ public class SectionPopWindow extends PopupWindow implements OnClickListener
         switch (v.getId())
         {
         case R.id.layout_section_fav:
-            System.out.println("收藏");
             if (sectionListener != null)
             {
                 sectionListener.doFavorite();
             }
             break;
         case R.id.layout_section_copy:
-            System.out.println("复制");
             if (sectionListener != null)
             {
                 sectionListener.doCopy();
             }
             break;
         case R.id.layout_section_translate:
-            System.out.println("翻译");
             if (sectionListener != null)
             {
                 sectionListener.doTranslate();

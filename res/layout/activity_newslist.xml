@@ -4,11 +4,14 @@
     android:layout_height="fill_parent">
     <LinearLayout android:layout_width="fill_parent"
         android:layout_height="wrap_content">
-        <EditText android:id="@+id/et_item" android:layout_width="212px"
+        <EditText android:id="@+id/et_item" 
+            android:layout_width="200dp"
             android:layout_height="wrap_content">
         </EditText>
-        <Button android:id="@+id/bt_add" android:layout_width="83px"
-            android:layout_height="51px" android:text="添加">
+        <Button android:id="@+id/bt_search" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" 
+            android:text="搜索">
         </Button>
     </LinearLayout>
     <ListView android:id="@id/android:list" android:layout_width="fill_parent"

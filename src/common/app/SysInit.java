@@ -2,10 +2,14 @@ package common.app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.dao.DictionaryDao;
+import com.wnc.news.dao.NewsDao;
+import com.wnc.news.db.DatabaseManager;
+import com.wnc.news.db.SQLiteHelperOfOpen;
 import common.uihelper.MyAppParams;
 
 public class SysInit
@@ -29,6 +33,10 @@ public class SysInit
             // createDbAndFullData(context2);
         }
 
+        SQLiteOpenHelper myHelper = new SQLiteHelperOfOpen(context2,
+                MyAppParams.NEWS_DB, null, 1);
+        DatabaseManager.initializeInstance(myHelper);
+        NewsDao.test();
     }
 
     private static void createDbAndFullData(Context context2)

@@ -4,6 +4,7 @@ import java.net.URL;
 
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.util.Log;
 
 import common.app.BasicPhoneUtil;
 import common.uihelper.MyAppParams;
@@ -32,7 +33,7 @@ public class WebImgText implements RichText
         @Override
         public Drawable getDrawable(String source)
         {
-            System.out.println("imageGetter:" + source);
+            Log.i("imageGetter", source);
             Drawable drawable = null;
             URL url;
             try

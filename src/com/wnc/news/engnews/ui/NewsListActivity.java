@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,13 +22,14 @@ import com.example.engnews.R;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.NewsDao;
 
-public class NewsListActivity extends ListActivity
+public class NewsListActivity extends ListActivity implements OnClickListener
 {
-    private Button bt_add;
+    private Button bt_search;
     private EditText et_item;
     private ArrayList<HashMap<String, Object>> listItems; // 存放文字、图片信息
     private SimpleAdapter listItemAdapter; // 适配器
     private String type;
+    static Logger log = Logger.getLogger(NewsListActivity.class);
 
     @Override
     public void onCreate(Bundle icicle)
@@ -34,7 +37,7 @@ public class NewsListActivity extends ListActivity
         super.onCreate(icicle);
         setContentView(R.layout.activity_newslist);
 
-        bt_add = (Button) findViewById(R.id.bt_add);
+        bt_search = (Button) findViewById(R.id.bt_search);
         et_item = (EditText) findViewById(R.id.et_item);
 
         if (getIntent() != null && getIntent().hasExtra("type"))
@@ -64,7 +67,7 @@ public class NewsListActivity extends ListActivity
             }
         }).start();
 
-        bt_add.setOnClickListener(new ClickEvent());
+        bt_search.setOnClickListener(this);
     }
 
     Handler handler = new Handler()
@@ -124,19 +127,31 @@ public class NewsListActivity extends ListActivity
         startActivity(new Intent(this, NewsContentActivity.class));
     }
 
-    class ClickEvent implements OnClickListener
+    @Override
+    public void onClick(View v)
     {
-        @Override
-        public void onClick(View v)
+        switch (v.getId())
         {
-            // 向ListView里添加一项
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("ItemTitle", "Music： " + et_item.getText().toString());
-            map.put("ItemImage", R.drawable.ic_launcher); // 每次都放入同样的图片资源ID
-            listItems.add(map);
-            // 重新设置适配器
-            setListAdapter(listItemAdapter);
-        }
-    }
+        case R.id.bt_search:
+            new Thread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    final String text = et_item.getText().toString();
+                    Message msg = new Message();
+                    msg.what = 1;
+                    final List<NewsInfo> search = NewsDao.search(text);
+                    log.info("搜索" + text + "结果:" + search.size());
+                    msg.obj = search;
+                    handler.sendMessage(msg);
+                }
+            }).start();
+            break;
 
+        default:
+            break;
+        }
+
+    }
 }

@@ -6,11 +6,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
+import android.database.sqlite.SQLiteDatabase;
+
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.nba.NbaTeamApi;
 import com.wnc.news.api.soccer.SkySportsTeamApi;
 import com.wnc.news.api.soccer.SquawkaTeamApi;
 import com.wnc.news.dao.NewsDao;
+import com.wnc.news.db.DatabaseManager;
 
 public class CacheSchedule
 {
@@ -18,6 +23,8 @@ public class CacheSchedule
     {
         NewsDao.deleteAllNews();
     }
+
+    Logger log = Logger.getLogger(CacheSchedule.class);
 
     Set<String> teams = new HashSet<String>();
     Map<String, Integer> map = new HashMap<String, Integer>();
@@ -32,6 +39,8 @@ public class CacheSchedule
         return map;
     }
 
+    SQLiteDatabase db;
+
     public void teamCache()
     {
         new Thread(new Runnable()
@@ -39,6 +48,7 @@ public class CacheSchedule
             @Override
             public void run()
             {
+                db = DatabaseManager.getInstance().openDatabase();
                 CETTopicCache cetTopicCache = new CETTopicCache();
                 for (String team : teams)
                 {
@@ -46,7 +56,7 @@ public class CacheSchedule
                     int newsCount = 0;
                     if (isSoccerTeam(team))
                     {
-                        System.out.println("SkySportsTeamApi开始:" + team);
+                        log.info("SkySportsTeamApi开始:" + team);
                         final SkySportsTeamApi skySportsTeamApi = new SkySportsTeamApi(
                                 team);
                         skySportsTeamApi.setMaxPages(5);
@@ -54,10 +64,10 @@ public class CacheSchedule
                         NewsDao.insertNews(allNews);
                         cetTopicCache.executeTasks(allNews);
                         newsCount += allNews.size();
-                        System.out.println("SkySportsTeamApi结束:" + team
-                                + " 缓存数:" + allNews.size());
+                        log.info("SkySportsTeamApi结束:" + team + " 缓存数:"
+                                + allNews.size());
 
-                        System.out.println("SquawkaTeamApi开始:" + team);
+                        log.info("SquawkaTeamApi开始:" + team);
                         final SquawkaTeamApi squawkaTeamApi = new SquawkaTeamApi(
                                 team);
                         squawkaTeamApi.setMaxPages(3);
@@ -65,19 +75,19 @@ public class CacheSchedule
                         NewsDao.insertNews(allNews);
                         newsCount += allNews.size();
 
-                        System.out.println("SquawkaTeamApi结束:" + team + " 缓存数:"
+                        log.info("SquawkaTeamApi结束:" + team + " 缓存数:"
                                 + allNews.size());
                         cetTopicCache.executeTasks(allNews);
                     }
                     else
                     {
-                        System.out.println("NbaTeamApi开始:" + team);
+                        log.info("NbaTeamApi开始:" + team);
                         final NbaTeamApi squawkaTeamApi = new NbaTeamApi(team);
                         squawkaTeamApi.setMaxPages(3);
                         allNews = squawkaTeamApi.getAllNewsWithContent();
                         NewsDao.insertNews(allNews);
                         newsCount += allNews.size();
-                        System.out.println("NbaTeamApi结束:" + team + " 缓存数:"
+                        log.info("NbaTeamApi结束:" + team + " 缓存数:"
                                 + allNews.size());
                         cetTopicCache.executeTasks(allNews);
                     }
@@ -86,17 +96,25 @@ public class CacheSchedule
                         map.put(team, newsCount);
                     }
                 }
+                DatabaseManager.getInstance().closeDatabase();
+                allCached = true;
                 cetTopicCache.shutdown();
                 cetTopicCache.ifOver();
-
             }
 
         }).start();
 
     }
 
+    private boolean allCached = false;
+
+    public boolean isAllCached()
+    {
+        return allCached;
+    }
+
     protected boolean isSoccerTeam(String team)
     {
-        return NewsDao.isSoccerTeam(team);
+        return NewsDao.isSoccerTeam(db, team);
     }
 }
