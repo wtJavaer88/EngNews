@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.method.LinkMovementMethod;
+import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -47,604 +48,589 @@ import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.SrtVoiceHelper;
 import com.wnc.news.engnews.helper.WordTipTextThread;
-import com.wnc.news.engnews.ui.SectionPopWindow.WordSectionListener;
-import com.wnc.news.engnews.ui.WordMenuPopWindow.WordMenuListener;
+import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow;
+import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow.NewsMenuListener;
+import com.wnc.news.engnews.ui.popup.SectionPopWindow;
+import com.wnc.news.engnews.ui.popup.SectionPopWindow.WordSectionListener;
+import com.wnc.news.engnews.ui.popup.WordMenuPopWindow;
+import com.wnc.news.engnews.ui.popup.WordMenuPopWindow.WordMenuListener;
 import com.wnc.news.richtext.WebImgText;
 import com.wnc.string.PatternUtil;
 import common.app.BasicPhoneUtil;
 import common.uihelper.MyAppParams;
 import common.utils.JsoupHelper;
 
-public class NewsContentActivity extends Activity implements
-        UncaughtExceptionHandler, OnClickListener
+public class NewsContentActivity extends Activity implements UncaughtExceptionHandler, OnClickListener
 {
-    static Logger log = Logger.getLogger(NewsContentActivity.class);
-    View main;
+	static Logger log = Logger.getLogger(NewsContentActivity.class);
+	View main;
 
-    public static final int MESSAGE_ON_WORD_DISPOSS_CODE = 100;
-    public static final int MESSAGE_ON_IMG_TEXT = 2;
-    TextView newsImgTv;
-    List<Topic> allFind = new ArrayList<Topic>();
-    public static NewsInfo news_info;
+	public static final int MESSAGE_ON_WORD_DISPOSS_CODE = 100;
+	public static final int MESSAGE_ON_IMG_TEXT = 2;
+	TextView newsImgTv;
+	List<Topic> allFind = new ArrayList<Topic>();
+	public static NewsInfo news_info;
 
-    private Button topicListBt, wordMenuBtn;
-    ImageButton newsMenuBtn;
-    TextView wordTipTv;
+	private Button topicListBt, wordMenuBtn;
+	ImageButton newsMenuBtn;
+	TextView wordTipTv;
 
-    private SelectableTextView mTextView;
-    private ScrollView mScrollView;
+	private SelectableTextView mTextView;
+	private ScrollView mScrollView;
 
-    private int mTouchX;
-    private int mTouchY;
+	private int mTouchX;
+	private int mTouchY;
 
-    WordTipTextThread wordTipTextThread;
-    WordMenuPopWindow wordMenuPopWindow;
-    SectionPopWindow sectionPopWindow;
+	WordTipTextThread wordTipTextThread;
+	WordMenuPopWindow wordMenuPopWindow;
+	SectionPopWindow sectionPopWindow;
+	NewsMenuPopWindow newsMenuPopWindow;
 
-    private int totalWords;
+	private int totalWords;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+	@Override
+	protected void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        main = getLayoutInflater().from(this).inflate(
-                R.layout.activity_news_content, null);
-        hideVirtualBts();
-        setContentView(main);
+		main = getLayoutInflater().from(this).inflate(R.layout.activity_news_content, null);
+		hideVirtualBts();
+		setContentView(main);
 
-        Thread.setDefaultUncaughtExceptionHandler(this);
+		Thread.setDefaultUncaughtExceptionHandler(this);
 
-        wordTipTextThread = new WordTipTextThread(this);
-        wordTipTextThread.start();
-        initView();
-        if (news_info != null)
-        {
-            setNewsTitle(news_info.getTitle());
-            initData();
-        }
+		wordTipTextThread = new WordTipTextThread(this);
+		wordTipTextThread.start();
+		initView();
+		if (news_info != null)
+		{
+			setNewsTitle(news_info.getTitle());
+			initData();
+		}
 
-    }
+	}
 
-    private void initData()
-    {
-        new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                Message msg2 = new Message();
-                msg2.what = MESSAGE_ON_IMG_TEXT;
-                msg2.obj = new WebImgText("<img src=\""
-                        + news_info.getHead_pic() + "\"/>").getCharSequence();
-                handler.sendMessage(msg2);
-            }
-        }).start();
-        new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    Elements contents = null;
-                    Message msg = new Message();
-                    if (news_info != null
-                            && news_info.getHtml_content() != null)
-                    {
-                        totalWords = PatternUtil.getAllPatternGroup(
-                                news_info.getHtml_content(), "['\\w]+").size();
-                        log.info("该缓存新闻单词数:" + totalWords);
-                        String str = news_info.getCet_topics();
-                        if (BasicStringUtil.isNotNullString(str))
-                        {
-                            allFind = JSONObject.parseArray(JSONObject
-                                    .parseObject(str).getString("data"),
-                                    Topic.class);
-                            log.info("该缓存新闻关键词数:" + allFind.size());
-                        }
-                        else
-                        {
-                            log.error(news_info.getUrl() + " 没找到任何Topic!");
-                        }
+	private void initData()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Message msg2 = new Message();
+				msg2.what = MESSAGE_ON_IMG_TEXT;
+				msg2.obj = new WebImgText("<img src=\"" + news_info.getHead_pic() + "\"/>").getCharSequence();
+				handler.sendMessage(msg2);
+			}
+		}).start();
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					Elements contents = null;
+					Message msg = new Message();
+					if (news_info != null && news_info.getHtml_content() != null)
+					{
+						totalWords = PatternUtil.getAllPatternGroup(news_info.getHtml_content(), "['\\w]+").size();
+						log.info("该缓存新闻单词数:" + totalWords);
+						String str = news_info.getCet_topics();
+						if (BasicStringUtil.isNotNullString(str))
+						{
+							allFind = JSONObject.parseArray(JSONObject.parseObject(str).getString("data"), Topic.class);
+							log.info("该缓存新闻关键词数:" + allFind.size());
+						}
+						else
+						{
+							log.error(news_info.getUrl() + " 没找到任何Topic!");
+						}
 
-                        msg.obj = news_info.getHtml_content();
-                        msg.what = 1;
-                    }
-                    else
-                    {
-                        log.info("解析网页" + news_info.getUrl());
-                        Document doc = JsoupHelper.getDocumentResult(news_info
-                                .getUrl());
-                        contents = doc.select(news_info.getWebsite()
-                                .getNews_class());
-                        msg.what = 11;
-                        msg.obj = contents;
-                    }
+						msg.obj = news_info.getHtml_content();
+						msg.what = 1;
+					}
+					else
+					{
+						log.info("解析网页" + news_info.getUrl());
+						Document doc = JsoupHelper.getDocumentResult(news_info.getUrl());
+						contents = doc.select(news_info.getWebsite().getNews_class());
+						msg.what = 11;
+						msg.obj = contents;
+					}
 
-                    handler.sendMessage(msg);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
+					handler.sendMessage(msg);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}).start();
+	}
 
-    Handler handler = new Handler()
-    {
-        @Override
-        public void handleMessage(Message msg)
-        {
-            switch (msg.what)
-            {
-            case 1:
-                mTextView.setText(new com.wnc.news.richtext.HtmlRichText(
-                        msg.obj.toString()).getCharSequence());
-                if (hasTopics())
-                {
-                    topicListBt.setVisibility(View.VISIBLE);
-                    topicListBt.setText("" + allFind.size());
+	Handler handler = new Handler()
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			switch (msg.what)
+			{
+			case 1:
+				mTextView.setText(new com.wnc.news.richtext.HtmlRichText(msg.obj.toString()).getCharSequence());
+				if (hasTopics())
+				{
+					topicListBt.setVisibility(View.VISIBLE);
+					topicListBt.setText("" + allFind.size());
+				}
+				break;
+			case 11:
+				mTextView.setText(new WebImgText(new CETTopicCache().splitArticle(msg.obj.toString(), allFind)).getCharSequence());
+				if (hasTopics())
+				{
+					topicListBt.setVisibility(View.VISIBLE);
+					topicListBt.setText("" + allFind.size());
+				}
+				break;
+			case MESSAGE_ON_IMG_TEXT:
+				newsImgTv.setVisibility(View.VISIBLE);
+				newsImgTv.setText((CharSequence) msg.obj);
+				break;
+			case MESSAGE_ON_WORD_DISPOSS_CODE:
+				System.out.println("自动清空!");
+				hideVirtualBts();
+				hideWordZone();
+				break;
+			default:
+				break;
+			}
+		}
+	};
 
-                }
-                break;
-            case 11:
-                mTextView.setText(new WebImgText(new CETTopicCache()
-                        .splitArticle(msg.obj.toString(), allFind))
-                        .getCharSequence());
-                if (hasTopics())
-                {
-                    topicListBt.setVisibility(View.VISIBLE);
-                    topicListBt.setText("" + allFind.size());
-                }
-                break;
-            case MESSAGE_ON_IMG_TEXT:
-                newsImgTv.setVisibility(View.VISIBLE);
-                newsImgTv.setText((CharSequence) msg.obj);
-                break;
-            case MESSAGE_ON_WORD_DISPOSS_CODE:
-                System.out.println("自动清空!");
-                hideVirtualBts();
-                hideWordZone();
-                break;
-            default:
-                break;
-            }
-        }
-    };
+	private void hideCursor()
+	{
+		try
+		{
+			mTextView.hideCursor();
+		}
+		catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
-    private void hideCursor()
-    {
-        try
-        {
-            mTextView.hideCursor();
-        }
-        catch (Exception e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
+	@SuppressLint("NewApi")
+	private void showTopicList()
+	{
+		if (hasTopics())
+		{
+			Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
+			dialog.setContentView(R.layout.topic_tip_wdailog);
+			dialog.setCanceledOnTouchOutside(true);
+			Window window = dialog.getWindow();
 
-    @SuppressLint("NewApi")
-    private void showTopicList()
-    {
-        if (hasTopics())
-        {
-            Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
-            dialog.setContentView(R.layout.topic_tip_wdailog);
-            dialog.setCanceledOnTouchOutside(true);
-            Window window = dialog.getWindow();
+			WindowManager.LayoutParams lp = window.getAttributes();
+			int width = BasicPhoneUtil.getScreenWidth(this);
+			lp.width = (int) (0.8 * width);
 
-            WindowManager.LayoutParams lp = window.getAttributes();
-            int width = BasicPhoneUtil.getScreenWidth(this);
-            lp.width = (int) (0.8 * width);
+			final TextView tvTopic = (TextView) dialog.findViewById(R.id.tvTopicInfo);
+			Iterator<Topic> iterator = allFind.iterator();
+			String tpContent = "总词数/生词率: " + totalWords + "/" + BasicNumberUtil.convertScienceNum(100.0 * allFind.size() / totalWords, 1) + "%\n";
+			while (iterator.hasNext())
+			{
+				Topic next = iterator.next();
+				tpContent += next.getMatched_word() + "  " + next.getMean_cn().replace("\n", "\n    ") + "\n\n";
+			}
+			if (tpContent.length() > 2)
+			{
+				tpContent = tpContent.substring(0, tpContent.length() - 2);
+			}
+			tvTopic.setText(tpContent);
+			dialog.show();
+		}
+	}
 
-            final TextView tvTopic = (TextView) dialog
-                    .findViewById(R.id.tvTopicInfo);
-            Iterator<Topic> iterator = allFind.iterator();
-            String tpContent = "总词数/生词率: "
-                    + totalWords
-                    + "/"
-                    + BasicNumberUtil.convertScienceNum(100.0 * allFind.size()
-                            / totalWords, 1) + "%\n";
-            while (iterator.hasNext())
-            {
-                Topic next = iterator.next();
-                tpContent += next.getMatched_word() + "  "
-                        + next.getMean_cn().replace("\n", "\n    ") + "\n\n";
-            }
-            if (tpContent.length() > 2)
-            {
-                tpContent = tpContent.substring(0, tpContent.length() - 2);
-            }
-            tvTopic.setText(tpContent);
-            dialog.show();
-        }
-    }
+	private boolean hasTopics()
+	{
+		return allFind != null && allFind.size() > 0;
+	}
 
-    private boolean hasTopics()
-    {
-        return allFind != null && allFind.size() > 0;
-    }
+	private void initView()
+	{
+		newsMenuPopWindow = new NewsMenuPopWindow(this, new NewsMenuListener()
+		{
 
-    private void initView()
-    {
-        wordMenuPopWindow = new WordMenuPopWindow(this, new WordMenuListener()
-        {
-            @Override
-            public void doSound()
-            {
-                String voicePath = MyAppParams.VOICE_FOLDER + getCurrentWord()
-                        + ".mp3";
-                if (BasicFileUtil.isExistFile(voicePath))
-                {
-                    SrtVoiceHelper.play(voicePath);
-                }
-                else
-                {
-                    common.app.ToastUtil.showShortToast(
-                            getApplicationContext(), "找不到声音文件!");
-                    log.info("找不到声音文件:" + voicePath);
-                }
-            }
+			@Override
+			public void toSrcPage()
+			{
+				if (news_info != null)
+				{
+					gotoIE(news_info.getUrl());
+				}
+			}
 
-            @Override
-            public void doCopy()
-            {
-                common.app.ClipBoardUtil
-                        .setNormalContent(getApplicationContext(), wordTipTv
-                                .getText().toString());
-                common.app.ToastUtil.showShortToast(getApplicationContext(),
-                        "操作成功!");
-            }
+			@Override
+			public void doFavorite()
+			{
+				String url = news_info.getUrl();
+				BasicFileUtil.writeFileString(MyAppParams.FAVORITE_TXT, url + "\r\n", "UTF-8", true);
+				common.app.ToastUtil.showShortToast(getApplicationContext(), "操作成功!");
+				log.info("收藏新闻成功: " + url);
+			}
+		});
+		wordMenuPopWindow = new WordMenuPopWindow(this, new WordMenuListener()
+		{
+			@Override
+			public void doSound()
+			{
+				String voicePath = MyAppParams.VOICE_FOLDER + getCurrentWord() + ".mp3";
+				if (BasicFileUtil.isExistFile(voicePath))
+				{
+					SrtVoiceHelper.play(voicePath);
+				}
+				else
+				{
+					common.app.ToastUtil.showShortToast(getApplicationContext(), "找不到声音文件!");
+					log.info("找不到声音文件:" + voicePath);
+				}
+			}
 
-            @Override
-            public void toNet()
-            {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse("http://m.iciba.com/" + getCurrentWord()));
-                startActivity(i);
-            }
+			@Override
+			public void doCopy()
+			{
+				common.app.ClipBoardUtil.setNormalContent(getApplicationContext(), wordTipTv.getText().toString());
+				common.app.ToastUtil.showShortToast(getApplicationContext(), "操作成功!");
+			}
 
-            @Override
-            public void doPassTopic()
-            {
-                BasicFileUtil.writeFileString(MyAppParams.PASS_TXT,
-                        getCurrentWord() + "\r\n", "UTF-8", true);
-                PassedTopicCache.getPassedTopics().add(getCurrentWord());
-                common.app.ToastUtil.showShortToast(getApplicationContext(),
-                        "操作成功!");
-                log.info("Pass: " + getCurrentWord());
-            }
-        });
-        sectionPopWindow = new SectionPopWindow(this, new WordSectionListener()
-        {
+			@Override
+			public void toNet()
+			{
+				gotoIE("http://m.iciba.com/" + getCurrentWord());
+			}
 
-            @Override
-            public void doTranslate()
-            {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri
-                        .parse("http://fanyi.baidu.com/translate?aldtype=16047&query=&keyfrom=baidu&smartresult=dict&lang=auto2zh#en/zh/"
-                                + getCurrentSectionAndSetPos()));
-                startActivity(i);
-                log.info("翻译: " + getCurrentSectionAndSetPos());
-            }
+			@Override
+			public void doPassTopic()
+			{
+				BasicFileUtil.writeFileString(MyAppParams.PASS_TXT, getCurrentWord() + "\r\n", "UTF-8", true);
+				PassedTopicCache.getPassedTopics().add(getCurrentWord());
+				common.app.ToastUtil.showShortToast(getApplicationContext(), "操作成功!");
+				log.info("Pass: " + getCurrentWord());
+			}
+		});
+		sectionPopWindow = new SectionPopWindow(this, new WordSectionListener()
+		{
 
-            @Override
-            public void doFavorite()
-            {
-                System.out.println(getCurrentSectionAndSetPos());
-                BasicFileUtil.writeFileString(MyAppParams.FAVORITE_TXT,
-                        getCurrentSectionAndSetPos() + "\r\n", "UTF-8", true);
-                common.app.ToastUtil.showShortToast(getApplicationContext(),
-                        "操作成功!");
-                log.info("收藏成功: " + getCurrentSectionAndSetPos());
-            }
+			@Override
+			public void doTranslate()
+			{
+				gotoIE("http://fanyi.baidu.com/translate?aldtype=16047&query=&keyfrom=baidu&smartresult=dict&lang=auto2zh#en/zh/" + getCurrentSectionAndSetPos());
+				log.info("翻译: " + getCurrentSectionAndSetPos());
+			}
 
-            @Override
-            public void doCopy()
-            {
-                common.app.ClipBoardUtil.setNormalContent(
-                        getApplicationContext(), getCurrentSectionAndSetPos());
-                common.app.ToastUtil.showShortToast(getApplicationContext(),
-                        "操作成功!");
-            }
-        });
-        newsMenuBtn = (ImageButton) findViewById(R.id.imgbt_news_menu);
-        wordMenuBtn = (Button) findViewById(R.id.btn_word_menu);
-        topicListBt = (Button) findViewById(R.id.bt_topics);
-        newsImgTv = (TextView) findViewById(R.id.tv_img);
-        newsImgTv.setMovementMethod(LinkMovementMethod.getInstance());
+			@Override
+			public void doFavorite()
+			{
+				System.out.println(getCurrentSectionAndSetPos());
+				BasicFileUtil.writeFileString(MyAppParams.FAVORITE_TXT, getCurrentSectionAndSetPos() + "\r\n", "UTF-8", true);
+				common.app.ToastUtil.showShortToast(getApplicationContext(), "操作成功!");
+				log.info("收藏成功: " + getCurrentSectionAndSetPos());
+			}
 
-        wordMenuBtn.setVisibility(View.GONE);
+			@Override
+			public void doCopy()
+			{
+				common.app.ClipBoardUtil.setNormalContent(getApplicationContext(), getCurrentSectionAndSetPos());
+				common.app.ToastUtil.showShortToast(getApplicationContext(), "操作成功!");
+			}
+		});
+		newsMenuBtn = (ImageButton) findViewById(R.id.imgbt_news_menu);
+		wordMenuBtn = (Button) findViewById(R.id.btn_word_menu);
+		topicListBt = (Button) findViewById(R.id.bt_topics);
+		newsImgTv = (TextView) findViewById(R.id.tv_img);
+		newsImgTv.setMovementMethod(LinkMovementMethod.getInstance());
 
-        newsMenuBtn.setOnClickListener(this);
-        wordMenuBtn.setOnClickListener(this);
-        topicListBt.setOnClickListener(this);
-        topicListBt.setVisibility(View.INVISIBLE);
-        wordTipTv = (TextView) findViewById(R.id.tv_oneword_tip);
+		wordMenuBtn.setVisibility(View.GONE);
 
-        mTextView = (SelectableTextView) findViewById(R.id.tv_content);
-        mTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        mTextView.setDefaultSelectionColor(0x40FF00FF);
-        mTextView.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View v)
-            {
-                hideWordZone();
-                hideCursor();
-                showSelectionCursors(mTouchX, mTouchY);
-                return true;
-            }
-        });
-        mTextView.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                mTouchX = (int) event.getX();
-                mTouchY = (int) event.getY();
-                return false;
-            }
-        });
-        mTextView.setOnClickListener(new OnClickListener()
-        {
+		newsMenuBtn.setOnClickListener(this);
+		wordMenuBtn.setOnClickListener(this);
+		topicListBt.setOnClickListener(this);
+		topicListBt.setVisibility(View.INVISIBLE);
+		wordTipTv = (TextView) findViewById(R.id.tv_oneword_tip);
 
-            @Override
-            public void onClick(View arg0)
-            {
-                wordTipTextThread.refresh();
-                hideWordZone();
-                hideCursor();
-            }
-        });
-        mTextView
-                .setOnCursorStateChangedListener(new OnCursorStateChangedListener()
-                {
+		mTextView = (SelectableTextView) findViewById(R.id.tv_content);
+		mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+		mTextView.setDefaultSelectionColor(0x40FF00FF);
+		// 事件调用顺序OnTouch --> OnLongClick --> OnClick
+		mTextView.setOnTouchListener(new View.OnTouchListener()
+		{
+			@Override
+			public boolean onTouch(View v, MotionEvent event)
+			{
+				mTouchX = (int) event.getX();
+				mTouchY = (int) event.getY();
+				return false;
+			}
+		});
+		mTextView.setOnLongClickListener(new View.OnLongClickListener()
+		{
+			@Override
+			public boolean onLongClick(View v)
+			{
+				// 暂时屏蔽文本的点击事件
+				mTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
+				hideWordZone();
+				hideCursor();
+				showSelectionCursors(mTouchX, mTouchY);
+				return true;
+			}
+		});
 
-                    @Override
-                    public void onShowCursors(View v)
-                    {
-                    }
+		mTextView.setOnClickListener(new OnClickListener()
+		{
 
-                    @Override
-                    public void onPositionChanged(View v, int x, int y,
-                            int oldx, int oldy)
-                    {
-                        // final String selectedText = mTextView
-                        // .getCursorSelection().getSelectedText()
-                        // .toString();
-                        // if (selectedText.contains(" "))
-                        // {
-                        // System.out.println("选择句子:" + selectedText);
-                        // }
-                    }
+			@Override
+			public void onClick(View arg0)
+			{
+				mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+				wordTipTextThread.refresh();
+				hideWordZone();
+				hideCursor();
+			}
+		});
+		mTextView.setOnCursorStateChangedListener(new OnCursorStateChangedListener()
+		{
 
-                    @Override
-                    public void onHideCursors(View v)
-                    {
-                    }
+			@Override
+			public void onShowCursors(View v)
+			{
+			}
 
-                    @Override
-                    public void onDragStarts(View v)
-                    {
+			@Override
+			public void onPositionChanged(View v, int x, int y, int oldx, int oldy)
+			{
+				// final String selectedText = mTextView
+				// .getCursorSelection().getSelectedText()
+				// .toString();
+				// if (selectedText.contains(" "))
+				// {
+				// System.out.println("选择句子:" + selectedText);
+				// }
+			}
 
-                    }
+			@Override
+			public void onHideCursors(View v)
+			{
+			}
 
-                    @Override
-                    public void onDragStop(View v)
-                    {
-                        String selectedText = mTextView.getCursorSelection()
-                                .getSelectedText().toString();
-                        if (selectedText.contains(" "))
-                        {
-                            hideWordZone();
-                            getCurrentSectionAndSetPos();
+			@Override
+			public void onDragStarts(View v)
+			{
 
-                            final int h = common.app.BasicPhoneUtil
-                                    .getScreenHeight(NewsContentActivity.this);
+			}
 
-                            // System.out.println(h + "  "
-                            // + mTextView.getCursorPoint()[0] + ", "
-                            // + mTextView.getCursorPoint()[1]);
-                            if (mTextView.getCursorPoint()[1] < h * 0.8)
-                            {
-                                sectionPopWindow.showAtLocation(mTextView,
-                                        Gravity.NO_GRAVITY,
-                                        mTextView.getCursorPoint()[0] + 100,
-                                        mTextView.getCursorPoint()[1]);
-                            }
-                            else
-                            {
-                                sectionPopWindow.showAtLocation(mTextView,
-                                        Gravity.CENTER, 0, 0);
-                            }
-                        }
-                        else
-                        {
-                            showWordZone(selectedText);
-                        }
-                    }
-                });
-        mScrollView = (ScrollView) findViewById(R.id.scrollView_news_content);
-        mScrollView.setOnTouchListener(new TouchScrollListenerImpl());
-    }
+			@Override
+			public void onDragStop(View v)
+			{
+				String selectedText = mTextView.getCursorSelection().getSelectedText().toString();
+				if (selectedText.contains(" "))
+				{
+					hideWordZone();
+					getCurrentSectionAndSetPos();
 
-    int flag = 0;
+					final int h = common.app.BasicPhoneUtil.getScreenHeight(NewsContentActivity.this);
 
-    private class TouchScrollListenerImpl implements OnTouchListener
-    {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent)
-        {
-            switch (motionEvent.getAction())
-            {
-            case MotionEvent.ACTION_UP:
-                flag = 0;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                if (flag == 0)
-                {
-                    int scrollY = view.getScrollY();
-                    int height = view.getHeight();
-                    int scrollViewMeasuredHeight = mScrollView.getChildAt(0)
-                            .getMeasuredHeight();
-                    if (scrollY == 0)
-                    {
-                        // System.out.println("滑动到了顶部 scrollY=" + scrollY);
-                        // newsImgTv.setVisibility(View.VISIBLE);
-                        flag = 1;
-                    }
-                    else if ((scrollY + height) == scrollViewMeasuredHeight)
-                    {
-                        // System.out.println("滑动到了底部 scrollY=" + scrollY);
-                        // System.out.println("滑动到了底部 height=" + height);
-                        // System.out.println("滑动到了底部 scrollViewMeasuredHeight="
-                        // + scrollViewMeasuredHeight);
+					// System.out.println(h + "  "
+					// + mTextView.getCursorPoint()[0] + ", "
+					// + mTextView.getCursorPoint()[1]);
+					if (mTextView.getCursorPoint()[1] < h * 0.8)
+					{
+						sectionPopWindow.showAtLocation(mTextView, Gravity.NO_GRAVITY, mTextView.getCursorPoint()[0] + 100, mTextView.getCursorPoint()[1]);
+					}
+					else
+					{
+						sectionPopWindow.showAtLocation(mTextView, Gravity.CENTER, 0, 0);
+					}
+				}
+				else
+				{
+					showWordZone(selectedText);
+				}
+			}
+		});
+		mScrollView = (ScrollView) findViewById(R.id.scrollView_news_content);
+		mScrollView.setOnTouchListener(new TouchScrollListenerImpl());
+	}
 
-                    }
-                    else
-                    {
-                        // newsImgTv.setVisibility(View.GONE);
-                        flag = 1;
-                    }
-                }
-                break;
+	int flag = 0;
 
-            default:
-                break;
-            }
-            return false;
-        }
-    };
+	private class TouchScrollListenerImpl implements OnTouchListener
+	{
+		@Override
+		public boolean onTouch(View view, MotionEvent motionEvent)
+		{
+			switch (motionEvent.getAction())
+			{
+			case MotionEvent.ACTION_UP:
+				flag = 0;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				if (flag == 0)
+				{
+					int scrollY = view.getScrollY();
+					int height = view.getHeight();
+					int scrollViewMeasuredHeight = mScrollView.getChildAt(0).getMeasuredHeight();
+					if (scrollY == 0)
+					{
+						// System.out.println("滑动到了顶部 scrollY=" + scrollY);
+						// newsImgTv.setVisibility(View.VISIBLE);
+						flag = 1;
+					}
+					else if ((scrollY + height) == scrollViewMeasuredHeight)
+					{
+						// System.out.println("滑动到了底部 scrollY=" + scrollY);
+						// System.out.println("滑动到了底部 height=" + height);
+						// System.out.println("滑动到了底部 scrollViewMeasuredHeight="
+						// + scrollViewMeasuredHeight);
 
-    private void showSelectionCursors(int x, int y)
-    {
-        int start = mTextView.getPreciseOffset(x, y);
+					}
+					else
+					{
+						// newsImgTv.setVisibility(View.GONE);
+						flag = 1;
+					}
+				}
+				break;
 
-        if (start > -1)
-        {
-            String selectedText = NewsContentUtil.getSuitWordAndSetPos(
-                    mTextView, start);
-            log.info("selectedText:" + selectedText);
+			default:
+				break;
+			}
+			return false;
+		}
+	};
 
-            wordTipTextThread.refresh();
-            DicWord findWord = DictionaryDao.findWord(selectedText);
-            if (findWord != null)
-            {
-                showWordZone(findWord.getBase_word() + " "
-                        + findWord.getCn_mean());
-            }
-            else
-            {
-                showWordZone(selectedText);
-                wordTipTextThread.stopListen();
-                wordMenuPopWindow.showPopupWindow(topicListBt);
-            }
-        }
-    }
+	private void showSelectionCursors(int x, int y)
+	{
+		int start = mTextView.getPreciseOffset(x, y);
 
-    private void hideWordZone()
-    {
-        wordMenuBtn.setVisibility(View.INVISIBLE);
-        wordTipTv.setVisibility(View.INVISIBLE);
-    }
+		if (start > -1)
+		{
+			String selectedText = NewsContentUtil.getSuitWordAndSetPos(mTextView, start);
+			log.info("selectedText:" + selectedText);
+			wordTipTextThread.refresh();
+			showWordZone(selectedText);
+		}
+	}
 
-    private void showWordZone(String text)
-    {
-        wordTipTv.setVisibility(View.VISIBLE);
-        wordTipTv.setText(text);
-        wordMenuBtn.setVisibility(View.VISIBLE);
-    }
+	private void hideWordZone()
+	{
+		wordMenuBtn.setVisibility(View.INVISIBLE);
+		wordTipTv.setVisibility(View.INVISIBLE);
+	}
 
-    private void setNewsTitle(String title)
-    {
-        ((TextView) findViewById(R.id.tv_news_title)).setText(title);
-    }
+	private void showWordZone(String selectedText)
+	{
+		DicWord findWord = DictionaryDao.findWord(selectedText);
+		if (findWord != null)
+		{
+			wordTipTv.setText(findWord.getBase_word() + " " + findWord.getCn_mean());
+		}
+		else
+		{
+			wordTipTv.setText(selectedText);
+			wordTipTextThread.stopListen();
+			wordMenuPopWindow.showPopupWindow(topicListBt);
+		}
 
-    @Override
-    protected void onDestroy()
-    {
-        sectionPopWindow.dismiss();
-        wordMenuPopWindow.dismiss();
-        super.onDestroy();
-    }
+		wordTipTv.setVisibility(View.VISIBLE);
+		wordMenuBtn.setVisibility(View.VISIBLE);
+	}
 
-    @Override
-    public void uncaughtException(Thread arg0, Throwable ex)
-    {
-        log.error("uncaughtException", ex);
-    }
+	private void setNewsTitle(String title)
+	{
+		((TextView) findViewById(R.id.tv_news_title)).setText(title);
+	}
 
-    /**
-     * 隐藏虚拟按键
-     */
-    @SuppressLint("NewApi")
-    private void hideVirtualBts()
-    {
-        // 普通
-        final int currentAPIVersion = BasicPhoneUtil
-                .getCurrentAPIVersion(getApplicationContext());
-        // System.out.println("Level ........" + currentAPIVersion);
-        if (currentAPIVersion < 19)
-        {
-            main.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-        else
-        {
-            // 保留任务栏
-            main.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
-    }
+	@Override
+	protected void onDestroy()
+	{
+		sectionPopWindow.dismiss();
+		wordMenuPopWindow.dismiss();
+		super.onDestroy();
+	}
 
-    private String getCurrentWord()
-    {
-        return PatternUtil.getFirstPatternGroup(wordTipTv.getText().toString(),
-                "\\w+");
-    }
+	@Override
+	public void uncaughtException(Thread arg0, Throwable ex)
+	{
+		log.error("uncaughtException", ex);
+	}
 
-    private String getCurrentSectionAndSetPos()
-    {
-        return NewsContentUtil.getSectionAndSetPos(mTextView, mTextView
-                .getCursorSelection().getStart(), mTextView
-                .getCursorSelection().getEnd());
-    }
+	/**
+	 * 隐藏虚拟按键
+	 */
+	@SuppressLint("NewApi")
+	private void hideVirtualBts()
+	{
+		// 普通
+		final int currentAPIVersion = BasicPhoneUtil.getCurrentAPIVersion(getApplicationContext());
+		// System.out.println("Level ........" + currentAPIVersion);
+		if (currentAPIVersion < 19)
+		{
+			main.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+		}
+		else
+		{
+			// 保留任务栏
+			main.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+		}
+	}
 
-    public Handler getHandler()
-    {
-        return handler;
-    }
+	private String getCurrentWord()
+	{
+		return PatternUtil.getFirstPatternGroup(wordTipTv.getText().toString(), "\\w+");
+	}
 
-    @Override
-    public void onClick(View v)
-    {
-        switch (v.getId())
-        {
-        case R.id.bt_topics:
-            showTopicList();
-            break;
-        case R.id.btn_word_menu:
-            wordTipTextThread.stopListen();
-            wordMenuPopWindow.showPopupWindow(wordMenuBtn);
-            break;
-        case R.id.imgbt_news_menu:
-            showNewsMenu();
-            break;
-        default:
-            break;
-        }
-    }
+	private String getCurrentSectionAndSetPos()
+	{
+		return NewsContentUtil.getSectionAndSetPos(mTextView, mTextView.getCursorSelection().getStart(), mTextView.getCursorSelection().getEnd());
+	}
 
-    private void showNewsMenu()
-    {
-        System.out.println("显示新闻菜单!");
-    }
+	public Handler getHandler()
+	{
+		return handler;
+	}
+
+	@Override
+	public void onClick(View v)
+	{
+		switch (v.getId())
+		{
+		case R.id.bt_topics:
+			showTopicList();
+			break;
+		case R.id.btn_word_menu:
+			wordTipTextThread.stopListen();
+			wordMenuPopWindow.showPopupWindow(wordMenuBtn);
+			break;
+		case R.id.imgbt_news_menu:
+			showNewsMenu();
+			break;
+		default:
+			break;
+		}
+	}
+
+	private void showNewsMenu()
+	{
+		System.out.println("显示新闻菜单!");
+		newsMenuPopWindow.showPopupWindow(newsMenuBtn);
+	}
+
+	private void gotoIE(String page)
+	{
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse(page));
+		startActivity(i);
+	}
 }

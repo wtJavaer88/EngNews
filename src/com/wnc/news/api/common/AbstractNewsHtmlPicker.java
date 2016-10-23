@@ -15,10 +15,10 @@ import com.wnc.news.db.DatabaseManager;
 import com.wnc.news.website.WebSite;
 import common.utils.JsoupHelper;
 
-public abstract class AbstractHtmlPicker
+public abstract class AbstractNewsHtmlPicker
 {
     SQLiteDatabase db;
-    Logger log = Logger.getLogger(AbstractHtmlPicker.class);
+    Logger log = Logger.getLogger(AbstractNewsHtmlPicker.class);
 
     public List<NewsInfo> getAllNews(WebSite website, String team)
     {

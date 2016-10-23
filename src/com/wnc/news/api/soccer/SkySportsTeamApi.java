@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 
-import com.wnc.news.api.common.AbstractHtmlPicker;
+import com.wnc.news.api.common.AbstractNewsHtmlPicker;
 import com.wnc.news.api.common.DateUtil;
+import com.wnc.news.api.common.NewsContentService;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.TeamApi;
-import com.wnc.news.service.NewsContentService;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
 
@@ -17,12 +17,12 @@ public class SkySportsTeamApi implements TeamApi
     String team;
     int MAX_PAGES = 1;
     WebSite webSite = WebSiteUtil.getSkySports();
-    AbstractHtmlPicker htmlPicker;
+    AbstractNewsHtmlPicker htmlPicker;
 
     public SkySportsTeamApi(final String team)
     {
         this.team = team;
-        htmlPicker = new AbstractHtmlPicker()
+        htmlPicker = new AbstractNewsHtmlPicker()
         {
             @Override
             protected NewsInfo getNewsInfo(Element mainDiv)

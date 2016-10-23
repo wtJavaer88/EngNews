@@ -1,4 +1,4 @@
-package com.wnc.news.engnews.ui;
+package com.wnc.news.engnews.ui.popup;
 
 import android.app.Activity;
 import android.content.Context;

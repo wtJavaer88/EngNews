@@ -5,11 +5,11 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 
 import com.wnc.basic.BasicStringUtil;
-import com.wnc.news.api.common.AbstractHtmlPicker;
+import com.wnc.news.api.common.AbstractNewsHtmlPicker;
 import com.wnc.news.api.common.DateUtil;
+import com.wnc.news.api.common.NewsContentService;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.TeamApi;
-import com.wnc.news.service.NewsContentService;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
 import com.wnc.string.PatternUtil;
@@ -19,12 +19,12 @@ public class SquawkaTeamApi implements TeamApi
     String team;
     int MAX_PAGES = 3;
     WebSite webSite = WebSiteUtil.getSquawka();
-    AbstractHtmlPicker htmlPicker;
+    AbstractNewsHtmlPicker htmlPicker;
 
     public SquawkaTeamApi(final String team)
     {
         this.team = team;
-        htmlPicker = new AbstractHtmlPicker()
+        htmlPicker = new AbstractNewsHtmlPicker()
         {
             @Override
             protected int getFromPage()

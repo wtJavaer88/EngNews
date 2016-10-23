@@ -1,4 +1,4 @@
-package com.wnc.news.service;
+package com.wnc.news.api.common;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import com.wnc.news.api.common.NewsInfo;
 import common.utils.JsoupHelper;
 
 public class NewsContentService

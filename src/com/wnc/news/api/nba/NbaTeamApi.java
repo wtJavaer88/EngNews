@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 
-import com.wnc.news.api.common.AbstractHtmlPicker;
+import com.wnc.news.api.common.AbstractNewsHtmlPicker;
+import com.wnc.news.api.common.NewsContentService;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.TeamApi;
-import com.wnc.news.service.NewsContentService;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
 
@@ -16,12 +16,12 @@ public class NbaTeamApi implements TeamApi
     String team;
     int MAX_PAGES = 5;
     WebSite webSite = WebSiteUtil.getBasketballInsiders();
-    AbstractHtmlPicker htmlPicker;
+    AbstractNewsHtmlPicker htmlPicker;
 
     public NbaTeamApi(final String team)
     {
         this.team = team;
-        htmlPicker = new AbstractHtmlPicker()
+        htmlPicker = new AbstractNewsHtmlPicker()
         {
             @Override
             protected int getFromPage()
