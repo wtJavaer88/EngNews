@@ -84,6 +84,7 @@ public class MainActivity extends Activity implements OnClickListener, UncaughtE
 		bt_soccer.setOnClickListener(this);
 		btn_cache.setOnClickListener(this);
 		btn_cache_clear.setOnClickListener(this);
+		findViewById(R.id.btn_test).setOnClickListener(this);
 	}
 
 	@Override
@@ -91,6 +92,9 @@ public class MainActivity extends Activity implements OnClickListener, UncaughtE
 	{
 		switch (v.getId())
 		{
+		case R.id.btn_test:
+			startActivity(new Intent(this, MainActivity2.class));
+			break;
 		case R.id.btn_nba:
 			startActivity(new Intent(this, NewsListActivity.class).putExtra("type", "nba"));
 			break;
