@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.method.ScrollingMovementMethod;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -24,6 +25,7 @@ import com.wnc.string.PatternUtil;
 import common.app.ConfirmUtil;
 import common.app.Log4jUtil;
 import common.app.SysInit;
+import common.app.ToastUtil;
 import common.uihelper.MyAppParams;
 import common.uihelper.PositiveEvent;
 
@@ -35,6 +37,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
     private Button btn_cache, btn_cache_clear;
     private TextView proTv;
 
+    private final int MESSAGE_EXIT_CODE = 0;
+    private final int MESSAGE_PROCESS_CODE = 1;
     Logger log = Logger.getLogger(MainActivity.class);
 
     @Override
@@ -69,10 +73,14 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         @Override
         public void handleMessage(Message msg)
         {
+            super.handleMessage(msg);
             switch (msg.what)
             {
-            case 1:
+            case MESSAGE_PROCESS_CODE:
                 proTv.setText(msg.obj.toString());
+                break;
+            case MESSAGE_EXIT_CODE:
+                isExit = false;
                 break;
             }
         }
@@ -145,7 +153,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
                         }
                         String head = "";
                         Message msg = new Message();
-                        msg.what = 1;
+                        msg.what = MESSAGE_PROCESS_CODE;
 
                         if (allCached)
                         {
@@ -196,5 +204,35 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
     public void uncaughtException(Thread arg0, Throwable ex)
     {
         log.error("uncaughtException   ", ex);
+    }
+
+    // 定义一个变量，来标识是否退出
+    private static boolean isExit = false;
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+    {
+        if (keyCode == KeyEvent.KEYCODE_BACK)
+        {
+            exit();
+            return false;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void exit()
+    {
+        if (!isExit)
+        {
+            isExit = true;
+            ToastUtil.showShortToast(this, "再按一次退出程序");
+            // 利用handler延迟发送更改状态信息
+            handler.sendEmptyMessageDelayed(MESSAGE_EXIT_CODE, 2000);
+        }
+        else
+        {
+            finish();
+            System.exit(0);
+        }
     }
 }
