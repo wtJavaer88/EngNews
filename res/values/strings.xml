@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">国外新闻悦读</string>
+    <string name="app_name">FreshNews</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-
+<string name="model_b">篮球</string>
+<string name="model_s">足球</string>
+<string name="model_f">论坛</string>
 </resources>

@@ -260,7 +260,6 @@ public class SelectableTextView extends TextView
         assert (end >= 0);
         assert (start < getText().length());
         assert (end < getText().length());
-        removeSelection();
         mSelectionController.show(start, end);
     }
 

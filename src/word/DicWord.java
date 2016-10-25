@@ -2,7 +2,7 @@ package word;
 
 public class DicWord
 {
-    private String topic_id;
+    private Integer topic_id;
     private String base_word;
     private String word_third;
     private String word_done;
@@ -14,12 +14,12 @@ public class DicWord
     private String cn_mean;
     private String book_name;
 
-    public String getTopic_id()
+    public Integer getTopic_id()
     {
         return topic_id;
     }
 
-    public void setTopic_id(String topic_id)
+    public void setTopic_id(Integer topic_id)
     {
         this.topic_id = topic_id;
     }

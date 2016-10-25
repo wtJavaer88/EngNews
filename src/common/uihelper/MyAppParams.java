@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Environment;
 
+import com.example.engnews.R;
 import com.wnc.basic.BasicFileUtil;
 
 public class MyAppParams
@@ -47,6 +48,21 @@ public class MyAppParams
         BasicFileUtil.makeDirectory(this.backupDbPath);
         BasicFileUtil.makeDirectory(LOG_FOLDER);
         BasicFileUtil.makeDirectory(this.zipPath);
+    }
+
+    public String getBaskModelName()
+    {
+        return getResources().getString(R.string.model_b);
+    }
+
+    public String getSoccModelName()
+    {
+        return getResources().getString(R.string.model_s);
+    }
+
+    public String getForuModelName()
+    {
+        return getResources().getString(R.string.model_f);
     }
 
     public static MyAppParams getInstance()

@@ -3,20 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content" >
 
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:scrollbars="vertical" >
+    <net.selectabletv.ObservableScrollView
+        android:id="@+id/scrollView_news_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true" >
 
-        <TextView
+        <net.selectabletv.SelectableTextView
             android:id="@+id/tvTopicInfo"
-            android:layout_width="fill_parent"
+            android:padding="3dip"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="false"
-            android:textColor="@color/white"
-            android:textSize="20dip"
-            android:textIsSelectable="true" />
-    </ScrollView>
+            android:bufferType="spannable"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+    </net.selectabletv.ObservableScrollView>
 
 </RelativeLayout>

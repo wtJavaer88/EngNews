@@ -24,7 +24,7 @@
         <!-- 背景透明 
         <item name="android:windowBackground">@color/transparent</item>
 -->
-		<item name="android:windowBackground">@color/black_50</item>
+		<item name="android:windowBackground">@color/white</item>
         <!-- 无标题 -->
         <item name="android:windowNoTitle">true</item>
 
@@ -49,7 +49,8 @@
         <item name="android:windowExitAnimation">@anim/fade_out</item>
     </style>
     
-       <style name="StyledIndicators" parent="@android:style/Theme.Light">
+    <style name="StyledIndicators" parent="@android:style/Theme.Light">
+        <item name="android:windowNoTitle">true</item>
         <item name="vpiTabPageIndicatorStyle">@style/CustomTabPageIndicator</item>
     </style>
 

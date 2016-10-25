@@ -15,7 +15,7 @@ import com.wnc.news.website.WebSiteUtil;
 public class SkySportsTeamApi implements TeamApi
 {
     String team;
-    int MAX_PAGES = 1;
+    int MAX_PAGES = 5;
     WebSite webSite = WebSiteUtil.getSkySports();
     AbstractNewsHtmlPicker htmlPicker;
 
@@ -85,6 +85,7 @@ public class SkySportsTeamApi implements TeamApi
         };
     }
 
+    @Override
     public void setMaxPages(int max)
     {
         if (max >= 1)

@@ -48,6 +48,8 @@ public class WordMenuPopWindow extends PopupWindow implements OnClickListener
         conentView.findViewById(R.id.layout_word_copy).setOnClickListener(this);
         conentView.findViewById(R.id.layout_word_net).setOnClickListener(this);
         conentView.findViewById(R.id.layout_word_pass).setOnClickListener(this);
+        conentView.findViewById(R.id.layout_word_expand).setOnClickListener(
+                this);
     }
 
     public interface WordMenuListener
@@ -59,6 +61,8 @@ public class WordMenuPopWindow extends PopupWindow implements OnClickListener
         public void toNet();
 
         public void doPassTopic();
+
+        public void doExpand();
     }
 
     public void showPopupWindow(View parent)
@@ -100,6 +104,12 @@ public class WordMenuPopWindow extends PopupWindow implements OnClickListener
             if (menuListener != null)
             {
                 menuListener.doPassTopic();
+            }
+            break;
+        case R.id.layout_word_expand:
+            if (menuListener != null)
+            {
+                menuListener.doExpand();
             }
             break;
         default:

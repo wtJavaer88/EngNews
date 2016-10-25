@@ -2,9 +2,9 @@ package com.wnc.news.api.common;
 
 import java.util.List;
 
-public interface TeamApi
+public interface ForumsApi
 {
-    public List<NewsInfo> getAllNewsWithContent();
+    public List<NewsInfo> getAll();
 
     public void setMaxPages(int max);
 

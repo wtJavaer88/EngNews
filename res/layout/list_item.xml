@@ -1,30 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/LinearLayout01"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content" >
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
     <ImageView
         android:id="@+id/ItemImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <TextView
+            android:id="@+id/ItemDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15dip" />
+    
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
-
-        <TextView
-            android:id="@+id/ItemDate"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textSize="15dip" />
-
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical|left" 
+         >
         <TextView
             android:id="@+id/ItemTitle"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textColor="@+color/yellow"
+            android:gravity="center_vertical|left" 
             android:textSize="20dip" />
     </LinearLayout>
 

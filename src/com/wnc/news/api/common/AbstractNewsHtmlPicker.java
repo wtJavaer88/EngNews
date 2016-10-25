@@ -19,9 +19,13 @@ public abstract class AbstractNewsHtmlPicker
 {
     SQLiteDatabase db;
     Logger log = Logger.getLogger(AbstractNewsHtmlPicker.class);
+    String team = "";
+    WebSite webSite;
 
     public List<NewsInfo> getAllNews(WebSite website, String team)
     {
+        this.team = team;
+        this.webSite = website;
         List<NewsInfo> list = new ArrayList<NewsInfo>();
         Document doc = null;
         if (db == null)
@@ -33,7 +37,7 @@ public abstract class AbstractNewsHtmlPicker
             String page = "";
             try
             {
-                page = String.format(website.getFormat(), team, i);
+                page = getPage(i);
                 log.info("分页:" + page);
                 doc = JsoupHelper.getDocumentResult(page);
                 if (doc != null)
@@ -68,6 +72,11 @@ public abstract class AbstractNewsHtmlPicker
         }
         DatabaseManager.getInstance().closeDatabase();
         return list;
+    }
+
+    protected String getPage(int i)
+    {
+        return String.format(webSite.getFormat(), team, i);
     }
 
     protected abstract int getFromPage();

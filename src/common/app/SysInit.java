@@ -1,13 +1,16 @@
 package common.app;
 
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+
 import android.app.Activity;
-import android.content.Context;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.wnc.basic.BasicFileUtil;
 import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.dao.DictionaryDao;
-import com.wnc.news.dao.NewsDao;
 import com.wnc.news.db.DatabaseManager;
 import com.wnc.news.db.SQLiteHelperOfOpen;
 import common.uihelper.MyAppParams;
@@ -28,24 +31,25 @@ public class SysInit
 
         PassedTopicCache.init();
         DictionaryDao.initTopics();
-        if (isFirstRun())
+        // createDbAndFullData(context2);
+        if (!BasicFileUtil.isExistFile(MyAppParams.NEWS_DB))
         {
-            // createDbAndFullData(context2);
+            try
+            {
+                BasicFileUtil.writeFileByte(MyAppParams.NEWS_DB, IOUtils
+                        .toByteArray(AssertsUtil.getInputStream(context2,
+                                "news.db")));
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
 
         SQLiteOpenHelper myHelper = new SQLiteHelperOfOpen(context2,
                 MyAppParams.NEWS_DB, null, 1);
         DatabaseManager.initializeInstance(myHelper);
-        NewsDao.test();
-    }
-
-    private static void createDbAndFullData(Context context2)
-    {
-        boolean moveAssertDb = MoveDbUtil.moveAssertDb("srtlearn.db",
-                "srtlearn.db", context2);
-        System.out.println("移动成功标志: " + moveAssertDb);
-        // 移植收藏字幕
-        // SaveFavoriteSrtToDb.save();
+        // NewsDao.test();
     }
 
     static String FIRST_RUN = "isSrtlearnFirstRun";

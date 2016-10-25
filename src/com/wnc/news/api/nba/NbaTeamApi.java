@@ -14,7 +14,7 @@ import com.wnc.news.website.WebSiteUtil;
 public class NbaTeamApi implements TeamApi
 {
     String team;
-    int MAX_PAGES = 5;
+    int MAX_PAGES = 2;
     WebSite webSite = WebSiteUtil.getBasketballInsiders();
     AbstractNewsHtmlPicker htmlPicker;
 
@@ -74,6 +74,7 @@ public class NbaTeamApi implements TeamApi
         };
     }
 
+    @Override
     public void setMaxPages(int max)
     {
         if (max >= 1)

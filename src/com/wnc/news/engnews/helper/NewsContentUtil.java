@@ -30,6 +30,7 @@ public class NewsContentUtil
             {
                 j++;
             }
+            mTextView.removeSelection();
             mTextView.showSelectionControls(i, j);
             return content.substring(i, j);
         }
@@ -82,6 +83,7 @@ public class NewsContentUtil
                 }
             }
             // 主要是调动CursorHand小手的位置
+            mTextView.removeSelection();
             mTextView.showSelectionControls(start + 1, end);
             return mTextView.getCursorSelection().getSelectedText().toString();
         }

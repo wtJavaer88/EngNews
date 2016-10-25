@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import word.DicWord;
 import word.Topic;
+import word.WordExpand;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -80,7 +81,7 @@ public class DictionaryDao
             {
                 dicWord = new DicWord();
                 dicWord.setBase_word(c.getString(c.getColumnIndex("topic_word")));
-                dicWord.setTopic_id(c.getString(c.getColumnIndex("topic_id")));
+                dicWord.setTopic_id(c.getInt(c.getColumnIndex("topic_id")));
                 dicWord.setWord_third(c.getString(c
                         .getColumnIndex("word_third")));
                 dicWord.setWord_done(c.getString(c.getColumnIndex("word_done")));
@@ -105,6 +106,42 @@ public class DictionaryDao
         return dicWord;
     }
 
+    public synchronized static WordExpand findSameAntonym(int topic_id)
+    {
+        WordExpand wordExpand = null;
+        try
+        {
+            openDatabase();
+
+            String sql = "select topic_id,similar_words,antonym_words,same_analysis FROM SIMILAR_ANTONYM WHERE topic_id="
+                    + topic_id;
+            Cursor c = database.rawQuery(sql, null);
+            c.moveToFirst();
+            while (!c.isAfterLast())
+            {
+                wordExpand = new WordExpand();
+                wordExpand.setTopic_id(c.getInt(c.getColumnIndex("topic_id")));
+                wordExpand.setAntonym(c.getString(c
+                        .getColumnIndex("antonym_words")));
+                wordExpand.setSame(c.getString(c
+                        .getColumnIndex("similar_words")));
+                wordExpand.setSame_analysis(c.getString(c
+                        .getColumnIndex("same_analysis")));
+                return wordExpand;
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("topic_id:" + topic_id, e);
+
+        }
+        finally
+        {
+            closeDatabase();
+        }
+        return wordExpand;
+    }
+
     public synchronized static void initTopics()
     {
         if (cetDicWords.size() > 0)
@@ -124,7 +161,7 @@ public class DictionaryDao
                 // word_est
                 DicWord dicWord = new DicWord();
                 dicWord.setBase_word(c.getString(c.getColumnIndex("topic_word")));
-                dicWord.setTopic_id(c.getString(c.getColumnIndex("topic_id")));
+                dicWord.setTopic_id(c.getInt(c.getColumnIndex("topic_id")));
                 dicWord.setWord_third(c.getString(c
                         .getColumnIndex("word_third")));
                 dicWord.setWord_done(c.getString(c.getColumnIndex("word_done")));

@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"  
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+     >
+    <TextView
+        android:id="@+id/tv_team_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:layout_marginLeft="10px"  
+	    android:layout_marginRight="10px"
+        android:textSize="40px"
+        android:text="title" />
+    
+    <TextView
+        android:id="@+id/tv_team_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:layout_marginLeft="10px"  
+	    android:layout_marginRight="10px"
+        android:textSize="40px"
+        android:text="title" />
+    
+
+</LinearLayout>

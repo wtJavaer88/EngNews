@@ -1,145 +1,191 @@
 package com.wnc.news.api.autocache;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.wnc.news.api.common.ForumsApi;
 import com.wnc.news.api.common.NewsInfo;
+import com.wnc.news.api.common.StaticsHelper;
+import com.wnc.news.api.common.TeamApi;
+import com.wnc.news.api.forums.RealGmApi;
+import com.wnc.news.api.forums.RedditApi;
 import com.wnc.news.api.nba.NbaTeamApi;
-import com.wnc.news.api.nba.RealGmApi;
 import com.wnc.news.api.soccer.SkySportsTeamApi;
 import com.wnc.news.api.soccer.SquawkaTeamApi;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.db.DatabaseManager;
+import common.uihelper.MyAppParams;
 
 public class CacheSchedule
 {
-	public void clearCache()
-	{
-		NewsDao.deleteTestNews();
-	}
+    public void clearCache()
+    {
+        NewsDao.deleteTestNews();
+    }
 
-	Logger log = Logger.getLogger(CacheSchedule.class);
+    Logger log = Logger.getLogger(CacheSchedule.class);
 
-	Set<String> teams = new HashSet<String>();
-	Map<String, Integer> map = new HashMap<String, Integer>();
+    Set<String> teams = new HashSet<String>();
+    List<String> list = new ArrayList<String>();
 
-	public void addTeam(String team)
-	{
-		teams.add(team);
-	}
+    public void addTeam(String team)
+    {
+        teams.add(team);
+    }
 
-	public Map<String, Integer> getMap()
-	{
-		return map;
-	}
+    public List<String> getMap()
+    {
+        return list;
+    }
 
-	public void teamCache()
-	{
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				SQLiteDatabase db = DatabaseManager.getInstance().openDatabase();
-				CETTopicCache cetTopicCache = new CETTopicCache();
-				for (String team : teams)
-				{
-					List<NewsInfo> allNews;
-					int newsCount = 0;
-					if (isSoccerTeam(db, team))
-					{
-						log.info("SkySportsTeamApi开始:" + team);
-						final SkySportsTeamApi skySportsTeamApi = new SkySportsTeamApi(team);
-						skySportsTeamApi.setMaxPages(5);
-						allNews = skySportsTeamApi.getAllNewsWithContent();
-						NewsDao.insertNews(allNews);
-						cetTopicCache.executeTasks(allNews);
-						newsCount += allNews.size();
-						log.info("SkySportsTeamApi结束:" + team + " 缓存数:" + allNews.size());
+    public void teamCache()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                allCached1 = false;
+                SQLiteDatabase db = DatabaseManager.getInstance()
+                        .openDatabase();
+                CETTopicCache cetTopicCache = new CETTopicCache();
 
-						log.info("SquawkaTeamApi开始:" + team);
-						final SquawkaTeamApi squawkaTeamApi = new SquawkaTeamApi(team);
-						squawkaTeamApi.setMaxPages(3);
-						allNews = squawkaTeamApi.getAllNewsWithContent();
-						NewsDao.insertNews(allNews);
-						newsCount += allNews.size();
+                for (String team : teams)
+                {
+                    try
+                    {
+                        int newsCount = 0;
+                        if (StaticsHelper.isSoccerTeam(db, team))
+                        {
 
-						log.info("SquawkaTeamApi结束:" + team + " 缓存数:" + allNews.size());
-						cetTopicCache.executeTasks(allNews);
-					}
-					else
-					{
-						log.info("NbaTeamApi开始:" + team);
-						final NbaTeamApi squawkaTeamApi = new NbaTeamApi(team);
-						squawkaTeamApi.setMaxPages(3);
-						allNews = squawkaTeamApi.getAllNewsWithContent();
-						NewsDao.insertNews(allNews);
-						newsCount += allNews.size();
-						log.info("NbaTeamApi结束:" + team + " 缓存数:" + allNews.size());
-						cetTopicCache.executeTasks(allNews);
-					}
-					if (newsCount > 0)
-					{
-						map.put(team, newsCount);
-					}
-				}
-				DatabaseManager.getInstance().closeDatabase();
-				allCached = true;
-				cetTopicCache.shutdown();
-				cetTopicCache.ifOver();
-			}
+                            newsCount += cache(new SkySportsTeamApi(team), 5,
+                                    cetTopicCache, "SkySportsTeamApi-" + team);
+                            newsCount += cache(new SquawkaTeamApi(team), 3,
+                                    cetTopicCache, "SquawkaTeamApi-" + team);
+                        }
+                        else
+                        {
+                            newsCount += cache(new NbaTeamApi(team), 2,
+                                    cetTopicCache, "NbaTeamApi-" + team);
+                        }
+                        if (newsCount > 0)
+                        {
+                            list.add(team + " " + newsCount);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        log.error(team, e);
+                        e.printStackTrace();
+                    }
+                }
+                DatabaseManager.getInstance().closeDatabase();
+                cetTopicCache.shutdown();
+                cetTopicCache.ifOver();
+                allCached1 = true;
+            }
 
-		}).start();
+            private int cache(TeamApi teamApi, int pages,
+                    CETTopicCache cetTopicCache, String webtip)
+            {
+                int ret = 0;
+                List<NewsInfo> allNews;
+                log.info(webtip + "开始:");
+                teamApi.setMaxPages(pages);
+                allNews = teamApi.getAllNewsWithContent();
+                for (NewsInfo newsInfo : allNews)
+                {
+                    if (!NewsDao.isExistUrl(db_forums, newsInfo.getUrl()))
+                    {
+                        NewsDao.insertSingleNews(db_forums, newsInfo);
+                    }
+                }
+                cetTopicCache.executeTasks(allNews);
+                ret = allNews.size();
+                log.info(webtip + "结束  缓存数:" + ret);
+                return ret;
+            }
 
-	}
+        }).start();
 
-	private boolean allCached = false;
+    }
 
-	public boolean isAllCached()
-	{
-		return allCached;
-	}
+    private boolean allCached1 = true;
+    private boolean allCached2 = true;
 
-	protected boolean isSoccerTeam(SQLiteDatabase db, String team)
-	{
-		return NewsDao.isSoccerTeam(db, team);
-	}
+    public boolean isAllCached()
+    {
+        return allCached1 && allCached2;
+    }
 
-	public void formusCache()
-	{
-		new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				CETTopicCache cetTopicCache = new CETTopicCache();
-				List<NewsInfo> allNews;
-				int newsCount = 0;
-				log.info("RealGm论坛开始:");
-				final RealGmApi realGmApi = new RealGmApi();
-				realGmApi.setMaxPages(4);
-				allNews = realGmApi.getAll();
-				NewsDao.insertNews(allNews);
-				cetTopicCache.executeTasks(allNews);
-				newsCount += allNews.size();
-				log.info("RealGm论坛结束  缓存数:" + allNews.size());
+    SQLiteDatabase db_forums = DatabaseManager.getInstance().openDatabase();
 
-				if (newsCount > 0)
-				{
-					map.put("realgm", newsCount);
-				}
-				allCached = true;
-				cetTopicCache.shutdown();
-				cetTopicCache.ifOver();
-			}
+    // 论坛需要考虑插入和更新操作
+    public void formusCache()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                allCached2 = false;
+                try
+                {
+                    CETTopicCache cetTopicCache = new CETTopicCache();
+                    cache(new RealGmApi(), 4, cetTopicCache, "RealGm论坛");
 
-		}).start();
-	}
+                    cache(new RedditApi(MyAppParams.getInstance()
+                            .getSoccModelName()), 3, cetTopicCache,
+                            "Reddit/Soccer论坛");
+
+                    cache(new RedditApi(MyAppParams.getInstance()
+                            .getBaskModelName()), 3, cetTopicCache,
+                            "Reddit/NBA论坛");
+
+                    DatabaseManager.getInstance().closeDatabase();
+                    cetTopicCache.shutdown();
+                    cetTopicCache.ifOver();
+                }
+                catch (Exception e)
+                {
+                    log.error("RealGm", e);
+                    e.printStackTrace();
+                }
+                allCached2 = true;
+            }
+
+            private int cache(ForumsApi forumsApi, int pages,
+                    CETTopicCache cetTopicCache, String webtip)
+            {
+                int ret = 0;
+                List<NewsInfo> allNews;
+                log.info(webtip + "开始:");
+                forumsApi.setMaxPages(pages);
+                allNews = forumsApi.getAll();
+                for (NewsInfo newsInfo : allNews)
+                {
+                    if (!NewsDao.isExistUrl(db_forums, newsInfo.getUrl()))
+                    {
+                        NewsDao.insertSingleNews(db_forums, newsInfo);
+                    }
+                }
+                cetTopicCache.executeTasks(allNews);
+                ret = allNews.size();
+                log.info(webtip + "结束  缓存数:" + ret);
+                if (ret > 0)
+                {
+
+                    list.add(webtip + " " + ret);
+                }
+                return ret;
+            }
+
+        }).start();
+    }
 }
