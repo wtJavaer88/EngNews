@@ -23,6 +23,7 @@ import android.widget.SimpleAdapter;
 import com.example.engnews.R;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.NewsDao;
+import com.wnc.news.engnews.helper.ViewNewsHolder;
 
 public class SearchActivity extends ListActivity implements OnClickListener
 {
@@ -113,7 +114,9 @@ public class SearchActivity extends ListActivity implements OnClickListener
     {
         HashMap<String, Object> map = (HashMap<String, Object>) lv
                 .getItemAtPosition(position);
-        NewsContentActivity.news_info = (NewsInfo) map.get("news_info");
+        final NewsInfo newsInfo = (NewsInfo) map.get("news_info");
+        ViewNewsHolder.refreh(newsInfo);
+        NewsContentActivity.news_info = newsInfo;
         startActivity(new Intent(this, NewsContentActivity.class));
     }
 
@@ -140,12 +143,15 @@ public class SearchActivity extends ListActivity implements OnClickListener
             @Override
             public void run()
             {
-
                 Message msg = new Message();
                 msg.what = 1;
-                final List<NewsInfo> search = NewsDao.search(text);
-                log.info("搜索" + text + "结果:" + search.size());
-                msg.obj = search;
+                final List<NewsInfo> matchedList = NewsDao.search(text);
+                log.info("搜索" + text + "结果:" + matchedList.size());
+                if (matchedList.size() > 0)
+                {
+                    ViewNewsHolder.refrehList(matchedList);
+                }
+                msg.obj = matchedList;
                 handler.sendMessage(msg);
             }
         }).start();

@@ -19,15 +19,12 @@ import android.view.ViewGroup;
 
 import com.example.engnews.R;
 import com.viewpagerindicator.TabPageIndicator;
+import com.wnc.news.engnews.helper.ViewNewsHolder;
 import common.uihelper.MyAppParams;
 
 public class MainActivity2 extends FragmentActivity implements
         UncaughtExceptionHandler
 {
-    /**
-     * 选项卡总数
-     */
-    // private int TAB_COUNT = 0;
     List<String> titles = new ArrayList<String>();
     Logger log = Logger.getLogger(MainActivity2.class);
 
@@ -44,7 +41,6 @@ public class MainActivity2 extends FragmentActivity implements
         Thread.setDefaultUncaughtExceptionHandler(this);
 
         initFragments();
-
         adapter = new TabPageIndicatorAdapter(getSupportFragmentManager());
         ViewPager pager = (ViewPager) findViewById(R.id.pager);
         pager.setAdapter(adapter);
@@ -98,13 +94,18 @@ public class MainActivity2 extends FragmentActivity implements
             super(fm);
         }
 
-        Fragment currentFragment;
+        PageFragment currentFragment;
 
         @Override
         public void setPrimaryItem(ViewGroup container, int position,
                 Object object)
         {
-            currentFragment = (Fragment) object;
+            currentFragment = (PageFragment) object;
+            if (currentFragment != null && currentFragment.getNews().size() > 0)
+            {
+                // 切换主题
+                ViewNewsHolder.refrehList(currentFragment.getNews());
+            }
             super.setPrimaryItem(container, position, object);
         }
 
@@ -149,4 +150,5 @@ public class MainActivity2 extends FragmentActivity implements
             System.out.println("ORIENTATION_PORTRAIT");
         }
     }
+
 }

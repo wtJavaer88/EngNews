@@ -32,6 +32,7 @@ import com.wnc.news.act.ActTeam;
 import com.wnc.news.act.TeamAutoAdapter;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.NewsDao;
+import com.wnc.news.engnews.helper.ViewNewsHolder;
 import common.uihelper.MyAppParams;
 
 @SuppressLint("ValidFragment")
@@ -93,6 +94,10 @@ public class PageFragment extends ListFragment implements
                         .getForuModelName()))
                 {
                     msg.obj = NewsDao.findAllForumInfos();
+                }
+                else
+                {
+                    msg.obj = new ArrayList<NewsInfo>();
                 }
                 handler.sendMessage(msg);
             }
@@ -164,6 +169,13 @@ public class PageFragment extends ListFragment implements
         }
     };
 
+    List<NewsInfo> news = new ArrayList<NewsInfo>();
+
+    public List<NewsInfo> getNews()
+    {
+        return news;
+    }
+
     /**
      * 设置适配器内容
      * 
@@ -171,6 +183,7 @@ public class PageFragment extends ListFragment implements
      */
     private void initListView(List<NewsInfo> news)
     {
+        this.news = news;
         listItems = new ArrayList<HashMap<String, Object>>();
         for (int i = 0; i < news.size(); i++)
         {
@@ -206,6 +219,7 @@ public class PageFragment extends ListFragment implements
     {
         HashMap<String, Object> map = (HashMap<String, Object>) lv
                 .getItemAtPosition(position);
+        ViewNewsHolder.refreh((NewsInfo) map.get("news_info"));
         NewsContentActivity.news_info = (NewsInfo) map.get("news_info");
         startActivity(new Intent(getActivity(), NewsContentActivity.class));
     }

@@ -29,6 +29,7 @@ import android.os.Message;
 import android.text.Layout;
 import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -53,6 +54,7 @@ import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.SrtVoiceHelper;
+import com.wnc.news.engnews.helper.ViewNewsHolder;
 import com.wnc.news.engnews.helper.WebUrlHelper;
 import com.wnc.news.engnews.helper.WordTipTextThread;
 import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow;
@@ -68,13 +70,18 @@ import common.app.BasicPhoneUtil;
 import common.app.ClipBoardUtil;
 import common.app.ToastUtil;
 import common.uihelper.MyAppParams;
+import common.uihelper.gesture.CtrlableHorGestureDetectorListener;
+import common.uihelper.gesture.FlingPoint;
+import common.uihelper.gesture.MyCtrlableGestureDetector;
 import common.utils.JsoupHelper;
 
 public class NewsContentActivity extends Activity implements
-        UncaughtExceptionHandler, OnClickListener
+        CtrlableHorGestureDetectorListener, UncaughtExceptionHandler,
+        OnClickListener
 {
     static Logger log = Logger.getLogger(NewsContentActivity.class);
     View main;
+    private GestureDetector gestureDetector;
 
     public static final int MESSAGE_ON_WORD_DISPOSS_CODE = 100;
     public static final int MESSAGE_ON_IMG_TEXT = 2;
@@ -110,6 +117,8 @@ public class NewsContentActivity extends Activity implements
         hideVirtualBts();
         setContentView(main);
 
+        this.gestureDetector = new GestureDetector(this,
+                new MyCtrlableGestureDetector(this, 0.25, 0, this, null));
         Thread.setDefaultUncaughtExceptionHandler(this);
 
         wordTipTextThread = new WordTipTextThread(this);
@@ -123,9 +132,20 @@ public class NewsContentActivity extends Activity implements
 
     }
 
+    Thread dataThread1;
+    Thread dataThread2;
+
     private void initData()
     {
-        new Thread(new Runnable()
+        if (dataThread1 != null)
+        {
+            dataThread1.interrupt();
+        }
+        if (dataThread2 != null)
+        {
+            dataThread2.interrupt();
+        }
+        dataThread1 = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -134,10 +154,18 @@ public class NewsContentActivity extends Activity implements
                 msg2.what = MESSAGE_ON_IMG_TEXT;
                 msg2.obj = new WebImgText("<img src=\""
                         + news_info.getHead_pic() + "\"/>").getCharSequence();
+                if (Thread.currentThread().isInterrupted())
+                {
+                    System.out.println("should stop thread1 no send msg");
+                    return;
+                }
                 handler.sendMessage(msg2);
             }
-        }).start();
-        new Thread(new Runnable()
+        });
+        dataThread1.setDaemon(true);
+        dataThread1.start();
+
+        dataThread2 = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -178,7 +206,10 @@ public class NewsContentActivity extends Activity implements
                         msg.what = 11;
                         msg.obj = contents;
                     }
-
+                    if (Thread.currentThread().isInterrupted())
+                    {
+                        return;
+                    }
                     handler.sendMessage(msg);
                 }
                 catch (Exception e)
@@ -186,7 +217,9 @@ public class NewsContentActivity extends Activity implements
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        dataThread2.setDaemon(true);
+        dataThread2.start();
     }
 
     Handler handler = new Handler()
@@ -400,6 +433,7 @@ public class NewsContentActivity extends Activity implements
                         .getScreenWidth(NewsContentActivity.this));
                 lp.height = (int) (0.85 * BasicPhoneUtil
                         .getScreenHeight(NewsContentActivity.this));
+                lp.verticalMargin = 20;
 
                 final SelectableTextView tvTopic = (SelectableTextView) dialog
                         .findViewById(R.id.tvTopicInfo);
@@ -536,7 +570,7 @@ public class NewsContentActivity extends Activity implements
         newsImgTv = (TextView) findViewById(R.id.tv_img);
         newsImgTv.setMovementMethod(LinkMovementMethod.getInstance());
 
-        wordMenuBtn.setVisibility(View.GONE);
+        wordMenuBtn.setVisibility(View.INVISIBLE);
 
         newsMenuBtn.setOnClickListener(this);
         wordMenuBtn.setOnClickListener(this);
@@ -563,9 +597,7 @@ public class NewsContentActivity extends Activity implements
             @Override
             public boolean onLongClick(View v)
             {
-                // 暂时屏蔽文本的点击事件
-                mTextView.setMovementMethod(ScrollingMovementMethod
-                        .getInstance());
+                enableTextViewLink(false);
                 hideWordZone();
                 hideCursor();
                 showSelectionCursors(mTouchX, mTouchY);
@@ -579,7 +611,7 @@ public class NewsContentActivity extends Activity implements
             @Override
             public void onClick(View arg0)
             {
-                mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+                enableTextViewLink(true);
                 wordTipTextThread.refresh();
                 hideWordZone();
                 hideCursor();
@@ -799,12 +831,13 @@ public class NewsContentActivity extends Activity implements
         else
         {
             wordTipTv.setText(selectedText);
-            wordTipTextThread.stopListen();
-            wordMenuPopWindow.showPopupWindow(topicListBt);
         }
+        wordTipTextThread.stopListen();
+        wordMenuPopWindow.showPopupWindow(wordMenuBtn);
 
         wordTipTv.setVisibility(View.VISIBLE);
         wordMenuBtn.setVisibility(View.VISIBLE);
+
     }
 
     private void setNewsTitle(String title)
@@ -899,5 +932,54 @@ public class NewsContentActivity extends Activity implements
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(Uri.parse(page));
         startActivity(i);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent paramMotionEvent)
+    {
+        boolean flag = true;
+        final boolean onTouchEvent = this.gestureDetector
+                .onTouchEvent(paramMotionEvent);
+        if (!onTouchEvent)
+        {
+            flag = super.dispatchTouchEvent(paramMotionEvent);
+        }
+
+        return flag;
+    }
+
+    private void enableTextViewLink(boolean flag)
+    {
+        if (!flag)
+        {
+            mTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
+        }
+        else
+        {
+            mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+    }
+
+    @Override
+    public void doLeft(FlingPoint p1, FlingPoint p2)
+    {
+        changeNews(ViewNewsHolder.getPre());
+    }
+
+    private void changeNews(NewsInfo info)
+    {
+        if (info != null && news_info.getUrl() != info.getUrl())
+        {
+            this.newsImgTv.setText("");
+            news_info = info;
+            setNewsTitle(news_info.getTitle());
+            initData();
+        }
+    }
+
+    @Override
+    public void doRight(FlingPoint p1, FlingPoint p2)
+    {
+        changeNews(ViewNewsHolder.getNext());
     }
 }
