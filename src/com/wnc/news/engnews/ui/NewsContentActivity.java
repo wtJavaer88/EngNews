@@ -2,6 +2,8 @@ package com.wnc.news.engnews.ui;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -12,7 +14,6 @@ import net.selectabletv.SelectableTextView;
 import net.selectabletv.SelectableTextView.OnCursorStateChangedListener;
 
 import org.apache.log4j.Logger;
-import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import word.DicWord;
@@ -22,6 +23,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,6 +54,8 @@ import com.wnc.news.api.autocache.CETTopicCache;
 import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
+import com.wnc.news.dao.NewsDao;
+import com.wnc.news.db.DatabaseManager;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.SrtVoiceHelper;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
@@ -73,12 +77,12 @@ import common.uihelper.MyAppParams;
 import common.uihelper.gesture.CtrlableHorGestureDetectorListener;
 import common.uihelper.gesture.FlingPoint;
 import common.uihelper.gesture.MyCtrlableGestureDetector;
-import common.utils.JsoupHelper;
 
 public class NewsContentActivity extends Activity implements
         CtrlableHorGestureDetectorListener, UncaughtExceptionHandler,
         OnClickListener
 {
+    final int REQUEST_SEARCH_CODE = 1;
     static Logger log = Logger.getLogger(NewsContentActivity.class);
     View main;
     private GestureDetector gestureDetector;
@@ -87,8 +91,8 @@ public class NewsContentActivity extends Activity implements
     public static final int MESSAGE_ON_IMG_TEXT = 2;
     TextView newsImgTv;
     List<Topic> allFind = new ArrayList<Topic>();
-    public static NewsInfo news_info;
 
+    public static NewsInfo news_info;
     private Button topicListBt, wordMenuBtn;
     ImageButton newsMenuBtn;
     TextView wordTipTv;
@@ -123,6 +127,7 @@ public class NewsContentActivity extends Activity implements
 
         wordTipTextThread = new WordTipTextThread(this);
         wordTipTextThread.start();
+
         initView();
         if (news_info != null)
         {
@@ -137,6 +142,8 @@ public class NewsContentActivity extends Activity implements
 
     private void initData()
     {
+        hideCursor();
+        hideWordZone();
         if (dataThread1 != null)
         {
             dataThread1.interrupt();
@@ -190,21 +197,29 @@ public class NewsContentActivity extends Activity implements
                         }
                         else
                         {
-                            log.error(news_info.getUrl() + " 没找到任何Topic!");
+                            log.error(news_info.getUrl() + " 没找到任何Topic,将重新查找!");
+                            final String splitArticle = new CETTopicCache()
+                                    .splitArticle(news_info.getHtml_content(),
+                                            allFind);
+                            if (allFind.size() > 0)
+                            {
+                                news_info.setHtml_content(splitArticle);
+                                JSONObject jobj = new JSONObject();
+                                jobj.put("data", allFind);
+                                news_info.setCet_topics(jobj.toString());
+                                news_info.setTopic_counts(allFind.size());
+                                SQLiteDatabase db = DatabaseManager
+                                        .getInstance().openDatabase();
+                                if (!NewsDao.isExistUrl(db, news_info.getUrl()))
+                                {
+                                    NewsDao.insertSingleNews(db, news_info);
+                                }
+                                DatabaseManager.getInstance().closeDatabase();
+                            }
                         }
 
                         msg.obj = news_info.getHtml_content();
                         msg.what = 1;
-                    }
-                    else
-                    {
-                        log.info("解析网页" + news_info.getUrl());
-                        Document doc = JsoupHelper.getDocumentResult(news_info
-                                .getUrl());
-                        contents = doc.select(news_info.getWebsite()
-                                .getNews_class());
-                        msg.what = 11;
-                        msg.obj = contents;
                     }
                     if (Thread.currentThread().isInterrupted())
                     {
@@ -240,17 +255,6 @@ public class NewsContentActivity extends Activity implements
                 }
 
                 break;
-            case 11:
-                mTextView.setText(new WebImgText(new CETTopicCache()
-                        .splitArticle(msg.obj.toString(), allFind))
-                        .getCharSequence());
-
-                if (hasTopics())
-                {
-                    topicListBt.setVisibility(View.VISIBLE);
-                    topicListBt.setText("" + allFind.size());
-                }
-                break;
             case MESSAGE_ON_IMG_TEXT:
                 newsImgTv.setVisibility(View.VISIBLE);
                 newsImgTv.setText((CharSequence) msg.obj);
@@ -281,10 +285,12 @@ public class NewsContentActivity extends Activity implements
 
     int mTouchX2;
     int mTouchY2;
+    int topicBtClickCount = 0;
 
     @SuppressLint("NewApi")
     private void showTopicList()
     {
+        topicBtClickCount++;
         if (hasTopics())
         {
             final Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
@@ -319,11 +325,30 @@ public class NewsContentActivity extends Activity implements
                     return true;
                 }
             });
-            Iterator<Topic> iterator = allFind.iterator();
+
+            List<Topic> allFind2 = new ArrayList<Topic>(allFind);
+            if (topicBtClickCount % 2 == 1)
+            {
+                allFind2 = allFind;
+            }
+            else
+            {
+                Collections.sort(allFind2, new Comparator<Topic>()
+                {
+
+                    @Override
+                    public int compare(Topic arg0, Topic arg1)
+                    {
+                        return arg0.getMatched_word().compareToIgnoreCase(
+                                arg1.getMatched_word());
+                    }
+                });
+            }
+            Iterator<Topic> iterator = allFind2.iterator();
             String tpContent = "总词数/生词率: "
                     + totalWords
                     + "/"
-                    + BasicNumberUtil.convertScienceNum(100.0 * allFind.size()
+                    + BasicNumberUtil.convertScienceNum(100.0 * allFind2.size()
                             / totalWords, 1) + "%\n";
             while (iterator.hasNext())
             {
@@ -462,14 +487,16 @@ public class NewsContentActivity extends Activity implements
 
                         if (start > -1)
                         {
+                            newsStack.push(ViewNewsHolder.getCurList());
                             String selectedText = NewsContentUtil
                                     .getSuitWordAndSetPos(tvTopic, start);
                             log.info("selectedText:" + selectedText);
                             ClipBoardUtil.setNormalContent(
                                     getApplicationContext(), selectedText);
-                            startActivity(new Intent(getApplicationContext(),
+                            startActivityForResult(new Intent(
+                                    getApplicationContext(),
                                     SearchActivity.class).putExtra("keyword",
-                                    selectedText));
+                                    selectedText), REQUEST_SEARCH_CODE);
                         }
                         return true;
                     }
@@ -827,10 +854,19 @@ public class NewsContentActivity extends Activity implements
             wordTipTv.setText(findWord.getBase_word() + " "
                     + findWord.getCn_mean());
             seekWordList.push(findWord);
+            if (DictionaryDao.findSameAntonym(findWord.getTopic_id()) != null)
+            {
+                wordMenuPopWindow.openExpand();
+            }
+            else
+            {
+                wordMenuPopWindow.closeExpand();
+            }
         }
         else
         {
             wordTipTv.setText(selectedText);
+
         }
         wordTipTextThread.stopListen();
         wordMenuPopWindow.showPopupWindow(wordMenuBtn);
@@ -850,7 +886,26 @@ public class NewsContentActivity extends Activity implements
     {
         sectionPopWindow.dismiss();
         wordMenuPopWindow.dismiss();
+        newsMenuPopWindow.dismiss();
         super.onDestroy();
+    }
+
+    /**
+     * 多余多层次的搜索,使用栈来管理数据
+     */
+    Stack<List<NewsInfo>> newsStack = new Stack<List<NewsInfo>>();
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("welcome back..." + requestCode);
+
+        if (requestCode == REQUEST_SEARCH_CODE && newsStack.size() > 0)
+        {
+            ViewNewsHolder.refrehList(newsStack.pop());
+            ViewNewsHolder.refreh(news_info);
+        }
     }
 
     @Override
@@ -929,9 +984,16 @@ public class NewsContentActivity extends Activity implements
 
     private void gotoIE(String page)
     {
-        Intent i = new Intent(Intent.ACTION_VIEW);
-        i.setData(Uri.parse(page));
-        startActivity(i);
+        try
+        {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(page));
+            startActivity(intent);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override

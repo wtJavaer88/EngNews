@@ -62,8 +62,9 @@ public class RealGmApi implements ForumsApi
                         Document documentResult = JsoupHelper
                                 .getDocumentResult(url);
                         System.out.println(url + " " + newsInfo.getDate());
-                        Elements select = documentResult
-                                .select(".postbody .content");
+                        Elements select = documentResult.select(webSite
+                                .getNews_class());
+                        newsInfo.setComment_counts(select.size());
                         String content = "";
                         for (Element element : select)
                         {
@@ -105,6 +106,11 @@ public class RealGmApi implements ForumsApi
     public List<NewsInfo> getAll()
     {
         return htmlPicker.getAllNews(webSite);
+    }
+
+    public NewsInfo getNewsFromUrl(String url)
+    {
+        return htmlPicker.getNewsFromUrl(webSite, url);
     }
 
 }

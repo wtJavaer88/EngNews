@@ -19,6 +19,7 @@ import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.engnews.helper.WebUrlHelper;
+import com.wnc.string.PatternUtil;
 
 public class CETTopicCache
 {
@@ -69,8 +70,13 @@ public class CETTopicCache
                                 jobj.put("data", allFind);
                                 // jobj放入数据库做cet_topics,
                                 // newContent更新原有的html_content
+                                final String splitLine = "----------------------------------------";
+                                int cCounts = PatternUtil.getAllPatternGroup(
+                                        newContent, splitLine).size();
+
                                 NewsDao.updateContentAndTopic(info.getUrl(),
-                                        newContent, jobj.toString());
+                                        newContent, jobj.toString(),
+                                        allFind.size(), cCounts);
                             }
                         }
                     }
@@ -197,8 +203,8 @@ public class CETTopicCache
     private String replace(String s, final String matched_word)
     {
         s = s.replaceAll("([^a-zA-Z]|^)" + matched_word + "([^a-zA-Z]|$)",
-                "$1<a href=\"" + WebUrlHelper.getWordUrl(matched_word)
-                        + "\">" + matched_word + "</a>$2");
+                "$1<a href=\"" + WebUrlHelper.getWordUrl(matched_word) + "\">"
+                        + matched_word + "</a>$2");
         return s;
     }
 

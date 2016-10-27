@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.wnc.basic.BasicDateUtil;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.db.DatabaseManager;
 import com.wnc.news.website.WebSite;
@@ -60,6 +61,38 @@ public abstract class AbstractForumsHtmlPicker
         }
         DatabaseManager.getInstance().closeDatabase();
         return list;
+    }
+
+    public NewsInfo getNewsFromUrl(WebSite webSite, String url)
+    {
+        NewsInfo newsInfo = new NewsInfo();
+        newsInfo.setUrl(url);
+        newsInfo.setWebsite(webSite);
+        newsInfo.setCreate_time(BasicDateUtil.getCurrentDateTimeString());
+        try
+        {
+            Document documentResult = JsoupHelper.getDocumentResult(url);
+            newsInfo.setTitle(documentResult.title());
+            System.out.println(webSite.getNews_class());
+            Elements select = documentResult.select(webSite.getNews_class());
+            newsInfo.setComment_counts(select.size());
+
+            String content = "";
+            for (Element element : select)
+            {
+                content += element.toString();
+                content += "</br>----------------------------------------</br>";
+            }
+            newsInfo.setHtml_content(content);
+            System.out.println("内容长度:" + content.length());
+        }
+        catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return newsInfo;
     }
 
     public abstract String getPage(int i);

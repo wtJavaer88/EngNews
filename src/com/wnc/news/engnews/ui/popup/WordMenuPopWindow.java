@@ -15,6 +15,7 @@ public class WordMenuPopWindow extends PopupWindow implements OnClickListener
 {
     private View conentView;
     WordMenuListener menuListener;
+    View expandLayout;
 
     public WordMenuPopWindow(final Activity context,
             WordMenuListener menuListener)
@@ -48,8 +49,18 @@ public class WordMenuPopWindow extends PopupWindow implements OnClickListener
         conentView.findViewById(R.id.layout_word_copy).setOnClickListener(this);
         conentView.findViewById(R.id.layout_word_net).setOnClickListener(this);
         conentView.findViewById(R.id.layout_word_pass).setOnClickListener(this);
-        conentView.findViewById(R.id.layout_word_expand).setOnClickListener(
-                this);
+        expandLayout = conentView.findViewById(R.id.layout_word_expand);
+        expandLayout.setOnClickListener(this);
+    }
+
+    public void closeExpand()
+    {
+        expandLayout.setVisibility(View.GONE);
+    }
+
+    public void openExpand()
+    {
+        expandLayout.setVisibility(View.VISIBLE);
     }
 
     public interface WordMenuListener

@@ -15,6 +15,11 @@ public class ViewNewsHolder
         index = 0;
     }
 
+    public static List<NewsInfo> getCurList()
+    {
+        return newsInfos;
+    }
+
     public static void refreh(NewsInfo info)
     {
         if (newsInfos != null && info != null || info.getUrl() != null)

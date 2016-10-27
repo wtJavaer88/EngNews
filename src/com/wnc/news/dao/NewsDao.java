@@ -12,6 +12,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.wnc.basic.BasicDateUtil;
 import com.wnc.news.api.common.Club;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.StaticsHelper;
@@ -73,7 +74,8 @@ public class NewsDao
     }
 
     public synchronized static void updateContentAndTopic(String url,
-            String newContent, String cetTopics)
+            String newContent, String cetTopics, int topic_counts,
+            int comment_counts)
     {
         try
         {
@@ -81,6 +83,8 @@ public class NewsDao
             ContentValues cv = new ContentValues();
             cv.put("html_content", newContent);
             cv.put("cet_topics", cetTopics);
+            cv.put("topic_counts", topic_counts);
+            cv.put("comment_counts", comment_counts);
             final int updateCounts = database.update("news", cv, "url = ?",
                     new String[]
                     { url });
@@ -133,6 +137,37 @@ public class NewsDao
         }
     }
 
+    public synchronized static void updateContent(String url, int tCounts,
+            int cCounts)
+    {
+        try
+        {
+            openDatabase();
+            ContentValues cv = new ContentValues();
+            cv.put("topic_counts", tCounts);
+            cv.put("comment_counts", cCounts);
+            final int updateCounts = database.update("news", cv, "url = ?",
+                    new String[]
+                    { url });
+            if (updateCounts == 1)
+            {
+                log.info("成功更新");
+            }
+            else
+            {
+                log.info("更新失败,更新条数:" + updateCounts);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(url, e);
+        }
+        finally
+        {
+            closeDatabase();
+        }
+    }
+
     public synchronized static void updateContent(NewsInfo info)
     {
         updateContent(info.getUrl(), info.getHtml_content());
@@ -164,14 +199,17 @@ public class NewsDao
         try
         {
             db.execSQL(
-                    "INSERT INTO NEWS(title,url,sub_text,date,head_pic,keywords,html_content,website_id) VALUES (?,?,?,?,?,?,?,?)",
+                    "INSERT INTO NEWS(title,url,sub_text,date,head_pic,keywords,html_content,website_id,create_time,topic_counts,comment_counts) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                     new Object[]
                     { newsInfo.getTitle(), newsInfo.getUrl(),
                             newsInfo.getSub_text(), newsInfo.getDate(),
                             newsInfo.getHead_pic(),
                             newsInfo.getKeywords().toString(),
                             newsInfo.getHtml_content(),
-                            newsInfo.getWebsite().getDb_id() });
+                            newsInfo.getWebsite().getDb_id(),
+                            BasicDateUtil.getCurrentDateTimeString(),
+                            newsInfo.getTopic_counts(),
+                            newsInfo.getComment_counts() });
         }
         catch (Exception e)
         {
@@ -220,12 +258,12 @@ public class NewsDao
         try
         {
             String sql = "select * from news where url='"
-                    + StringEscapeUtils.escapeSql(url) + "' order by date desc";
+                    + StringEscapeUtils.escapeSql(url) + "'";
             Cursor c = db.rawQuery(sql, null);
             c.moveToFirst();
             while (!c.isAfterLast())
             {
-                log.info("find url:" + url);
+                System.out.println("find url:" + url);
                 flag = true;
                 break;
             }
@@ -233,7 +271,6 @@ public class NewsDao
         catch (Exception e)
         {
             log.error(url, e);
-
         }
         return flag;
     }
@@ -317,7 +354,7 @@ public class NewsDao
         }
 
         String sql = "select * from news where 1=2 " + f
-                + " order by replace(date,'-','') desc ";
+                + " order by replace(date,'-','') desc,topic_counts desc ";
         return findAllNewsBySql(sql);
 
     }
@@ -406,7 +443,7 @@ public class NewsDao
         DatabaseManager.getInstance().closeDatabase();
 
         String sql = "select * from news where 1=1 " + episodeSql
-                + " order by replace(date,'-','') desc";
+                + " order by replace(date,'-','') desc,topic_counts desc";
         log.info(sql);
         return findAllNewsBySql(sql);
     }
@@ -432,7 +469,10 @@ public class NewsDao
                 info.setDate(c.getString(c.getColumnIndex("date")));
                 info.setDb_id(c.getString(c.getColumnIndex("id")));
                 info.setUrl(c.getString(c.getColumnIndex("url")));
-
+                info.setCreate_time(c.getString(c.getColumnIndex("create_time")));
+                info.setTopic_counts(c.getInt(c.getColumnIndex("topic_counts")));
+                info.setComment_counts(c.getInt(c
+                        .getColumnIndex("comment_counts")));
                 String kw = c.getString(c.getColumnIndex("keywords"));
                 if (kw != null)
                 {

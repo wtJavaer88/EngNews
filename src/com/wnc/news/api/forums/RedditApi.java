@@ -20,7 +20,7 @@ public class RedditApi implements ForumsApi
     WebSite webSite;
     AbstractForumsHtmlPicker htmlPicker;
 
-    public RedditApi(String type)
+    public RedditApi(final String type)
     {
         if (type.equalsIgnoreCase(MyAppParams.getInstance().getBaskModelName()))
         {
@@ -53,7 +53,7 @@ public class RedditApi implements ForumsApi
                 {
                     newsInfo = new NewsInfo();
                     newsInfo.setWebsite(webSite);
-
+                    newsInfo.addKeyWord(type);
                     Element dateDiv = mainDiv.select(".responsive-hide")
                             .first();
 
@@ -71,6 +71,7 @@ public class RedditApi implements ForumsApi
                             .getDocumentResult(commentHref);
                     Elements select = documentResult.select(webSite
                             .getNews_class());
+                    newsInfo.setComment_counts(select.size());
                     String content = "";
                     for (Element element : select)
                     {
@@ -111,4 +112,8 @@ public class RedditApi implements ForumsApi
         return htmlPicker.getAllNews(webSite);
     }
 
+    public NewsInfo getNewsFromUrl(String url)
+    {
+        return htmlPicker.getNewsFromUrl(webSite, url);
+    }
 }

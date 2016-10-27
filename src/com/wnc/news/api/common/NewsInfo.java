@@ -17,6 +17,9 @@ public class NewsInfo
     String db_id;
     String cet_topics;
     Set<String> keywords = new HashSet<String>();
+    int topic_counts;
+    int comment_counts;
+    String create_time;
 
     public boolean addKeyWord(String keyword)
     {
@@ -85,7 +88,9 @@ public class NewsInfo
                 + url + ", sub_text=" + sub_text + ", date=" + date
                 + ", head_pic=" + head_pic + ", html_content=" + html_content
                 + ", db_id=" + db_id + ", cet_topics=" + cet_topics
-                + ", keywords=" + keywords + "]";
+                + ", keywords=" + keywords + ", topic_counts=" + topic_counts
+                + ", comment_counts=" + comment_counts + ", create_time="
+                + create_time + "]";
     }
 
     public WebSite getWebsite()
@@ -136,5 +141,35 @@ public class NewsInfo
     public void setCet_topics(String cet_topics)
     {
         this.cet_topics = cet_topics;
+    }
+
+    public int getTopic_counts()
+    {
+        return topic_counts;
+    }
+
+    public void setTopic_counts(int topic_counts)
+    {
+        this.topic_counts = topic_counts;
+    }
+
+    public int getComment_counts()
+    {
+        return comment_counts;
+    }
+
+    public void setComment_counts(int comment_counts)
+    {
+        this.comment_counts = comment_counts;
+    }
+
+    public String getCreate_time()
+    {
+        return create_time;
+    }
+
+    public void setCreate_time(String create_time)
+    {
+        this.create_time = create_time;
     }
 }

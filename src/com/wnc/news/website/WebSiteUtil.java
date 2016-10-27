@@ -55,7 +55,7 @@ public class WebSiteUtil
             realgm = new WebSite();
             realgm.setName("realgm");
             realgm.setDb_id("4");
-            realgm.setNews_class("#page-body content");
+            realgm.setNews_class(".postbody .content");
             realgm.setMain_div(".inner .row");
             realgm.setFormat("http://forums.realgm.com/boards/viewforum.php?f=6&start=%d");
         }

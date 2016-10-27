@@ -189,7 +189,8 @@ public class PageFragment extends ListFragment implements
         {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("news_info", news.get(i));
-            map.put("title", news.get(i).getTitle()); // 标题
+            map.put("title", news.get(i).getTitle() + "("
+                    + news.get(i).getTopic_counts() + ")"); // 标题
             final String date = news.get(i).getDate();
             if (date != null && date.length() >= 8)
             {

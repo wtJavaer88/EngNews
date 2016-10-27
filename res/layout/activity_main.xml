@@ -18,18 +18,32 @@
             android:text="篮球" />
 
         <Button
-            android:id="@+id/btn_soccer"
+            android:id="@+id/btn_pick"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="足球" />
+            android:text="链接" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+            android:layout_marginTop="10dp"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/et_pick_url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8" />
 
         <Button
-            android:id="@+id/btn_forums"
+            android:id="@+id/btn_web_parse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="论坛" />
+            android:text="解析" />
     </LinearLayout>
 
     <LinearLayout
@@ -40,10 +54,15 @@
         android:orientation="horizontal" >
 
         <Button
-            android:id="@+id/btn_cache"
+            android:id="@+id/btn_cache_team"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="缓存" />
+            android:text="缓存新闻" />
+        <Button
+            android:id="@+id/btn_cache_forums"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="缓存论坛" />
 
         <Button
             android:id="@+id/btn_cache_clear"
@@ -51,12 +70,13 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="缓存清空" />
+
         <Button
-            android:id="@+id/btn_test"
+            android:id="@+id/btn_theme"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="测试" />
+            android:text="主题" />
     </LinearLayout>
 
     <TextView

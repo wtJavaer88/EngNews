@@ -70,7 +70,7 @@ public class WebImgText implements RichText
             }
             catch (Exception e)
             {
-                System.out.println("not found " + source);
+                // log.info("not found " + source);
                 // drawable = Drawable
                 // .createFromStream(
                 // MyAppParams

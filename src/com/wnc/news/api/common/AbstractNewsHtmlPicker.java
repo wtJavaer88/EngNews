@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.wnc.basic.BasicDateUtil;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.db.DatabaseManager;
 import com.wnc.news.website.WebSite;
@@ -48,6 +49,8 @@ public abstract class AbstractNewsHtmlPicker
                         NewsInfo newsInfo = getNewsInfo(mainDiv);
                         if (newsInfo != null)
                         {
+                            newsInfo.setCreate_time(BasicDateUtil
+                                    .getCurrentDateTimeString());
 
                             if (hasReachOldLine(newsInfo))
                             {

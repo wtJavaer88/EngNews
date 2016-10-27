@@ -16,6 +16,7 @@ import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.engnews.helper.WebUrlHelper;
+import com.wnc.string.PatternUtil;
 
 public class CETTopicUpdate
 {
@@ -36,6 +37,50 @@ public class CETTopicUpdate
         executeTasks(findAllNews);
         shutdown();
         ifOver();
+    }
+
+    /**
+     * 清理原有的已PASS的单词的链接
+     */
+    public void updateCounts()
+    {
+        final List<NewsInfo> findAllNews = NewsDao.findAllNewsWithUrlFilter("");
+        System.out.println("所有新闻数目:" + findAllNews.size());
+        new Thread(new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                for (NewsInfo info : findAllNews)
+                {
+                    List<Topic> oldTopics = new ArrayList<Topic>();
+                    int tCounts = 0;
+                    int cCounts = 0;
+                    if (info.getCet_topics() != null)
+                    {
+                        oldTopics = JSONObject.parseArray(
+                                JSONObject.parseObject(info.getCet_topics())
+                                        .getString("data"), Topic.class);
+                        tCounts = oldTopics.size();
+                    }
+
+                    final String html_content = info.getHtml_content();
+                    final String splitLine = "----------------------------------------";
+                    if (html_content != null
+                            && info.getHtml_content().contains(splitLine))
+                    {
+                        cCounts = PatternUtil.getAllPatternGroup(html_content,
+                                splitLine).size();
+                    }
+                    if (tCounts > 0 || cCounts > 0)
+                    {
+                        System.out.println("更新:" + tCounts + "  " + cCounts);
+                        NewsDao.updateContent(info.getUrl(), tCounts, cCounts);
+                    }
+                }
+            }
+        }).start();
     }
 
     public synchronized void executeTasks(List<NewsInfo> allNews)
@@ -98,10 +143,16 @@ public class CETTopicUpdate
                                         newTopics.add(topic);
                                     }
                                 }
+                                final String splitLine = "----------------------------------------";
+                                int cCounts = PatternUtil.getAllPatternGroup(
+                                        newContent, splitLine).size();
+
                                 JSONObject jobj = new JSONObject();
                                 jobj.put("data", newTopics);
                                 NewsDao.updateContentAndTopic(info.getUrl(),
-                                        newContent, jobj.toString());
+                                        newContent, jobj.toString(),
+                                        oldTopics.size() - passedTopics.size(),
+                                        cCounts);
                                 // System.out.println(newContent);
                                 // System.out.println(jobj);
                             }
@@ -151,7 +202,8 @@ public class CETTopicUpdate
         executor.shutdown();
     }
 
-    public String removeTopicsFromArticle(String article, List<Topic> needRemoveTopics)
+    public String removeTopicsFromArticle(String article,
+            List<Topic> needRemoveTopics)
     {
         article = removeHtmlAttribute(article);
         return deal(article, needRemoveTopics);

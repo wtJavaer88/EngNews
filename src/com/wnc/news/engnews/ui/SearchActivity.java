@@ -64,8 +64,6 @@ public class SearchActivity extends ListActivity implements OnClickListener
             case 1:
                 initListView((List<NewsInfo>) msg.obj);
                 break;
-            case 2:
-                break;
             default:
                 break;
             }
