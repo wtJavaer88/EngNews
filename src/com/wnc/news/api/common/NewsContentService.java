@@ -52,6 +52,11 @@ public class NewsContentService
                         {
                             news_lost.add(info);
                         }
+                        if (info.getUrl().contains(".basketballinsiders."))
+                        {
+                            info.setDate(doc.select(".date-contain .post-date")
+                                    .attr("datetime"));
+                        }
                     }
                     catch (Exception e)
                     {

@@ -12,6 +12,7 @@ public class WebSiteUtil
 
     private static WebSite redditB;
     private static WebSite redditS;
+    private static WebSite iyuba;
 
     private WebSiteUtil()
     {
@@ -46,6 +47,19 @@ public class WebSiteUtil
             redditB = getReddit("nba");
         }
         return redditB;
+    }
+
+    public static WebSite getIyuba()
+    {
+        if (iyuba == null)
+        {
+            iyuba = new WebSite();
+            iyuba.setName("iyuba");
+            iyuba.setDb_id("100");
+            iyuba.setMain_div(".list-contents li");
+            iyuba.setFormat("http://voa.iyuba.com/voachangsu_0_%d.html");
+        }
+        return realgm;
     }
 
     public static WebSite getRealGm()

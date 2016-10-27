@@ -10,9 +10,9 @@ import org.apache.log4j.Logger;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.wnc.news.api.common.ForumsApi;
+import com.wnc.news.api.common.NewsApi;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.api.common.StaticsHelper;
-import com.wnc.news.api.common.TeamApi;
 import com.wnc.news.api.forums.RealGmApi;
 import com.wnc.news.api.forums.RedditApi;
 import com.wnc.news.api.nba.NbaTeamApi;
@@ -91,29 +91,33 @@ public class CacheSchedule
                 allCached1 = true;
             }
 
-            private int cache(TeamApi teamApi, int pages,
-                    CETTopicCache cetTopicCache, String webtip)
-            {
-                int ret = 0;
-                List<NewsInfo> allNews;
-                log.info(webtip + "开始:");
-                teamApi.setMaxPages(pages);
-                allNews = teamApi.getAllNewsWithContent();
-                for (NewsInfo newsInfo : allNews)
-                {
-                    if (!NewsDao.isExistUrl(db_forums, newsInfo.getUrl()))
-                    {
-                        NewsDao.insertSingleNews(db_forums, newsInfo);
-                    }
-                }
-                cetTopicCache.executeTasks(allNews);
-                ret = allNews.size();
-                log.info(webtip + "结束  缓存数:" + ret);
-                return ret;
-            }
-
         }).start();
 
+    }
+
+    private int cache(NewsApi teamApi, int pages, CETTopicCache cetTopicCache,
+            String webtip)
+    {
+        int ret = 0;
+        List<NewsInfo> allNews;
+        log.info(webtip + "开始:");
+        teamApi.setMaxPages(pages);
+        allNews = teamApi.getAllNewsWithContent();
+        for (NewsInfo newsInfo : allNews)
+        {
+            if (!NewsDao.isExistUrl(db_forums, newsInfo.getUrl()))
+            {
+                NewsDao.insertSingleNews(db_forums, newsInfo);
+            }
+        }
+        cetTopicCache.executeTasks(allNews);
+        ret = allNews.size();
+        log.info(webtip + "结束  缓存数:" + ret);
+        if (teamApi instanceof ForumsApi && ret > 0)
+        {
+            list.add(webtip + " " + ret);
+        }
+        return ret;
     }
 
     private boolean allCached1 = true;
@@ -138,14 +142,14 @@ public class CacheSchedule
                 try
                 {
                     CETTopicCache cetTopicCache = new CETTopicCache();
-                    cache(new RealGmApi(), 4, cetTopicCache, "RealGm论坛");
+                    cache(new RealGmApi(), 1, cetTopicCache, "RealGm论坛");
 
                     cache(new RedditApi(MyAppParams.getInstance()
-                            .getSoccModelName()), 3, cetTopicCache,
+                            .getSoccModelName()), 1, cetTopicCache,
                             "Reddit/Soccer论坛");
 
                     cache(new RedditApi(MyAppParams.getInstance()
-                            .getBaskModelName()), 3, cetTopicCache,
+                            .getBaskModelName()), 1, cetTopicCache,
                             "Reddit/NBA论坛");
 
                     DatabaseManager.getInstance().closeDatabase();
@@ -158,32 +162,6 @@ public class CacheSchedule
                     e.printStackTrace();
                 }
                 allCached2 = true;
-            }
-
-            private int cache(ForumsApi forumsApi, int pages,
-                    CETTopicCache cetTopicCache, String webtip)
-            {
-                int ret = 0;
-                List<NewsInfo> allNews;
-                log.info(webtip + "开始:");
-                forumsApi.setMaxPages(pages);
-                allNews = forumsApi.getAll();
-                for (NewsInfo newsInfo : allNews)
-                {
-                    if (!NewsDao.isExistUrl(db_forums, newsInfo.getUrl()))
-                    {
-                        NewsDao.insertSingleNews(db_forums, newsInfo);
-                    }
-                }
-                cetTopicCache.executeTasks(allNews);
-                ret = allNews.size();
-                log.info(webtip + "结束  缓存数:" + ret);
-                if (ret > 0)
-                {
-
-                    list.add(webtip + " " + ret);
-                }
-                return ret;
             }
 
         }).start();

@@ -122,7 +122,7 @@ public class NewsContentActivity extends Activity implements
         setContentView(main);
 
         this.gestureDetector = new GestureDetector(this,
-                new MyCtrlableGestureDetector(this, 0.25, 0, this, null));
+                new MyCtrlableGestureDetector(this, 0.5, 0, this, null));
         Thread.setDefaultUncaughtExceptionHandler(this);
 
         wordTipTextThread = new WordTipTextThread(this);

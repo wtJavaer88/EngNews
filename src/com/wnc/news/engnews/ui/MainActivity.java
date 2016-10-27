@@ -73,6 +73,9 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
                     new NewsTest().topicUpdate();
                 }
                 // new CETTopicUpdate().updateCounts();
+                // new NewsTest().deleteEmptyDate();
+                // NewsInfo newsFromUrl = new IyubaApi()
+                // .getNewsFromUrl("http://voa.iyuba.com/audioitem_standard_803.html");
             }
         }).start();
     }
@@ -142,6 +145,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
             new NewsTest().testsameAntonym();
             break;
         case R.id.btn_pick:
+            startActivity(new Intent(this, VoaActivity.class));
             break;
         case R.id.btn_web_parse:
             new Thread(new Runnable()

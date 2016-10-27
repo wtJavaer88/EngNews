@@ -53,7 +53,7 @@ public class NewsTest
 
     public void testRealGm()
     {
-        new RealGmApi().getAll();
+        new RealGmApi().getAllNewsWithContent();
     }
 
     public void topicUpdate()
@@ -82,14 +82,14 @@ public class NewsTest
 
     public void cacheTeams(CacheSchedule cacheSchedule)
     {
-        cacheSchedule.addTeam("arsenal");
-        cacheSchedule.addTeam("barcelona");
-        cacheSchedule.addTeam("manchester-united");
-        cacheSchedule.addTeam("manchester-city");
-        cacheSchedule.addTeam("liverpool");
-        cacheSchedule.addTeam("tottenham-hotspur");
-        cacheSchedule.addTeam("real-madrid");
-        cacheSchedule.addTeam("san-antonio-spurs");
+        // cacheSchedule.addTeam("arsenal");
+        // cacheSchedule.addTeam("barcelona");
+        // cacheSchedule.addTeam("manchester-united");
+        // cacheSchedule.addTeam("manchester-city");
+        // cacheSchedule.addTeam("liverpool");
+        // cacheSchedule.addTeam("tottenham-hotspur");
+        // cacheSchedule.addTeam("real-madrid");
+        // cacheSchedule.addTeam("san-antonio-spurs");
         cacheSchedule.addTeam("golden-state-warriors");
         cacheSchedule.teamCache();
     }
@@ -115,5 +115,10 @@ public class NewsTest
         {
             e.printStackTrace();
         }
+    }
+
+    public void deleteEmptyDate()
+    {
+        NewsDao.deleteTestNews();
     }
 }

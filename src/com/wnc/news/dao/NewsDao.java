@@ -39,8 +39,8 @@ public class NewsDao
         try
         {
             openDatabase();
-            int delete = database.delete("news", "url like ?", new String[]
-            { "%.realgm.%" });
+            int delete = database.delete("news", "date = ?", new String[]
+            { "" });
             log.info("删除条数:" + delete);
         }
         catch (Exception e)
@@ -115,6 +115,35 @@ public class NewsDao
             openDatabase();
             ContentValues cv = new ContentValues();
             cv.put("html_content", newContent);
+            final int updateCounts = database.update("news", cv, "url = ?",
+                    new String[]
+                    { url });
+            if (updateCounts == 1)
+            {
+                log.info("成功更新");
+            }
+            else
+            {
+                log.info("成功失败,更新条数:" + updateCounts);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(url, e);
+        }
+        finally
+        {
+            closeDatabase();
+        }
+    }
+
+    public synchronized static void updateDate(String url, String date)
+    {
+        try
+        {
+            openDatabase();
+            ContentValues cv = new ContentValues();
+            cv.put("date", date);
             final int updateCounts = database.update("news", cv, "url = ?",
                     new String[]
                     { url });

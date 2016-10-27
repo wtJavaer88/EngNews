@@ -60,6 +60,8 @@
         </activity>
          <activity android:name="com.wnc.news.engnews.ui.MainActivity2" >
         </activity>
+        <activity android:name="com.wnc.news.engnews.ui.VoaActivity" >
+        </activity>
         <activity android:name="com.wnc.news.engnews.ui.NewsListActivity" >
         </activity>
     </application>

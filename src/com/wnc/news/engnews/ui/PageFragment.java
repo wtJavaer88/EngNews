@@ -198,7 +198,13 @@ public class PageFragment extends ListFragment implements
             }
             else
             {
-                map.put("date", "");
+                if (news.get(i).getCreate_time() != null
+                        && news.get(i).getCreate_time().length() >= 8)
+                {
+                    map.put("date",
+                            news.get(i).getCreate_time().replace("-", "")
+                                    .substring(4, 8));
+                }
             }
             map.put("image", R.drawable.ic_launcher); // 图片
             listItems.add(map);

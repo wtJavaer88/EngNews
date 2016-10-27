@@ -8,21 +8,24 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.jsoup.nodes.Document;
 
 import word.Topic;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wnc.basic.BasicStringUtil;
+import com.wnc.news.api.common.AbstractForumsHtmlPicker;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.engnews.helper.WebUrlHelper;
 import com.wnc.string.PatternUtil;
+import common.utils.JsoupHelper;
 
 public class CETTopicUpdate
 {
     boolean isShutdown = false;
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors
-            .newFixedThreadPool(3);
+            .newFixedThreadPool(10);
     static Logger log = Logger.getLogger(CETTopicUpdate.class);
 
     int x = 0;
@@ -54,19 +57,19 @@ public class CETTopicUpdate
             {
                 for (NewsInfo info : findAllNews)
                 {
-                    List<Topic> oldTopics = new ArrayList<Topic>();
+                    List<Topic> topics = new ArrayList<Topic>();
                     int tCounts = 0;
                     int cCounts = 0;
                     if (info.getCet_topics() != null)
                     {
-                        oldTopics = JSONObject.parseArray(
+                        topics = JSONObject.parseArray(
                                 JSONObject.parseObject(info.getCet_topics())
                                         .getString("data"), Topic.class);
-                        tCounts = oldTopics.size();
+                        tCounts = topics.size();
                     }
 
                     final String html_content = info.getHtml_content();
-                    final String splitLine = "----------------------------------------";
+                    final String splitLine = AbstractForumsHtmlPicker.SPlIT_LINE;
                     if (html_content != null
                             && info.getHtml_content().contains(splitLine))
                     {
@@ -81,6 +84,41 @@ public class CETTopicUpdate
                 }
             }
         }).start();
+    }
+
+    /**
+     * 清理原有的已PASS的单词的链接
+     */
+    public void updateBasketBallDate()
+    {
+        final List<NewsInfo> findAllNews = NewsDao.findAllNBANews();
+        System.out.println("所有NBA新闻数目:" + findAllNews.size());
+        executor.execute(new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                for (NewsInfo info : findAllNews)
+                {
+                    Document doc;
+                    try
+                    {
+                        doc = JsoupHelper.getDocumentResult(info.getUrl());
+                        if (doc != null)
+                        {
+                            NewsDao.updateDate(info.getUrl(),
+                                    (doc.select(".date-contain .post-date")
+                                            .attr("datetime").replace("-", "")));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     public synchronized void executeTasks(List<NewsInfo> allNews)
@@ -113,9 +151,7 @@ public class CETTopicUpdate
                             else
                             {
                                 x++;
-                                log.info(info.getUrl()
-                                        + " 没有Topics.................总数:"
-                                        + (++x));
+                                log.info(info.getUrl() + " 没有Topics");
                                 return;
                             }
                             List<Topic> needRemoveTopics = new ArrayList<Topic>();
@@ -127,10 +163,10 @@ public class CETTopicUpdate
                                     needRemoveTopics.add(topic);
                                 }
                             }
-                            log.info(info.getUrl() + " needRemoveTopics:"
-                                    + needRemoveTopics.size());
                             if (needRemoveTopics.size() > 0)
                             {
+                                log.info(info.getUrl() + " needRemoveTopics:"
+                                        + needRemoveTopics.size());
                                 String newContent = removeTopicsFromArticle(
                                         info.getHtml_content(),
                                         needRemoveTopics);
@@ -143,7 +179,7 @@ public class CETTopicUpdate
                                         newTopics.add(topic);
                                     }
                                 }
-                                final String splitLine = "----------------------------------------";
+                                final String splitLine = AbstractForumsHtmlPicker.SPlIT_LINE;
                                 int cCounts = PatternUtil.getAllPatternGroup(
                                         newContent, splitLine).size();
 
@@ -151,17 +187,11 @@ public class CETTopicUpdate
                                 jobj.put("data", newTopics);
                                 NewsDao.updateContentAndTopic(info.getUrl(),
                                         newContent, jobj.toString(),
-                                        oldTopics.size() - passedTopics.size(),
-                                        cCounts);
-                                // System.out.println(newContent);
-                                // System.out.println(jobj);
+                                        newTopics.size(), cCounts);
                             }
                             else
                             {
                                 String s = info.getHtml_content();
-                                // System.out.println(info.getTitle() +
-                                // " 新闻html长度"
-                                // + s.length());
                                 int i = s.indexOf("<a href=\">");
                                 if (i == -1)
                                 {

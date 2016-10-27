@@ -1,11 +1,6 @@
 package com.wnc.news.api.common;
 
-import java.util.List;
 
-public interface ForumsApi
+public interface ForumsApi extends NewsApi
 {
-    public List<NewsInfo> getAll();
-
-    public void setMaxPages(int max);
-
 }
