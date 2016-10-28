@@ -12,17 +12,18 @@
         android:orientation="horizontal" >
 
         <Button
-            android:id="@+id/btn_nba"
+            android:id="@+id/btn_theme"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="篮球" />
+            android:layout_marginLeft="10dp"
+            android:text="主题" />
 
         <Button
             android:id="@+id/btn_pick"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="链接" />
+            android:text="最新VOA" />
     </LinearLayout>
 
     <LinearLayout
@@ -70,13 +71,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="缓存清空" />
-
-        <Button
-            android:id="@+id/btn_theme"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:text="主题" />
+        
     </LinearLayout>
 
     <TextView

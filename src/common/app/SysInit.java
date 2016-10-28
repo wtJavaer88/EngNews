@@ -12,6 +12,7 @@ import com.wnc.basic.BasicFileUtil;
 import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.db.DatabaseManager;
+import com.wnc.news.db.DatabaseManager_VOA;
 import com.wnc.news.db.SQLiteHelperOfOpen;
 import common.uihelper.MyAppParams;
 
@@ -48,7 +49,11 @@ public class SysInit
 
         SQLiteOpenHelper myHelper = new SQLiteHelperOfOpen(context2,
                 MyAppParams.NEWS_DB, null, 1);
+        SQLiteOpenHelper myHelperVoa = new SQLiteHelperOfOpen(context2,
+                MyAppParams.VOA_DB, null, 1);
         DatabaseManager.initializeInstance(myHelper);
+        DatabaseManager_VOA.initializeInstance(myHelperVoa);
+
         // NewsDao.test();
     }
 

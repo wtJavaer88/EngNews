@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import voa.VoaNewsInfo;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.wnc.news.api.common.ForumsApi;
@@ -18,7 +19,9 @@ import com.wnc.news.api.forums.RedditApi;
 import com.wnc.news.api.nba.NbaTeamApi;
 import com.wnc.news.api.soccer.SkySportsTeamApi;
 import com.wnc.news.api.soccer.SquawkaTeamApi;
+import com.wnc.news.api.voa.IyubaApi;
 import com.wnc.news.dao.NewsDao;
+import com.wnc.news.dao.VoaDao;
 import com.wnc.news.db.DatabaseManager;
 import common.uihelper.MyAppParams;
 
@@ -164,6 +167,27 @@ public class CacheSchedule
                 allCached2 = true;
             }
 
+        }).start();
+    }
+
+    public void voaCache()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                final IyubaApi iyubaApi = new IyubaApi();
+                iyubaApi.setMaxPages(1);
+                List<VoaNewsInfo> allNewsWithContent = iyubaApi
+                        .getAllNewsWithContent();
+                // for (VoaNewsInfo voaNewsInfo : allNewsWithContent)
+                // {
+                // System.out.println(voaNewsInfo.getDate() + ""
+                // + voaNewsInfo.getTitle());
+                // }
+                VoaDao.insertVOANews(allNewsWithContent);
+            }
         }).start();
     }
 }

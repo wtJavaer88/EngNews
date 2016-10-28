@@ -59,7 +59,7 @@ public class WebSiteUtil
             iyuba.setMain_div(".list-contents li");
             iyuba.setFormat("http://voa.iyuba.com/voachangsu_0_%d.html");
         }
-        return realgm;
+        return iyuba;
     }
 
     public static WebSite getRealGm()

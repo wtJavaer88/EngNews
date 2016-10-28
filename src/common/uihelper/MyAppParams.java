@@ -17,8 +17,10 @@ public class MyAppParams
             .getExternalStorageDirectory().getPath() + "/wnc/app/news/";
     public final static String FAVORITE_TXT = workPath + "favorite.txt";
     public final static String PASS_TXT = workPath + "pass.txt";
-
+    public final static String VOA_MP3_PATH = Environment
+            .getExternalStorageDirectory().getPath() + "/wnc/res/voa/";
     public final static String NEWS_DB = workPath + "news.db";
+    public final static String VOA_DB = workPath + "voa.db";
     public final static String VOICE_FOLDER = Environment
             .getExternalStorageDirectory().getPath() + "/wnc/res/voice/";
     public final static String LOG_FOLDER = workPath + "/logs/";
@@ -63,6 +65,11 @@ public class MyAppParams
     public String getForuModelName()
     {
         return getResources().getString(R.string.model_f);
+    }
+
+    public String getVoaModelName()
+    {
+        return getResources().getString(R.string.model_v);
     }
 
     public static MyAppParams getInstance()

@@ -4,10 +4,8 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 
 import net.selectabletv.SelectableTextView;
@@ -24,7 +22,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -56,6 +53,7 @@ import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.db.DatabaseManager;
+import com.wnc.news.engnews.helper.ActivityMgr;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.SrtVoiceHelper;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
@@ -278,7 +276,6 @@ public class NewsContentActivity extends Activity implements
         }
         catch (Exception e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -370,8 +367,6 @@ public class NewsContentActivity extends Activity implements
         return allFind != null && allFind.size() > 0;
     }
 
-    static Map<Integer, CharSequence> wordExpandContentMap = new HashMap<Integer, CharSequence>();
-
     private void initView()
     {
         newsMenuPopWindow = new NewsMenuPopWindow(this, new NewsMenuListener()
@@ -382,7 +377,8 @@ public class NewsContentActivity extends Activity implements
             {
                 if (news_info != null)
                 {
-                    gotoIE(news_info.getUrl());
+                    ActivityMgr.gotoIE(NewsContentActivity.this,
+                            news_info.getUrl());
                 }
             }
 
@@ -429,7 +425,8 @@ public class NewsContentActivity extends Activity implements
             @Override
             public void toNet()
             {
-                gotoIE(WebUrlHelper.getWordUrl(getCurrentWord()));
+                ActivityMgr.gotoIE(NewsContentActivity.this,
+                        WebUrlHelper.getWordUrl(getCurrentWord()));
             }
 
             @Override
@@ -512,20 +509,23 @@ public class NewsContentActivity extends Activity implements
                     }
                 });
 
-                if (seekWordList.size() > 0)
+                if (OptedDictData.seekWordList.size() > 0)
                 {
-                    final Integer topic_id = seekWordList.peek().getTopic_id();
-                    if (wordExpandContentMap.containsKey(topic_id))
+                    final Integer topic_id = OptedDictData.seekWordList.peek()
+                            .getTopic_id();
+                    if (OptedDictData.wordExpandContentMap
+                            .containsKey(topic_id))
                     {
-                        tvTopic.setText(wordExpandContentMap.get(topic_id));
+                        tvTopic.setText(OptedDictData.wordExpandContentMap
+                                .get(topic_id));
                         dialog.show();
                     }
                     else
                     {
                         System.out.println("not contains");
                         WordExpand wordExpand = DictionaryDao
-                                .findSameAntonym(seekWordList.peek()
-                                        .getTopic_id());
+                                .findSameAntonym(OptedDictData.seekWordList
+                                        .peek().getTopic_id());
 
                         if (wordExpand != null)
                         {
@@ -539,8 +539,8 @@ public class NewsContentActivity extends Activity implements
                                                 new ArrayList<Topic>());
                                 final CharSequence charSequence = new HtmlRichText(
                                         splitArticle).getCharSequence();
-                                wordExpandContentMap
-                                        .put(topic_id, charSequence);
+                                OptedDictData.wordExpandContentMap.put(
+                                        topic_id, charSequence);
                                 tvTopic.setText(charSequence);
                                 dialog.show();
                             }
@@ -566,7 +566,7 @@ public class NewsContentActivity extends Activity implements
             @Override
             public void doTranslate()
             {
-                gotoIE(WebUrlHelper
+                ActivityMgr.gotoIE(NewsContentActivity.this, WebUrlHelper
                         .getTranslateUrl(getCurrentSectionAndSetPos()));
                 log.info("翻译: " + getCurrentSectionAndSetPos());
             }
@@ -657,13 +657,6 @@ public class NewsContentActivity extends Activity implements
                     public void onPositionChanged(View v, int x, int y,
                             int oldx, int oldy)
                     {
-                        // final String selectedText = mTextView
-                        // .getCursorSelection().getSelectedText()
-                        // .toString();
-                        // if (selectedText.contains(" "))
-                        // {
-                        // System.out.println("选择句子:" + selectedText);
-                        // }
                     }
 
                     @Override
@@ -814,8 +807,6 @@ public class NewsContentActivity extends Activity implements
         wordTipTv.setVisibility(View.INVISIBLE);
     }
 
-    static Stack<DicWord> seekWordList = new Stack<DicWord>();
-
     private void showWordZone(String selectedText)
     {
         if (BasicStringUtil.isNullString(selectedText))
@@ -825,7 +816,7 @@ public class NewsContentActivity extends Activity implements
         DicWord findWord = null;
         BasicRunTimeUtil util = new BasicRunTimeUtil("");
         util.beginRun();
-        for (DicWord d : seekWordList)
+        for (DicWord d : OptedDictData.seekWordList)
         {
             if (selectedText.equalsIgnoreCase(d.getBase_word())
                     || selectedText.equalsIgnoreCase(d.getWord_done())
@@ -853,7 +844,7 @@ public class NewsContentActivity extends Activity implements
         {
             wordTipTv.setText(findWord.getBase_word() + " "
                     + findWord.getCn_mean());
-            seekWordList.push(findWord);
+            OptedDictData.seekWordList.push(findWord);
             if (DictionaryDao.findSameAntonym(findWord.getTopic_id()) != null)
             {
                 wordMenuPopWindow.openExpand();
@@ -980,20 +971,6 @@ public class NewsContentActivity extends Activity implements
     {
         System.out.println("显示新闻菜单!");
         newsMenuPopWindow.showPopupWindow(newsMenuBtn);
-    }
-
-    private void gotoIE(String page)
-    {
-        try
-        {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(page));
-            startActivity(intent);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
     }
 
     @Override

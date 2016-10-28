@@ -1,22 +1,32 @@
 package com.wnc.news.api.voa;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.wnc.news.api.common.AbstractForumsHtmlPicker;
+import voa.VINFO;
+import voa.VoaNewsInfo;
+import android.database.sqlite.SQLiteDatabase;
+
+import com.wnc.basic.BasicNumberUtil;
+import com.wnc.news.api.common.AbstractVoaHtmlPicker;
 import com.wnc.news.api.common.NewsInfo;
-import com.wnc.news.api.common.TeamApi;
+import com.wnc.news.api.common.VoaApi;
+import com.wnc.news.dao.VoaDao;
+import com.wnc.news.db.DatabaseManager_VOA;
 import com.wnc.news.website.WebSite;
 import com.wnc.news.website.WebSiteUtil;
 import com.wnc.string.PatternUtil;
 import common.utils.JsoupHelper;
 
-public class IyubaApi extends AbstractForumsHtmlPicker implements TeamApi
+public class IyubaApi extends AbstractVoaHtmlPicker implements VoaApi
 {
     WebSite webSite = WebSiteUtil.getIyuba();
+    Logger log = Logger.getLogger(IyubaApi.class);
 
     public IyubaApi()
     {
@@ -30,12 +40,12 @@ public class IyubaApi extends AbstractForumsHtmlPicker implements TeamApi
     }
 
     @Override
-    protected NewsInfo getBaseNewsInfo(Element mainDiv)
+    protected VoaNewsInfo getBaseNewsInfo(Element mainDiv)
     {
-        NewsInfo newsInfo = null;
+        VoaNewsInfo newsInfo = null;
         try
         {
-            newsInfo = new NewsInfo();
+            newsInfo = new VoaNewsInfo();
 
             newsInfo.setDate(mainDiv.select(".date").first().text()
                     .replace("-", ""));
@@ -52,35 +62,67 @@ public class IyubaApi extends AbstractForumsHtmlPicker implements TeamApi
     }
 
     @Override
-    protected NewsInfo getNewsFromUrl(WebSite webSite, String url)
+    protected VoaNewsInfo getNewsFromUrl(WebSite webSite, String url)
             throws Exception
     {
-        NewsInfo newsInfo = new NewsInfo();
-        Document documentResult = JsoupHelper.getDocumentResult(url);
-        Elements select = documentResult.select("#HidedivItems table tr");
-        String content = "";
-        for (Element element : select)
+        VoaNewsInfo news_info = new VoaNewsInfo();
+        news_info.setWebsite(webSite);
+        news_info.setUrl(url);
+        try
         {
-            final Element obh = element.nextElementSibling()
-                    .nextElementSibling();
-            content += element.text()
-                    + PatternUtil.getFirstPatternGroup(obh.toString(),
-                            "obj\\[3\\]\\=('.*?')") + "\n";
+            Document documentResult = JsoupHelper.getDocumentResult(url);
+            String mp3 = documentResult.select("#myMusic").attr("src");
+            Elements select = documentResult.select("#HidedivItems table tr");
+            List<VINFO> list = new ArrayList<VINFO>();
+            for (Element element : select)
+            {
+                VINFO info = new VINFO();
+                String en = element.text();
+                String obj = element.nextElementSibling().nextElementSibling()
+                        .toString();
+                String ch = PatternUtil.getFirstPatternGroup(obj,
+                        "obj\\[3\\]\\='(.*?)'");
+                String time = PatternUtil.getFirstPatternGroup(obj,
+                        "obj\\[0\\]\\=(\\d+)");
+                info.setCh(ch);
+                info.setEn(en);
+                info.setTime(BasicNumberUtil.getNumber(time));
+                list.add(info);
+            }
+            String jsonString = com.alibaba.fastjson.JSONArray
+                    .toJSONString(list);
+            news_info.setHtml_content(jsonString);
+            news_info.setMp3(mp3);
         }
-        System.out.println(content);
-        newsInfo.setHtml_content(content);
+        catch (Exception e)
+        {
+            log.error(url, e);
+            e.printStackTrace();
+        }
 
-        return newsInfo;
+        return news_info;
     }
 
     @Override
     public String getPage(int i)
     {
-        return String.format(webSite.getFormat(), i * 25);
+        return String.format(webSite.getFormat(), i);
     }
 
     @Override
-    public List<NewsInfo> getAllNewsWithContent()
+    protected boolean isFresh(NewsInfo t_info)
+    {
+        final SQLiteDatabase openDatabase = DatabaseManager_VOA.getInstance()
+                .openDatabase();
+        final String url = t_info.getUrl();
+        System.out.println("Url:" + url);
+        boolean existUrl = !VoaDao.isExistUrl(openDatabase, url);
+        DatabaseManager_VOA.getInstance().closeDatabase();
+        return existUrl;
+    }
+
+    @Override
+    public List<VoaNewsInfo> getAllNewsWithContent()
     {
         return getAllNews(webSite);
     }

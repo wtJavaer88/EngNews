@@ -7,19 +7,19 @@ import com.wnc.news.website.WebSite;
 
 public class NewsInfo
 {
-    WebSite website;
-    String title;
-    String url;
-    String sub_text;
-    String date;
-    String head_pic;
-    String html_content;
-    String db_id;
-    String cet_topics;
-    Set<String> keywords = new HashSet<String>();
-    int topic_counts;
-    int comment_counts;
-    String create_time;
+    protected WebSite website;
+    protected String title;
+    protected String url;
+    protected String sub_text;
+    protected String date;
+    protected String head_pic;
+    protected String html_content;
+    protected String db_id;
+    protected String cet_topics;
+    protected Set<String> keywords = new HashSet<String>();
+    protected int topic_counts;
+    protected int comment_counts;
+    protected String create_time;
 
     public boolean addKeyWord(String keyword)
     {

@@ -74,7 +74,7 @@ public class MainActivity2 extends FragmentActivity implements
         addFragment(MyAppParams.getInstance().getBaskModelName());
         addFragment(MyAppParams.getInstance().getSoccModelName());
         addFragment(MyAppParams.getInstance().getForuModelName());
-
+        addFragment(MyAppParams.getInstance().getVoaModelName());
     }
 
     private void addFragment(String tagname)

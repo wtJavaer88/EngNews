@@ -37,7 +37,6 @@ import common.uihelper.PositiveEvent;
 public class MainActivity extends BaseVerActivity implements OnClickListener,
         UncaughtExceptionHandler
 {
-    private Button bt_nba;
     private Button bt_pick;
     private Button btn_cache1, btn_cache2, btn_cache_clear;
     private TextView proTv;
@@ -110,7 +109,6 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         proTv = (TextView) findViewById(R.id.tv_cache_process);
         proTv.setMovementMethod(ScrollingMovementMethod.getInstance());
 
-        bt_nba = (Button) findViewById(R.id.btn_nba);
         bt_pick = (Button) findViewById(R.id.btn_pick);
         bt_web_parse = (Button) findViewById(R.id.btn_web_parse);
 
@@ -119,7 +117,6 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 
         btn_cache_clear = (Button) findViewById(R.id.btn_cache_clear);
 
-        bt_nba.setOnClickListener(this);
         bt_pick.setOnClickListener(this);
         bt_web_parse.setOnClickListener(this);
 
@@ -141,10 +138,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         case R.id.btn_theme:
             startActivity(new Intent(this, MainActivity2.class));
             break;
-        case R.id.btn_nba:
-            new NewsTest().testsameAntonym();
-            break;
         case R.id.btn_pick:
+            new CacheSchedule().voaCache();
             startActivity(new Intent(this, VoaActivity.class));
             break;
         case R.id.btn_web_parse:

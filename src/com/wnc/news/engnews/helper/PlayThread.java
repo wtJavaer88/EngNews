@@ -1,6 +1,5 @@
-package com.wnc.news.engnews.ui;
+package com.wnc.news.engnews.helper;
 
-import com.wnc.news.engnews.helper.SrtVoiceHelper;
 
 public class PlayThread extends Thread
 {
@@ -15,6 +14,7 @@ public class PlayThread extends Thread
 
     public PlayThread(String path, int seekTime, int stopTime)
     {
+        System.out.println(path);
         this.path = path;
         this.seekTime = seekTime;
         this.stopTime = stopTime;
