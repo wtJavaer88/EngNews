@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.wnc.basic.BasicDateUtil;
+import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.db.DatabaseManager_VOA;
 
 public class VoaDao
@@ -93,7 +94,7 @@ public class VoaDao
 
     public static VoaNewsInfo findtest()
     {
-        final List<VoaNewsInfo> findAllNewsBySql = findAllNewsBySql("SELECT * FROM ARTICLE ORDER BY DATE DESC LIMIT 0,1 ");
+        List<VoaNewsInfo> findAllNewsBySql = findAllNewsBySql("SELECT * FROM ARTICLE ORDER BY DATE DESC LIMIT 0,1 ");
         if (findAllNewsBySql.size() > 0)
         {
             return findAllNewsBySql.get(0);
@@ -141,6 +142,13 @@ public class VoaDao
             closeDatabase();
         }
         return list;
+    }
+
+    public static List<NewsInfo> findAllNewsInfos(int from, int counts)
+    {
+        List<VoaNewsInfo> findAllNewsBySql = findAllNewsBySql("SELECT * FROM ARTICLE ORDER BY DATE DESC LIMIT "
+                + from + "," + counts);
+        return new ArrayList<NewsInfo>(findAllNewsBySql);
     }
 
 }

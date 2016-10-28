@@ -16,6 +16,7 @@ public class SrtVoiceHelper
 {
     static MediaPlayer player;
     static boolean isPlaying = false;
+    static String lastVoice;
 
     public synchronized static void stop()
     {
@@ -80,7 +81,7 @@ public class SrtVoiceHelper
             {
                 player.start();
             }
-
+            lastVoice = voicePath;
             isPlaying = true;
             player.setOnCompletionListener(new OnCompletionListener()
             {

@@ -382,8 +382,9 @@ public class NewsDao
             }
         }
 
-        String sql = "select * from news where 1=2 " + f
-                + " order by replace(date,'-','') desc,topic_counts desc ";
+        String sql = "select * from news where 1=2 "
+                + f
+                + " order by replace(date,'-','') desc,topic_counts desc limit 0,200";
         return findAllNewsBySql(sql);
 
     }

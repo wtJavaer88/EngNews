@@ -25,10 +25,9 @@ import common.uihelper.MyAppParams;
 public class MainActivity2 extends FragmentActivity implements
         UncaughtExceptionHandler
 {
-    List<String> titles = new ArrayList<String>();
     Logger log = Logger.getLogger(MainActivity2.class);
 
-    List<Fragment> fragmentList = new ArrayList<Fragment>();
+    List<PageFragment> fragmentList = new ArrayList<PageFragment>();
     FragmentPagerAdapter adapter;
 
     @Override
@@ -80,7 +79,6 @@ public class MainActivity2 extends FragmentActivity implements
     private void addFragment(String tagname)
     {
         this.fragmentList.add(new PageFragment(tagname));
-        this.titles.add(tagname);
     }
 
     /**
@@ -118,13 +116,13 @@ public class MainActivity2 extends FragmentActivity implements
         @Override
         public CharSequence getPageTitle(int position)
         {
-            return MainActivity2.this.titles.get(position % getCount());
+            return fragmentList.get(position).getFragmentTitle();
         }
 
         @Override
         public int getCount()
         {
-            return MainActivity2.this.titles.size();
+            return fragmentList.size();
         }
     }
 

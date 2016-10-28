@@ -11,6 +11,7 @@ import net.widget.act.token.SemicolonTokenizer;
 
 import org.apache.log4j.Logger;
 
+import voa.VoaNewsInfo;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import com.wnc.news.act.ActTeam;
 import com.wnc.news.act.TeamAutoAdapter;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.NewsDao;
+import com.wnc.news.dao.VoaDao;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
 import common.uihelper.MyAppParams;
 
@@ -53,6 +55,11 @@ public class PageFragment extends ListFragment implements
     public PageFragment(String type)
     {
         this.type = type;
+    }
+
+    public String getFragmentTitle()
+    {
+        return type;
     }
 
     @Override
@@ -94,6 +101,11 @@ public class PageFragment extends ListFragment implements
                         .getForuModelName()))
                 {
                     msg.obj = NewsDao.findAllForumInfos();
+                }
+                else if (type.equalsIgnoreCase(MyAppParams.getInstance()
+                        .getVoaModelName()))
+                {
+                    msg.obj = VoaDao.findAllNewsInfos(0, 100);
                 }
                 else
                 {
@@ -227,8 +239,16 @@ public class PageFragment extends ListFragment implements
         HashMap<String, Object> map = (HashMap<String, Object>) lv
                 .getItemAtPosition(position);
         ViewNewsHolder.refreh((NewsInfo) map.get("news_info"));
-        NewsContentActivity.news_info = (NewsInfo) map.get("news_info");
-        startActivity(new Intent(getActivity(), NewsContentActivity.class));
+        if (type.equalsIgnoreCase(MyAppParams.getInstance().getVoaModelName()))
+        {
+            VoaActivity.news_info = (VoaNewsInfo) map.get("news_info");
+            startActivity(new Intent(getActivity(), VoaActivity.class));
+        }
+        else
+        {
+            NewsContentActivity.news_info = (NewsInfo) map.get("news_info");
+            startActivity(new Intent(getActivity(), NewsContentActivity.class));
+        }
     }
 
     @Override
