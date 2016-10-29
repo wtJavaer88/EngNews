@@ -41,8 +41,9 @@ public class NewsMenuPopWindow extends PopupWindow implements OnClickListener
 		// 设置SelectPicPopupWindow弹出窗体动画效果
 		this.setAnimationStyle(R.style.AnimationPreview);
 
-		conentView.findViewById(R.id.layout_section_fav).setOnClickListener(this);
-		conentView.findViewById(R.id.layout_section_translate).setOnClickListener(this);
+		conentView.findViewById(R.id.layout_news_fav).setOnClickListener(this);
+		conentView.findViewById(R.id.layout_news_translate).setOnClickListener(this);
+		conentView.findViewById(R.id.layout_news_setting).setOnClickListener(this);
 	}
 
 	public interface NewsMenuListener
@@ -50,6 +51,8 @@ public class NewsMenuPopWindow extends PopupWindow implements OnClickListener
 		public void doFavorite();
 
 		public void toSrcPage();
+
+		public void setting();
 	}
 
 	public void showPopupWindow(View parent)
@@ -67,19 +70,20 @@ public class NewsMenuPopWindow extends PopupWindow implements OnClickListener
 	@Override
 	public void onClick(View v)
 	{
+		if (newsMenuListener == null)
+		{
+			return;
+		}
 		switch (v.getId())
 		{
-		case R.id.layout_section_fav:
-			if (newsMenuListener != null)
-			{
-				newsMenuListener.doFavorite();
-			}
+		case R.id.layout_news_fav:
+			newsMenuListener.doFavorite();
 			break;
-		case R.id.layout_section_translate:
-			if (newsMenuListener != null)
-			{
-				newsMenuListener.toSrcPage();
-			}
+		case R.id.layout_news_translate:
+			newsMenuListener.toSrcPage();
+			break;
+		case R.id.layout_news_setting:
+			newsMenuListener.setting();
 			break;
 		default:
 			break;

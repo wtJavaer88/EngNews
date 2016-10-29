@@ -13,70 +13,80 @@ import common.uihelper.MyAppParams;
 
 public class RedditApi extends AbstractForumsHtmlPicker implements ForumsApi
 {
-    WebSite webSite;
-    String type;
+	WebSite webSite;
+	String type;
 
-    public RedditApi(final String type)
-    {
-        this.type = type;
-        if (type.equalsIgnoreCase(MyAppParams.getInstance().getBaskModelName()))
-        {
-            webSite = WebSiteUtil.getRedditNBA();
-        }
-        else
-        {
-            webSite = WebSiteUtil.getRedditSoccer();
-        }
-    }
+	public RedditApi(final String type)
+	{
+		this.type = type;
+		if (type.equalsIgnoreCase(MyAppParams.getInstance().getBaskModelName()))
+		{
+			webSite = WebSiteUtil.getRedditNBA();
+		}
+		else if (type.equalsIgnoreCase(MyAppParams.getInstance().getSoccModelName()))
+		{
+			webSite = WebSiteUtil.getRedditSoccer();
+		}
+		else if (type.equalsIgnoreCase("san-antonio-spurs"))
+		{
+			webSite = WebSiteUtil.getReddit_Spurs();
+		}
+		else if (type.equalsIgnoreCase("golden-state-warriors"))
+		{
+			webSite = WebSiteUtil.getReddit_Warrior();
+		}
+		else if (type.equalsIgnoreCase("arsenal"))
+		{
+			webSite = WebSiteUtil.getReddit_Arsenal();
+		}
+	}
 
-    @Override
-    protected NewsInfo getBaseNewsInfo(Element mainDiv)
-    {
-        NewsInfo newsInfo = null;
-        try
-        {
-            newsInfo = new NewsInfo();
-            newsInfo.setWebsite(webSite);
-            newsInfo.addKeyWord(type);
-            Element aElement = mainDiv.select("a").first();
-            String title = aElement.text();
-            newsInfo.setTitle(title);
-            newsInfo.setDate(mainDiv.select("time").last().attr("datetime"));
-            String commentHref = mainDiv
-                    .select("a[data-event-action=comments]").first()
-                    .absUrl("href");
-            newsInfo.setUrl(commentHref);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            newsInfo = null;
-        }
-        return newsInfo;
-    }
+	@Override
+	protected NewsInfo getBaseNewsInfo(Element mainDiv)
+	{
+		NewsInfo newsInfo = null;
+		try
+		{
+			newsInfo = new NewsInfo();
+			newsInfo.setWebsite(webSite);
+			newsInfo.addKeyWord(type);
+			Element aElement = mainDiv.select("a").first();
+			String title = aElement.text();
+			newsInfo.setTitle(title);
+			newsInfo.setDate(mainDiv.select("time").last().attr("datetime"));
+			String commentHref = mainDiv.select("a[data-event-action=comments]").first().absUrl("href");
+			newsInfo.setUrl(commentHref);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			newsInfo = null;
+		}
+		return newsInfo;
+	}
 
-    @Override
-    public String getPage(int i)
-    {
-        return String.format(webSite.getFormat(), i);
-    }
+	@Override
+	public String getPage(int i)
+	{
+		return String.format(webSite.getFormat(), i);
+	}
 
-    @Override
-    public List<NewsInfo> getAllNewsWithContent()
-    {
-        return getAllNews(webSite);
-    }
+	@Override
+	public List<NewsInfo> getAllNewsWithContent()
+	{
+		return getAllNews(webSite);
+	}
 
-    public NewsInfo getNewsFromUrl(String url)
-    {
-        try
-        {
-            return getNewsFromUrl(webSite, url);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return null;
-    }
+	public NewsInfo getNewsFromUrl(String url)
+	{
+		try
+		{
+			return getNewsFromUrl(webSite, url);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
