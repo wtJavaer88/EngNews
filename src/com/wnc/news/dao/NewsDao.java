@@ -440,7 +440,7 @@ public class NewsDao
 		episodeSql += ")";
 		DatabaseManager.getInstance().closeDatabase();
 
-		String sql = "select * from news where 1=1 " + episodeSql + " order by replace(date,'-','') desc,topic_counts desc";
+		String sql = "select * from news where 1=1 " + episodeSql + " order by replace(date,'-','') desc,topic_counts desc limit 0,50";
 		log.info(sql);
 		return findAllNewsBySql(sql);
 	}

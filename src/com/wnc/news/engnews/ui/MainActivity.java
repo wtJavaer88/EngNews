@@ -121,6 +121,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		btn_cache2.setOnClickListener(this);
 		btn_cache_clear.setOnClickListener(this);
 		findViewById(R.id.btn_theme).setOnClickListener(this);
+		findViewById(R.id.btn_search).setOnClickListener(this);
 	}
 
 	Thread cacheWatchThread;
@@ -134,6 +135,9 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		{
 		case R.id.btn_theme:
 			startActivity(new Intent(this, MainActivity2.class));
+			break;
+		case R.id.btn_search:
+			startActivity(new Intent(this, SearchActivity.class));
 			break;
 		case R.id.btn_pick:
 			new CacheSchedule().voaCache();
