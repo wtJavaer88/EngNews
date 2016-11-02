@@ -2,17 +2,17 @@ package com.wnc.news.engnews.helper;
 
 import android.os.Message;
 
-import com.wnc.news.engnews.ui.NewsContentActivity;
+import com.wnc.news.engnews.ui.BaseNewsActivity;
 
 public class WordTipTextThread extends Thread
 {
     int DISPOSS_TIME = 6000;
     int process = 0;
     private static final int SLEEP_TIME = 500;
-    NewsContentActivity activity;
+    BaseNewsActivity activity;
     private volatile boolean isShowing = false;
 
-    public WordTipTextThread(NewsContentActivity activity)
+    public WordTipTextThread(BaseNewsActivity activity)
     {
         this.activity = activity;
     }
@@ -45,7 +45,7 @@ public class WordTipTextThread extends Thread
                 if (isShowing)
                 {
                     Message msg = new Message();
-                    msg.what = NewsContentActivity.MESSAGE_ON_WORD_DISPOSS_CODE;
+                    msg.what = BaseNewsActivity.MESSAGE_ON_WORD_DISPOSS_CODE;
                     activity.getHandler().sendMessage(msg);
                     stopListen();
                 }
