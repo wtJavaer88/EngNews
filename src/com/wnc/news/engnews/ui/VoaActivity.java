@@ -9,10 +9,15 @@ import voa.VINFO;
 import voa.VoaNewsInfo;
 import word.Topic;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.Message;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.MotionEvent;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSONArray;
@@ -132,6 +137,55 @@ public class VoaActivity extends BaseNewsActivity implements
     @Override
     public void newsMenuSetting()
     {
+        final AlertDialog voaSettingDialog = new AlertDialog.Builder(
+                VoaActivity.this).create();
+        voaSettingDialog.show();
+        voaSettingDialog.getWindow().setGravity(Gravity.CENTER);
+        voaSettingDialog.getWindow().setLayout(
+                (int) (Math.min(MyAppParams.getScreenWidth(),
+                        MyAppParams.getScreenHeight()) * 0.8),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT);
+        voaSettingDialog.getWindow().setContentView(R.layout.voa_setting);
+        if (isAutoStop)
+        {
+            ((RadioButton) voaSettingDialog.findViewById(R.id.rb_voa_single))
+                    .setChecked(true);
+        }
+        else
+        {
+            ((RadioButton) voaSettingDialog.findViewById(R.id.rb_voa_full))
+                    .setChecked(true);
+        }
+        // 根据ID找到RadioGroup实例
+        RadioGroup group = (RadioGroup) voaSettingDialog
+                .findViewById(R.id.rb_voa_setting);
+        // 绑定一个匿名监听器
+        group.setOnCheckedChangeListener(new OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(RadioGroup arg0, int arg1)
+            {
+                int radioButtonId = arg0.getCheckedRadioButtonId();
+                RadioButton rb = (RadioButton) voaSettingDialog
+                        .findViewById(radioButtonId);
+
+                if (rb.getId() == R.id.rb_voa_full)
+                {
+                    isAutoStop = false;
+                }
+                else if (rb.getId() == R.id.rb_voa_single)
+                {
+                    isAutoStop = true;
+                }
+                if (playService != null)
+                {
+                    System.out.println("isAutoStop:" + isAutoStop);
+                    playService.setAutoStop(isAutoStop);
+                }
+                voaSettingDialog.dismiss();
+                newsMenuPopWindow.dismiss();
+            }
+        });
 
     }
 
