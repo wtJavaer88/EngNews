@@ -15,7 +15,13 @@ public class MyAppParams
 
     private final static String workPath = Environment
             .getExternalStorageDirectory().getPath() + "/wnc/app/news/";
+
+    public final static String SELECTED_WORDS_TXT = workPath
+            + "selected_words.txt";
     public final static String FAVORITE_TXT = workPath + "favorite.txt";
+    public final static String LOVE_NEWS_TXT = workPath + "love_news.txt";
+    public final static String VIEWED_NEWS_TXT = workPath + "viewed_news.txt";
+
     public final static String PASS_TXT = workPath + "pass.txt";
     public final static String VOA_MP3_PATH = Environment
             .getExternalStorageDirectory().getPath() + "/wnc/res/voa/";

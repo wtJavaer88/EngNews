@@ -57,6 +57,8 @@ import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.VoaDao;
 import com.wnc.news.engnews.helper.ActivityMgr;
+import com.wnc.news.engnews.helper.ActivityTimeUtil;
+import com.wnc.news.engnews.helper.KPIHelper;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.OptedDictData;
 import com.wnc.news.engnews.helper.PlaySevice;
@@ -95,6 +97,7 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
     private final int MESSAGE_DIRECTLINK_CODE = 2;
     private final int MESSAGE_DOWNLOAD_OK_CODE = 3;
     private final int MESSAGE_DOWNLOAD_ERR_CODE = 4;
+    public static final int MESSAGE_ON_RUNTIME_TEXT = 5;
 
     private int mTouchX;
     private int mTouchY;
@@ -112,6 +115,9 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
     Logger log = Logger.getLogger(VoaActivity.class);
     boolean isAutoStop = true;
 
+    ActivityTimeUtil activityTimeUtil = new ActivityTimeUtil();
+    private volatile boolean runtimeWatch = true;
+
     @Override
     public void onCreate(Bundle icicle)
     {
@@ -120,6 +126,7 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
         main = LayoutInflater.from(this).inflate(R.layout.activity_voa, null);
         hideVirtualBts();
         setContentView(main);
+        activityTimeUtil.begin();
 
         Thread.setDefaultUncaughtExceptionHandler(this);
         this.gestureDetector = new GestureDetector(this,
@@ -132,6 +139,29 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
 
         initView();
         initData();
+
+        Thread t = new Thread(new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                while (runtimeWatch)
+                {
+                    handler.sendEmptyMessage(MESSAGE_ON_RUNTIME_TEXT);
+                    try
+                    {
+                        Thread.sleep(1000);
+                    }
+                    catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private void initData()
@@ -177,6 +207,7 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
         }
         if (allFind.size() > 0)
         {
+            KPIHelper.addHighLights(allFind);
             this.topicListBt.setText("" + allFind.size());
         }
 
@@ -209,6 +240,9 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
             case MESSAGE_DOWNLOAD_ERR_CODE:
                 ToastUtil.showLongToast(getApplicationContext(), "MP3下载失败.");
                 break;
+            case MESSAGE_ON_RUNTIME_TEXT:
+                ((TextView) findViewById(R.id.bt_activity_runtime))
+                        .setText(activityTimeUtil.getTranedRunTime());
             }
         }
     };
@@ -538,12 +572,8 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
             @Override
             public void doFavorite()
             {
-                String url = news_info.getUrl();
-                BasicFileUtil.writeFileString(MyAppParams.FAVORITE_TXT, url
-                        + "\r\n", "UTF-8", true);
-                common.app.ToastUtil.showShortToast(getApplicationContext(),
-                        "操作成功!");
-                log.info("收藏新闻成功: " + url);
+                KPIHelper.increaseLoved(news_info.getUrl());
+                ActivityMgr.loveNewsRecord(VoaActivity.this, news_info);
             }
 
             @Override
@@ -656,6 +686,8 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
             String selectedText = NewsContentUtil.getSuitWordAndSetPos(
                     mTextView, start);
             log.info("selectedText:" + selectedText);
+            KPIHelper.increaseSlectedCounts();
+            ActivityMgr.selectedWordRecord(this, news_info, selectedText);
             showWordZone(selectedText);
         }
     }
@@ -997,4 +1029,47 @@ public class VoaActivity extends BaseVerActivity implements OnClickListener,
             playService.pauseOrPlay();
         }
     }
+
+    @Override
+    protected void onDestroy()
+    {
+        recordViewed();
+
+        runtimeWatch = false;
+        sectionPopWindow.dismiss();
+        wordMenuPopWindow.dismiss();
+        newsMenuPopWindow.dismiss();
+        hideCursor();
+        super.onDestroy();
+    }
+
+    private void recordViewed()
+    {
+        activityTimeUtil.stop();
+        System.out.println("recordViewed Runtime:"
+                + activityTimeUtil.getTranedRunTime());
+        if (activityTimeUtil.getRunTime() > 60 * 1000)
+        {
+            ActivityMgr.viewedNewsRecord(this, news_info,
+                    activityTimeUtil.getRunTime());
+            KPIHelper.increaseViewed(activityTimeUtil.getRunTime());
+        }
+    }
+
+    @Override
+    protected void onPause()
+    {
+        activityTimeUtil.pause();
+        System.out.println("onPause Runtime:"
+                + activityTimeUtil.getTranedRunTime());
+
+        super.onPause();
+    };
+
+    @Override
+    protected void onResume()
+    {
+        activityTimeUtil.resume();
+        super.onPause();
+    };
 }
