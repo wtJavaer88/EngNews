@@ -36,9 +36,9 @@ public class KPIDao
     {
         try
         {
-            db.execSQL("INSERT INTO news_api(date,update_time) VALUES ('"
-                    + today + "'," + BasicDateUtil.getCurrentDateTimeString()
-                    + ")");
+            db.execSQL("INSERT INTO NEWS_KPI(date,update_time) VALUES ('"
+                    + today + "','" + BasicDateUtil.getCurrentDateTimeString()
+                    + "')");
         }
         catch (Exception e)
         {
@@ -46,13 +46,33 @@ public class KPIDao
         }
     }
 
-    public static boolean increaseViewed(SQLiteDatabase db, String today,
-            int hlCounts, int times, int selected_count)
+    public static void insertViewHistory(SQLiteDatabase db, int news_id,
+            int topic_counts, int times)
     {
         try
         {
-            db.execSQL("UPDATE NEWS_API SET view_news=view_news+1,topic_counts+="
-                    + hlCounts
+            db.execSQL("INSERT INTO VIEW_HISTORY(news_id,topic_counts,view_duration,create_time) VALUES ("
+                    + news_id
+                    + ","
+                    + topic_counts
+                    + ","
+                    + times
+                    + ",'"
+                    + BasicDateUtil.getCurrentDateTimeString() + "')");
+        }
+        catch (Exception e)
+        {
+            log.error(news_id, e);
+        }
+    }
+
+    public static boolean increaseViewed(SQLiteDatabase db, String today,
+            int topic_counts, int times, int selected_count)
+    {
+        try
+        {
+            db.execSQL("UPDATE NEWS_KPI SET view_news=view_news+1,topic_counts=topic_counts+"
+                    + topic_counts
                     + ",durations=durations+"
                     + times
                     + ",selected_words=selected_words+"
@@ -71,13 +91,18 @@ public class KPIDao
 
     public static List<KPIData> getAllHistory(SQLiteDatabase db)
     {
-        return findBysql(db, "SELECT * FROM NEWS_API ORDER BY DATE DESC");
+        return findBysql(db, "SELECT * FROM NEWS_KPI ORDER BY DATE DESC");
     }
 
     public static KPIData findByDay(SQLiteDatabase db, String day)
     {
-        return findBysql(db, "SELECT * FROM NEWS_API WHERE DATE='" + day + "'")
-                .get(0);
+        final List<KPIData> findBysql = findBysql(db,
+                "SELECT * FROM NEWS_KPI WHERE DATE='" + day + "'");
+        if (findBysql.size() > 0)
+        {
+            return findBysql.get(0);
+        }
+        return null;
     }
 
     private static List<KPIData> findBysql(SQLiteDatabase db, String sql)
@@ -91,7 +116,7 @@ public class KPIDao
             while (!c.isAfterLast())
             {
                 info = new KPIData();
-                info.setDate(c.getString(c.getColumnIndex("content_json")));
+                info.setDate(c.getString(c.getColumnIndex("date")));
                 info.setViewed_news(c.getInt(c.getColumnIndex("view_news")));
                 info.setLoved_news(c.getInt(c.getColumnIndex("fav_news")));
                 info.setHighlightWords(c.getInt(c
@@ -111,13 +136,17 @@ public class KPIDao
 
     }
 
-    public static boolean addLovedNews(SQLiteDatabase db, int news_id)
+    public static boolean addLovedNews(SQLiteDatabase db, int news_id,
+            String today)
     {
         try
         {
             db.execSQL("INSERT INTO fav_news(news_id,create_time) VALUES ("
                     + news_id + ",'" + BasicDateUtil.getCurrentDateTimeString()
                     + "')");
+            db.execSQL("UPDATE NEWS_KPI SET fav_news=fav_news+1 WHERE DATE='"
+                    + today + "'");
+
         }
         catch (Exception e)
         {
@@ -126,4 +155,25 @@ public class KPIDao
         }
         return true;
     }
+
+    public static boolean addSelectedWord(SQLiteDatabase db, int news_id,
+            String word)
+    {
+        try
+        {
+            db.execSQL("INSERT INTO select_word_save(news_id,word,create_time) VALUES ("
+                    + news_id
+                    + ",'"
+                    + word
+                    + "','"
+                    + BasicDateUtil.getCurrentDateTimeString() + "')");
+        }
+        catch (Exception e)
+        {
+            log.error(news_id, e);
+            return false;
+        }
+        return true;
+    }
+
 }

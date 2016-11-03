@@ -26,6 +26,8 @@ import com.wnc.news.api.common.DirectLinkNewsFactory;
 import com.wnc.news.api.common.ErrSiteNewsInfo;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.engnews.helper.NewsTest;
+import com.wnc.news.engnews.kpi.KPIData;
+import com.wnc.news.engnews.kpi.KPIHelper;
 import com.wnc.string.PatternUtil;
 import common.app.ConfirmUtil;
 import common.app.Log4jUtil;
@@ -33,6 +35,7 @@ import common.app.SysInit;
 import common.app.ToastUtil;
 import common.uihelper.MyAppParams;
 import common.uihelper.PositiveEvent;
+import common.utils.TimeUtil;
 
 public class MainActivity extends BaseVerActivity implements OnClickListener,
         UncaughtExceptionHandler
@@ -44,8 +47,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
     private final int MESSAGE_EXIT_CODE = 0;
     private final int MESSAGE_PROCESS_CODE = 1;
     private final int MESSAGE_DIRECTLINK_CODE = 2;
-    private final int MESSAGE_HEADDATA_CODE = 3;
-
+    private final int MESSAGE_KPI_CODE = 3;
     EditText linkEt;
     Logger log = Logger.getLogger(MainActivity.class);
 
@@ -62,21 +64,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 
         initView();
         SysInit.init(MainActivity.this);
-        initData();
         bgUpdate();
-    }
-
-    private void initData()
-    {
-        new Thread(new Runnable()
-        {
-
-            @Override
-            public void run()
-            {
-                handler.sendEmptyMessage(MESSAGE_HEADDATA_CODE);
-            }
-        }).start();
     }
 
     private void bgUpdate()
@@ -86,6 +74,15 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
             @Override
             public void run()
             {
+                KPIData findTodayData = KPIHelper.getInstance().findTodayData();
+                if (findTodayData != null)
+                {
+                    log.info(findTodayData);
+                    Message msg = new Message();
+                    msg.what = MESSAGE_KPI_CODE;
+                    msg.obj = findTodayData;
+                    handler.sendMessage(msg);
+                }
                 if (BasicDateUtil.getCurrentHour() > 7
                         && BasicDateUtil.getCurrentHour() < 10)
                 {
@@ -119,7 +116,18 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
                 startActivity(new Intent(getApplicationContext(),
                         NewsContentActivity.class));
                 break;
-            case MESSAGE_HEADDATA_CODE:
+            case MESSAGE_KPI_CODE:
+                KPIData data = (KPIData) msg.obj;
+                ((TextView) findViewById(R.id.tv_head_fav)).setText(data
+                        .getLoved_news() + "");
+                ((TextView) findViewById(R.id.tv_head_hig)).setText(data
+                        .getHighlightWords() + "");
+                ((TextView) findViewById(R.id.tv_head_his)).setText(data
+                        .getViewed_news() + "");
+                ((TextView) findViewById(R.id.tv_head_tim)).setText(TimeUtil
+                        .timeToText(data.getTimes()));
+                ((TextView) findViewById(R.id.tv_head_wor)).setText(data
+                        .getSelectedWords() + "");
                 break;
             }
         }
@@ -380,5 +388,12 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
             finish();
             System.exit(0);
         }
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        KPIHelper.getInstance().closeDb();
+        super.onDestroy();
     }
 }

@@ -11,6 +11,94 @@
         android:gravity="center"
         android:orientation="horizontal" >
 
+        <ImageButton
+            android:id="@+id/imgbutton_head_his"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/icon_head_history"
+            android:scaleType="fitXY" />
+
+        <TextView
+            android:id="@+id/tv_head_his"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="5dp"
+            />
+
+        <ImageButton
+            android:id="@+id/imgbutton_head_hig"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/icon_head_highlights"
+            android:scaleType="fitXY" />
+
+        <TextView
+            android:id="@+id/tv_head_hig"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="5dp"
+            />
+
+        <ImageButton
+            android:id="@+id/imgbutton_head_fav"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/icon_head_favorites"
+            android:scaleType="fitXY" />
+
+        <TextView
+            android:id="@+id/tv_head_fav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="5dp"
+             />
+
+        <ImageButton
+            android:id="@+id/imgbutton_head_wor"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/icon_head_words"
+            android:scaleType="fitXY" />
+
+        <TextView
+            android:id="@+id/tv_head_wor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="5dp"
+            />
+
+        <ImageButton
+            android:id="@+id/imgbutton_head_tim"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/icon_head_time"
+            android:scaleType="fitXY" />
+
+        <TextView
+            android:id="@+id/tv_head_tim"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="5dp"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal" >
+
         <Button
             android:id="@+id/btn_theme"
             android:layout_width="wrap_content"
@@ -24,7 +112,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="最新VOA" />
-        
+
         <Button
             android:id="@+id/btn_search"
             android:layout_width="wrap_content"
@@ -36,8 +124,8 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:gravity="center"
-            android:layout_marginTop="10dp"
         android:orientation="horizontal" >
 
         <EditText
@@ -66,6 +154,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="缓存新闻" />
+
         <Button
             android:id="@+id/btn_cache_forums"
             android:layout_width="wrap_content"
@@ -78,7 +167,6 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="缓存清空" />
-        
     </LinearLayout>
 
     <TextView

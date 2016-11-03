@@ -63,6 +63,7 @@ import com.wnc.news.engnews.ui.popup.SectionPopWindow;
 import com.wnc.news.engnews.ui.popup.SectionPopWindow.WordSectionListener;
 import com.wnc.news.engnews.ui.popup.WordMenuPopWindow;
 import com.wnc.news.engnews.ui.popup.WordMenuPopWindow.WordMenuListener;
+import com.wnc.news.richtext.ClickableMovementMethod;
 import com.wnc.news.richtext.HtmlRichText;
 import com.wnc.string.PatternUtil;
 import common.app.BasicPhoneUtil;
@@ -88,6 +89,9 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
     public final static int MESSAGE_ON_IMG_TEXT = 2;
     public final static int MESSAGE_ON_RUNTIME_TEXT = 3;
     public final static int MESSAGE_ON_WORDMEAN_TEXT = 4;
+    private static final int MESSAGE_ON_DOWNSOUND_ERROR_TEXT = 201;
+    private static final int MESSAGE_ON_DOWNSOUND_SUCCESS_TEXT = 202;
+    private static final int MESSAGE_ON_NETMEAN_ERROR = 203;
     View main;
     public GestureDetector gestureDetector;
     /**
@@ -201,7 +205,24 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             super.handleMessage(msg);
             if (msg.what == MESSAGE_ON_WORDMEAN_TEXT)
             {
-                wordTipTv.append(msg.obj.toString());
+                wordTipTv.append(" " + msg.obj.toString());
+                messagePopWindow.dismiss();
+            }
+            else if (msg.what == MESSAGE_ON_DOWNSOUND_ERROR_TEXT)
+            {
+                messagePopWindow.setMsgAndShow("下载音频异常!", mTextView);
+            }
+            else if (msg.what == MESSAGE_ON_DOWNSOUND_SUCCESS_TEXT)
+            {
+                messagePopWindow.setMsgAndShow("下载音频成功!", mTextView);
+            }
+            else if (msg.what == MESSAGE_ON_DOWNSOUND_SUCCESS_TEXT)
+            {
+                messagePopWindow.setMsgAndShow("下载音频成功!", mTextView);
+            }
+            else if (msg.what == MESSAGE_ON_NETMEAN_ERROR)
+            {
+                messagePopWindow.setMsgAndShow("网络查找单词失败!", mTextView);
             }
             dispatchMsg(msg);
         }
@@ -268,13 +289,20 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
     @Override
     protected void onDestroy()
     {
-        recordViewed();
-        runtimeWatch = false;
-        sectionPopWindow.dismiss();
-        wordMenuPopWindow.dismiss();
-        newsMenuPopWindow.dismiss();
-        messagePopWindow.dismiss();
-        hideCursor();
+        try
+        {
+            recordViewed();
+            runtimeWatch = false;
+            sectionPopWindow.dismiss();
+            wordMenuPopWindow.dismiss();
+            newsMenuPopWindow.dismiss();
+            messagePopWindow.dismiss();
+            hideCursor();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         super.onDestroy();
     }
 
@@ -288,7 +316,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             ActivityMgr.viewedNewsRecord(this, news_info,
                     activityTimeUtil.getRunTime());
             kPIHelper.increaseViewed(activityTimeUtil.getRunTime(),
-                    selected_count, allFind.size());
+                    selected_count, allFind.size(), news_info);
         }
     }
 
@@ -297,7 +325,6 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         messagePopWindow = new MessagePopWindow(this);
         newsMenuPopWindow = new NewsMenuPopWindow(this, new NewsMenuListener()
         {
-
             @Override
             public void toSrcPage()
             {
@@ -337,8 +364,9 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                 {
                     // common.app.ToastUtil.showShortToast(
                     // getApplicationContext(), "找不到声音文件!");
-                    messagePopWindow.setMsgAndShow("找不到声音文件,即将去网络下载!",
-                            mTextView);
+                    messagePopWindow
+                            .setMsgAndShow("找不到声音文件,正在为你下载!", mTextView);
+
                     new Thread(new Runnable()
                     {
                         @Override
@@ -353,8 +381,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                             }
                             catch (Exception e)
                             {
-                                messagePopWindow.setMsgAndShow("下载音频异常!",
-                                        mTextView);
+                                handler.sendEmptyMessage(MESSAGE_ON_DOWNSOUND_ERROR_TEXT);
                                 e.printStackTrace();
                             }
                             if (BasicFileUtil.getFileSize(voicePath) == 0)
@@ -363,8 +390,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                             }
                             else
                             {
-                                messagePopWindow.setMsgAndShow("下载成功!",
-                                        mTextView);
+                                handler.sendEmptyMessage(MESSAGE_ON_DOWNSOUND_SUCCESS_TEXT);
                             }
                         }
                     }).start();
@@ -862,7 +888,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         }
         else
         {
-            mTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            mTextView.setMovementMethod(ClickableMovementMethod.getInstance());
         }
     }
 
@@ -923,6 +949,8 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
 
         if (findWord != null)
         {
+            kPIHelper.addSelectedWord(news_info.getDb_id(),
+                    findWord.getBase_word());
             wordTipTv.setText(findWord.getBase_word() + " "
                     + findWord.getCn_mean());
             OptedDictData.getSeekWordList().push(findWord);
@@ -938,6 +966,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         else
         {
             wordTipTv.setText(selectedText);
+            messagePopWindow.setMsgAndShow("字典中没有, 将去网络查找!", mTextView);
             new Thread(new Runnable()
             {
                 @Override
@@ -949,6 +978,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                                 .getBasicInfo();
                         if (BasicStringUtil.isNotNullString(basicInfo))
                         {
+                            log.info("获取释义成功!" + basicInfo);
                             Message msg = new Message();
                             msg.what = MESSAGE_ON_WORDMEAN_TEXT;
                             msg.obj = basicInfo;
@@ -957,6 +987,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                     }
                     catch (Exception e)
                     {
+                        handler.sendEmptyMessage(MESSAGE_ON_NETMEAN_ERROR);
                         e.printStackTrace();
                     }
                 }

@@ -86,4 +86,13 @@ public class KPIData
     {
         this.times = times;
     }
+
+    @Override
+    public String toString()
+    {
+        return "KPIData [date=" + date + ", viewed_news=" + viewed_news
+                + ", selectedWords=" + selectedWords + ", highlightWords="
+                + highlightWords + ", loved_news=" + loved_news + ", times="
+                + times + "]";
+    }
 }

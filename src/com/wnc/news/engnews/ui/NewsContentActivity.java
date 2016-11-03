@@ -151,7 +151,6 @@ public class NewsContentActivity extends BaseNewsActivity
         switch (msg.what)
         {
         case MESSAGE_ON_CONTEXT_TEXT:
-        {
             mTextView.setText(new HtmlRichText(msg.obj.toString())
                     .getCharSequence());
             if (hasTopics())
@@ -159,7 +158,7 @@ public class NewsContentActivity extends BaseNewsActivity
                 topicListBt.setVisibility(View.VISIBLE);
                 topicListBt.setText("" + allFind.size());
             }
-        }
+            break;
         case MESSAGE_ON_IMG_TEXT:
             newsImgTv.setVisibility(View.VISIBLE);
             newsImgTv.setText((CharSequence) msg.obj);

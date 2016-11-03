@@ -49,7 +49,6 @@ public class VoaActivity extends BaseNewsActivity implements
         super.onCreate(icicle);
 
         setContentView(main);
-        activityTimeUtil.begin();
 
         this.gestureDetector = new GestureDetector(this,
                 new MyCtrlableGestureDetector(this, 0.5, 0, null, null)
@@ -185,7 +184,7 @@ public class VoaActivity extends BaseNewsActivity implements
     {
         if (isDownLoading)
         {
-            messagePopWindow.setMsgAndShow("Mp3不存在,正在下载...", mTextView);
+            messagePopWindow.setMsgAndShow("Mp3正在下载,请稍候", mTextView);
         }
 
         final String path = getMp3Path();
