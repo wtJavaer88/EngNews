@@ -396,4 +396,11 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         KPIHelper.getInstance().closeDb();
         super.onDestroy();
     }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        bgUpdate();
+    }
 }
