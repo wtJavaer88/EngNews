@@ -24,12 +24,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.example.engnews.R;
 import com.wnc.basic.BasicFileUtil;
 import com.wnc.news.api.autocache.CETTopicCache;
-import com.wnc.news.engnews.helper.KPIHelper;
 import com.wnc.news.engnews.helper.PlaySevice;
-import com.wnc.news.richtext.ClickableRichText;
+import com.wnc.news.richtext.ClickableVoiceRichText;
 import com.wnc.news.richtext.HtmlRichText;
 import com.wnc.string.PatternUtil;
-import common.app.ToastUtil;
 import common.uihelper.MyAppParams;
 import common.uihelper.gesture.CtrlableDoubleClickGestureDetectorListener;
 import common.uihelper.gesture.MyCtrlableGestureDetector;
@@ -42,7 +40,6 @@ public class VoaActivity extends BaseNewsActivity implements
 {
 
     boolean isAutoStop = true;
-    public final int MESSAGE_PROCESS_CODE = 11;
     public final int MESSAGE_DOWNLOAD_OK_CODE = 13;
     public final int MESSAGE_DOWNLOAD_ERR_CODE = 14;
 
@@ -79,7 +76,7 @@ public class VoaActivity extends BaseNewsActivity implements
                 final int seektime = vinfo.getTime() * 100;
                 int stoptime = (i == (infos.size() - 1) ? seektime : (infos
                         .get(i + 1).getTime() * 100));
-                mTextView.append(new ClickableRichText("播放", this, seektime,
+                mTextView.append(new ClickableVoiceRichText(this, seektime,
                         stoptime).getCharSequence());
                 mTextView.append("  ");
                 final ArrayList<Topic> allFind2 = new ArrayList<Topic>();
@@ -101,11 +98,7 @@ public class VoaActivity extends BaseNewsActivity implements
                 totalWords += PatternUtil.getAllPatternGroup(vinfo.getEn(),
                         "['\\w]+").size();
             }
-            if (allFind.size() > 0)
-            {
-                KPIHelper.addHighLights(allFind);
-                this.topicListBt.setText("" + allFind.size());
-            }
+
         }
         catch (Exception e)
         {
@@ -119,14 +112,11 @@ public class VoaActivity extends BaseNewsActivity implements
     {
         switch (msg.what)
         {
-        case MESSAGE_PROCESS_CODE:
-            mTextView.setText(msg.obj.toString());
-            break;
         case MESSAGE_DOWNLOAD_OK_CODE:
-            ToastUtil.showLongToast(getApplicationContext(), "MP3下载已经完成.");
+            messagePopWindow.setMsgAndShow("MP3下载已经完成.", mTextView);
             break;
         case MESSAGE_DOWNLOAD_ERR_CODE:
-            ToastUtil.showLongToast(getApplicationContext(), "MP3下载失败.");
+            messagePopWindow.setMsgAndShow("MP3下载失败.", mTextView);
             break;
         case MESSAGE_ON_RUNTIME_TEXT:
             ((TextView) findViewById(R.id.bt_activity_runtime))
@@ -195,7 +185,7 @@ public class VoaActivity extends BaseNewsActivity implements
     {
         if (isDownLoading)
         {
-            ToastUtil.showShortToast(this, "已经在下载,请稍等...");
+            messagePopWindow.setMsgAndShow("Mp3不存在,正在下载...", mTextView);
         }
 
         final String path = getMp3Path();
@@ -208,7 +198,7 @@ public class VoaActivity extends BaseNewsActivity implements
             if (!isDownLoading)
             {
                 isDownLoading = true;
-                ToastUtil.showShortToast(this, "Mp3不存在,正在下载...");
+                messagePopWindow.setMsgAndShow("Mp3不存在,正在下载...", mTextView);
                 Thread downThread = new Thread(new Runnable()
                 {
 

@@ -1,6 +1,6 @@
-package com.wnc.news.engnews.helper;
+package com.wnc.news.engnews.kpi;
 
-public class HeadData
+public class KPIData
 {
     /**
      * 浏览日期

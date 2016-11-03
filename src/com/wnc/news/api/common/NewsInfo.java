@@ -14,7 +14,7 @@ public class NewsInfo
     protected String date;
     protected String head_pic;
     protected String html_content;
-    protected String db_id;
+    protected int db_id;
     protected String cet_topics;
     protected Set<String> keywords = new HashSet<String>();
     protected int topic_counts;
@@ -123,12 +123,12 @@ public class NewsInfo
         this.html_content = html_content;
     }
 
-    public String getDb_id()
+    public int getDb_id()
     {
         return db_id;
     }
 
-    public void setDb_id(String db_id)
+    public void setDb_id(int db_id)
     {
         this.db_id = db_id;
     }

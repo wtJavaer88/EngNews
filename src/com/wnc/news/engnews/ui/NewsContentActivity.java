@@ -16,12 +16,16 @@ import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.api.autocache.CETTopicCache;
 import com.wnc.news.dao.NewsDao;
 import com.wnc.news.db.DatabaseManager;
-import com.wnc.news.engnews.helper.KPIHelper;
+import com.wnc.news.richtext.HtmlRichText;
 import com.wnc.news.richtext.WebImgText;
 import com.wnc.string.PatternUtil;
 
 public class NewsContentActivity extends BaseNewsActivity
 {
+    public final static int MESSAGE_ON_CONTEXT_TEXT = 1;
+    Thread dataThread1;
+    Thread dataThread2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -34,9 +38,6 @@ public class NewsContentActivity extends BaseNewsActivity
             initData();
         }
     }
-
-    Thread dataThread1;
-    Thread dataThread2;
 
     @Override
     public void initData()
@@ -125,7 +126,6 @@ public class NewsContentActivity extends BaseNewsActivity
                                 DatabaseManager.getInstance().closeDatabase();
                             }
                         }
-                        KPIHelper.addHighLights(allFind);
                         msg.obj = news_info.getHtml_content();
                         msg.what = MESSAGE_ON_CONTEXT_TEXT;
                     }
@@ -151,15 +151,15 @@ public class NewsContentActivity extends BaseNewsActivity
         switch (msg.what)
         {
         case MESSAGE_ON_CONTEXT_TEXT:
-            mTextView.setText(new com.wnc.news.richtext.HtmlRichText(msg.obj
-                    .toString()).getCharSequence());
+        {
+            mTextView.setText(new HtmlRichText(msg.obj.toString())
+                    .getCharSequence());
             if (hasTopics())
             {
                 topicListBt.setVisibility(View.VISIBLE);
                 topicListBt.setText("" + allFind.size());
             }
-
-            break;
+        }
         case MESSAGE_ON_IMG_TEXT:
             newsImgTv.setVisibility(View.VISIBLE);
             newsImgTv.setText((CharSequence) msg.obj);

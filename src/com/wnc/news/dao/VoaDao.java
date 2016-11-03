@@ -121,7 +121,7 @@ public class VoaDao
                 // info.setSub_text(c.getString(c.getColumnIndex("sub_text")));
                 info.setTitle(c.getString(c.getColumnIndex("title")));
                 info.setDate(c.getString(c.getColumnIndex("date")));
-                info.setDb_id(c.getString(c.getColumnIndex("id")));
+                info.setDb_id(c.getInt(c.getColumnIndex("id")));
                 info.setUrl(c.getString(c.getColumnIndex("url")));
                 info.setCreate_time(c.getString(c.getColumnIndex("create_time")));
                 info.setMp3(c.getString(c.getColumnIndex("mp3")));

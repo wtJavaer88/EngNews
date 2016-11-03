@@ -13,6 +13,7 @@ import net.selectabletv.SelectableTextView.OnCursorStateChangedListener;
 
 import org.apache.log4j.Logger;
 
+import translate.site.iciba.CibaWordTranslate;
 import word.DicWord;
 import word.Topic;
 import word.WordExpand;
@@ -49,13 +50,13 @@ import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.engnews.helper.ActivityMgr;
 import com.wnc.news.engnews.helper.ActivityTimeUtil;
-import com.wnc.news.engnews.helper.KPIHelper;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.OptedDictData;
 import com.wnc.news.engnews.helper.SrtVoiceHelper;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
 import com.wnc.news.engnews.helper.WebUrlHelper;
 import com.wnc.news.engnews.helper.WordTipTextThread;
+import com.wnc.news.engnews.kpi.KPIHelper;
 import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow;
 import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow.NewsMenuListener;
 import com.wnc.news.engnews.ui.popup.SectionPopWindow;
@@ -66,11 +67,13 @@ import com.wnc.news.richtext.HtmlRichText;
 import com.wnc.string.PatternUtil;
 import common.app.BasicPhoneUtil;
 import common.app.ClipBoardUtil;
+import common.app.MessagePopWindow;
 import common.app.ToastUtil;
 import common.uihelper.MyAppParams;
 import common.uihelper.gesture.CtrlableHorGestureDetectorListener;
 import common.uihelper.gesture.FlingPoint;
 import common.uihelper.gesture.MyCtrlableGestureDetector;
+import common.utils.UrlPicDownloader;
 
 public abstract class BaseNewsActivity extends BaseVerActivity implements
         CtrlableHorGestureDetectorListener, UncaughtExceptionHandler,
@@ -82,9 +85,9 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
     static Logger log = Logger.getLogger(BaseNewsActivity.class);
     final int REQUEST_SEARCH_CODE = 1;
     public final static int MESSAGE_ON_WORD_DISPOSS_CODE = 100;
-    public final static int MESSAGE_ON_CONTEXT_TEXT = 1;
     public final static int MESSAGE_ON_IMG_TEXT = 2;
     public final static int MESSAGE_ON_RUNTIME_TEXT = 3;
+    public final static int MESSAGE_ON_WORDMEAN_TEXT = 4;
     View main;
     public GestureDetector gestureDetector;
     /**
@@ -109,12 +112,14 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
     WordMenuPopWindow wordMenuPopWindow;
     SectionPopWindow sectionPopWindow;
     NewsMenuPopWindow newsMenuPopWindow;
+    MessagePopWindow messagePopWindow;
 
     public int totalWords;
+    private int selected_count = 0;
 
     ActivityTimeUtil activityTimeUtil = new ActivityTimeUtil();
     public volatile boolean runtimeWatch = true;
-
+    KPIHelper kPIHelper = KPIHelper.getInstance();
     int mTouchX2;
     int mTouchY2;
     int topicBtClickCount = 0;
@@ -194,6 +199,10 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         public void handleMessage(Message msg)
         {
             super.handleMessage(msg);
+            if (msg.what == MESSAGE_ON_WORDMEAN_TEXT)
+            {
+                wordTipTv.append(msg.obj.toString());
+            }
             dispatchMsg(msg);
         }
 
@@ -264,6 +273,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         sectionPopWindow.dismiss();
         wordMenuPopWindow.dismiss();
         newsMenuPopWindow.dismiss();
+        messagePopWindow.dismiss();
         hideCursor();
         super.onDestroy();
     }
@@ -277,12 +287,14 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         {
             ActivityMgr.viewedNewsRecord(this, news_info,
                     activityTimeUtil.getRunTime());
-            KPIHelper.increaseViewed(activityTimeUtil.getRunTime());
+            kPIHelper.increaseViewed(activityTimeUtil.getRunTime(),
+                    selected_count, allFind.size());
         }
     }
 
     protected void initView()
     {
+        messagePopWindow = new MessagePopWindow(this);
         newsMenuPopWindow = new NewsMenuPopWindow(this, new NewsMenuListener()
         {
 
@@ -299,7 +311,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             @Override
             public void doFavorite()
             {
-                KPIHelper.increaseLoved(news_info.getUrl());
+                kPIHelper.increaseLoved(news_info.getDb_id());
                 ActivityMgr.loveNewsRecord(BaseNewsActivity.this, news_info);
             }
 
@@ -314,17 +326,49 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             @Override
             public void doSound()
             {
-                String voicePath = MyAppParams.VOICE_FOLDER + getCurrentWord()
-                        + ".mp3";
+
+                final String voicePath = MyAppParams.VOICE_FOLDER
+                        + getCurrentWord() + ".mp3";
                 if (BasicFileUtil.isExistFile(voicePath))
                 {
                     SrtVoiceHelper.play(voicePath);
                 }
                 else
                 {
-                    common.app.ToastUtil.showShortToast(
-                            getApplicationContext(), "找不到声音文件!");
-                    log.info("找不到声音文件:" + voicePath);
+                    // common.app.ToastUtil.showShortToast(
+                    // getApplicationContext(), "找不到声音文件!");
+                    messagePopWindow.setMsgAndShow("找不到声音文件,即将去网络下载!",
+                            mTextView);
+                    new Thread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            try
+                            {
+                                Thread.sleep(1000);
+                                final String soundUrl = new CibaWordTranslate(
+                                        getCurrentWord()).getSoundStr();
+                                UrlPicDownloader.download(soundUrl, voicePath);
+                            }
+                            catch (Exception e)
+                            {
+                                messagePopWindow.setMsgAndShow("下载音频异常!",
+                                        mTextView);
+                                e.printStackTrace();
+                            }
+                            if (BasicFileUtil.getFileSize(voicePath) == 0)
+                            {
+                                BasicFileUtil.deleteFile(voicePath);
+                            }
+                            else
+                            {
+                                messagePopWindow.setMsgAndShow("下载成功!",
+                                        mTextView);
+                            }
+                        }
+                    }).start();
+
                 }
             }
 
@@ -831,7 +875,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             String selectedText = NewsContentUtil.getSuitWordAndSetPos(
                     mTextView, start);
             log.info("selectedText:" + selectedText);
-            KPIHelper.increaseSlectedCounts();
+            increaseSlectedCounts();
             ActivityMgr.selectedWordRecord(this, news_info, selectedText);
             wordTipTextThread.refresh();
             showWordZone(selectedText);
@@ -844,7 +888,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         wordTipTv.setVisibility(View.INVISIBLE);
     }
 
-    protected void showWordZone(String selectedText)
+    protected void showWordZone(final String selectedText)
     {
         if (BasicStringUtil.isNullString(selectedText))
         {
@@ -894,7 +938,29 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         else
         {
             wordTipTv.setText(selectedText);
-
+            new Thread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    try
+                    {
+                        String basicInfo = new CibaWordTranslate(selectedText)
+                                .getBasicInfo();
+                        if (BasicStringUtil.isNotNullString(basicInfo))
+                        {
+                            Message msg = new Message();
+                            msg.what = MESSAGE_ON_WORDMEAN_TEXT;
+                            msg.obj = basicInfo;
+                            handler.sendMessage(msg);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
         }
         wordTipTextThread.stopListen();
         wordMenuPopWindow.showPopupWindow(wordMenuBtn);
@@ -917,4 +983,8 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                 .getCursorSelection().getEnd());
     }
 
+    public void increaseSlectedCounts()
+    {
+        selected_count++;
+    }
 }
