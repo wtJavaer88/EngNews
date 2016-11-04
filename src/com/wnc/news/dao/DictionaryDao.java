@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import word.DicWord;
@@ -21,6 +22,12 @@ public class DictionaryDao
     static SQLiteDatabase database;
     private static List<String> wordAndChars;
     static Logger log = Logger.getLogger(DictionaryDao.class);
+    static Set<DicWord> cetDicWords = new HashSet<DicWord>();
+
+    public static Set<DicWord> getCetDictWords()
+    {
+        return cetDicWords;
+    }
 
     public static synchronized void openDatabase()
     {
@@ -50,8 +57,6 @@ public class DictionaryDao
     {
         return database != null && database.isOpen();
     }
-
-    static Set<DicWord> cetDicWords = new HashSet<DicWord>();
 
     public synchronized static DicWord findWord(String word)
     {
@@ -106,6 +111,12 @@ public class DictionaryDao
         return dicWord;
     }
 
+    /**
+     * 查找同义反义模块
+     * 
+     * @param topic_id
+     * @return
+     */
     public synchronized static WordExpand findSameAntonym(int topic_id)
     {
         WordExpand wordExpand = null;
@@ -183,7 +194,7 @@ public class DictionaryDao
         }
         catch (Exception e)
         {
-            log.error("", e);
+            log.error("initTopics", e);
         }
         finally
         {
@@ -261,5 +272,40 @@ public class DictionaryDao
             return true;
         }
         return false;
+    }
+
+    public static void insertNewWord(String currentWord, String mean)
+    {
+        try
+        {
+            openDatabase();
+            int id = 1;
+            Cursor c = database.rawQuery(
+                    "SELECT max(ID)+1 max FROM DICTIONARY", null);
+            c.moveToFirst();
+            while (!c.isAfterLast())
+            {
+                id = c.getInt(c.getColumnIndex("max"));
+                break;
+            }
+            final String sql = "INSERT INTO DICTIONARY(ID,TOPIC_ID,TOPIC_WORD,MEAN_CN) VALUES("
+                    + id
+                    + ","
+                    + id
+                    + ",'"
+                    + currentWord
+                    + "','"
+                    + StringEscapeUtils.escapeSql(mean) + "')";
+            log.info(sql);
+            database.execSQL(sql);
+        }
+        catch (Exception e)
+        {
+            log.error("insertNewWord", e);
+        }
+        finally
+        {
+            closeDatabase();
+        }
     }
 }

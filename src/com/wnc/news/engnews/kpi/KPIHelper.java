@@ -8,11 +8,14 @@ import com.wnc.basic.BasicDateUtil;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.KPIDao;
 import com.wnc.news.db.DatabaseManager;
+import com.wnc.news.db.DatabaseManager_VOA;
+import com.wnc.news.engnews.helper.OptedDictData;
 
 public class KPIHelper
 {
     private final String today = BasicDateUtil.getCurrentDateString();
     SQLiteDatabase db = DatabaseManager.getInstance().openDatabase();
+    SQLiteDatabase db_voa = DatabaseManager.getInstance().openDatabase();
 
     private static KPIHelper kPIHelper = new KPIHelper();
 
@@ -24,6 +27,7 @@ public class KPIHelper
     public void closeDb()
     {
         DatabaseManager.getInstance().closeDatabase();
+        DatabaseManager_VOA.getInstance().closeDatabase();
     }
 
     public static KPIHelper getInstance()
@@ -66,8 +70,39 @@ public class KPIHelper
         KPIDao.increaseViewed(db, today, topic_counts, times, selected_count);
     }
 
-    public boolean addSelectedWord(int db_id, String base_word)
+    public boolean addSelectedWord(int news_id, String base_word)
     {
-        return KPIDao.addSelectedWord(db, db_id, base_word);
+        return KPIDao.addSelectedWord(db, news_id, base_word);
+    }
+
+    public boolean hasViewed(int news_id)
+    {
+        return KPIDao.hasViewed(db, news_id);
+    }
+
+    /**
+     * 获取最近的单词
+     * 
+     * @return
+     */
+    public List<String> getLatelyWords()
+    {
+        List<String> latelyWords = OptedDictData.getLatelyWords();
+        if (latelyWords.size() == 0)
+        {
+            OptedDictData.setLatelyWords(KPIDao.getLatelyWords(db));
+            latelyWords = OptedDictData.getLatelyWords();
+        }
+        return latelyWords;
+    }
+
+    public void addToLatelyWords(String selectedWord)
+    {
+        List<String> latelyWords = OptedDictData.getLatelyWords();
+        if (latelyWords.size() == 0)
+        {
+            OptedDictData.setLatelyWords(KPIDao.getLatelyWords(db));
+        }
+        OptedDictData.getLatelyWords().add(selectedWord);
     }
 }

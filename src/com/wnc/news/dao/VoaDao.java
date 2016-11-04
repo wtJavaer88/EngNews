@@ -151,4 +151,18 @@ public class VoaDao
         return new ArrayList<NewsInfo>(findAllNewsBySql);
     }
 
+    public static boolean hasViewed(SQLiteDatabase db, int news_id)
+    {
+        try
+        {
+            String sql = "select * from voa where id=" + news_id;
+            return db.rawQuery(sql, null).getCount() > 0;
+        }
+        catch (Exception e)
+        {
+            log.error(news_id, e);
+        }
+        return false;
+    }
+
 }

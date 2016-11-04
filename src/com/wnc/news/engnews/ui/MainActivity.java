@@ -120,14 +120,14 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
                 KPIData data = (KPIData) msg.obj;
                 ((TextView) findViewById(R.id.tv_head_fav)).setText(data
                         .getLoved_news() + "");
-                ((TextView) findViewById(R.id.tv_head_hig)).setText(data
-                        .getHighlightWords() + "");
+                ((TextView) findViewById(R.id.tv_head_sel)).setText(data
+                        .getSelectedWords() + "");
                 ((TextView) findViewById(R.id.tv_head_his)).setText(data
                         .getViewed_news() + "");
                 ((TextView) findViewById(R.id.tv_head_tim)).setText(TimeUtil
                         .timeToText(data.getTimes()));
                 ((TextView) findViewById(R.id.tv_head_wor)).setText(data
-                        .getSelectedWords() + "");
+                        .getTopicWords() + "");
                 break;
             }
         }
@@ -169,7 +169,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         switch (v.getId())
         {
         case R.id.btn_theme:
-            startActivity(new Intent(this, MainActivity2.class));
+            startActivity(new Intent(this, TabsActivity.class));
             break;
         case R.id.btn_search:
             startActivity(new Intent(this, SearchActivity.class));

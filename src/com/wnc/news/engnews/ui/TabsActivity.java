@@ -22,10 +22,10 @@ import com.viewpagerindicator.TabPageIndicator;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
 import common.uihelper.MyAppParams;
 
-public class MainActivity2 extends FragmentActivity implements
+public class TabsActivity extends FragmentActivity implements
         UncaughtExceptionHandler
 {
-    Logger log = Logger.getLogger(MainActivity2.class);
+    Logger log = Logger.getLogger(TabsActivity.class);
 
     List<PageFragment> fragmentList = new ArrayList<PageFragment>();
     FragmentPagerAdapter adapter;
@@ -110,7 +110,7 @@ public class MainActivity2 extends FragmentActivity implements
         @Override
         public Fragment getItem(int position)
         {
-            return MainActivity2.this.fragmentList.get(position);
+            return TabsActivity.this.fragmentList.get(position);
         }
 
         @Override

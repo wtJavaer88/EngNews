@@ -46,15 +46,19 @@ public abstract class AbstractForumsHtmlPicker
                     for (Element mainDiv : news_divs)
                     {
                         NewsInfo newsInfo = getBaseNewsInfo(mainDiv);
-                        NewsInfo t_info = getNewsFromUrl(website,
-                                newsInfo.getUrl());
-                        if (setLimit(t_info))
+                        if (setBaseLimit(newsInfo))
                         {
-                            newsInfo.setHtml_content(t_info.getHtml_content());
-                            newsInfo.setWebsite(t_info.getWebsite());
-                            newsInfo.setComment_counts(t_info
-                                    .getComment_counts());
-                            list.add(newsInfo);
+                            NewsInfo t_info = getNewsFromUrl(website,
+                                    newsInfo.getUrl());
+                            if (setMoreLimit(t_info))
+                            {
+                                newsInfo.setHtml_content(t_info
+                                        .getHtml_content());
+                                newsInfo.setWebsite(t_info.getWebsite());
+                                newsInfo.setComment_counts(t_info
+                                        .getComment_counts());
+                                list.add(newsInfo);
+                            }
                         }
                     }
                 }
@@ -72,7 +76,12 @@ public abstract class AbstractForumsHtmlPicker
         return list;
     }
 
-    protected boolean setLimit(NewsInfo t_info)
+    protected boolean setBaseLimit(NewsInfo newsInfo)
+    {
+        return true;
+    }
+
+    protected boolean setMoreLimit(NewsInfo t_info)
     {
         return t_info.getComment_counts() > 20
                 && t_info.getHtml_content() != null

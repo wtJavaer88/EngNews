@@ -156,7 +156,7 @@ public class NewsContentActivity extends BaseNewsActivity
             if (hasTopics())
             {
                 topicListBt.setVisibility(View.VISIBLE);
-                topicListBt.setText("" + allFind.size());
+                showTopicCounts();
             }
             break;
         case MESSAGE_ON_IMG_TEXT:

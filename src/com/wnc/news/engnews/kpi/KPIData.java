@@ -17,7 +17,7 @@ public class KPIData
     /**
      * 四六级高亮单词数
      */
-    private int highlightWords;
+    private int topicWords;
     /**
      * 收藏的新闻数
      */
@@ -57,14 +57,14 @@ public class KPIData
         this.selectedWords = selectedWords;
     }
 
-    public int getHighlightWords()
+    public int getTopicWords()
     {
-        return highlightWords;
+        return topicWords;
     }
 
-    public void setHighlightWords(int highlightWords)
+    public void setTopicWords(int topicWords)
     {
-        this.highlightWords = highlightWords;
+        this.topicWords = topicWords;
     }
 
     public int getLoved_news()
@@ -92,7 +92,7 @@ public class KPIData
     {
         return "KPIData [date=" + date + ", viewed_news=" + viewed_news
                 + ", selectedWords=" + selectedWords + ", highlightWords="
-                + highlightWords + ", loved_news=" + loved_news + ", times="
+                + topicWords + ", loved_news=" + loved_news + ", times="
                 + times + "]";
     }
 }

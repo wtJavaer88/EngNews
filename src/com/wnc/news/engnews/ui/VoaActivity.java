@@ -94,6 +94,7 @@ public class VoaActivity extends BaseNewsActivity implements
                         }
                     }
                 }
+                showTopicCounts();
                 totalWords += PatternUtil.getAllPatternGroup(vinfo.getEn(),
                         "['\\w]+").size();
             }

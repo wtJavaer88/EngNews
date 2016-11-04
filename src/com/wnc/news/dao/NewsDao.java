@@ -303,6 +303,35 @@ public class NewsDao
         return flag;
     }
 
+    public static boolean isExistRedditNews(String date, String title)
+    {
+        boolean flag = false;
+        try
+        {
+            openDatabase();
+            String sql = "select * from news where title='"
+                    + StringEscapeUtils.escapeSql(title) + "' and date='"
+                    + date + "'";
+            Cursor c = database.rawQuery(sql, null);
+            c.moveToFirst();
+            while (!c.isAfterLast())
+            {
+                System.out.println("find news:" + title);
+                flag = true;
+                break;
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(title, e);
+        }
+        finally
+        {
+            closeDatabase();
+        }
+        return flag;
+    }
+
     public static boolean isSoccerTeam(SQLiteDatabase db, String team)
     {
         boolean flag = false;
@@ -322,7 +351,6 @@ public class NewsDao
         catch (Exception e)
         {
             log.error(team, e);
-
         }
         return flag;
     }

@@ -58,7 +58,7 @@
         </activity>
         <activity android:name="com.wnc.news.engnews.ui.SearchActivity" >
         </activity>
-         <activity android:name="com.wnc.news.engnews.ui.MainActivity2" >
+         <activity android:name="com.wnc.news.engnews.ui.TabsActivity" >
         </activity>
         <activity android:name="com.wnc.news.engnews.ui.VoaActivity" >
         </activity>

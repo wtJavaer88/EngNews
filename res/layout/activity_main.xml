@@ -28,14 +28,14 @@
             />
 
         <ImageButton
-            android:id="@+id/imgbutton_head_hig"
+            android:id="@+id/imgbutton_head_sel"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="@drawable/icon_head_highlights"
+            android:background="@drawable/icon_head_selected"
             android:scaleType="fitXY" />
 
         <TextView
-            android:id="@+id/tv_head_hig"
+            android:id="@+id/tv_head_sel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
@@ -63,7 +63,7 @@
             android:id="@+id/imgbutton_head_wor"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="@drawable/icon_head_words"
+            android:background="@drawable/icon_head_topic_words"
             android:scaleType="fitXY" />
 
         <TextView

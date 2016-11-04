@@ -119,8 +119,7 @@ public class KPIDao
                 info.setDate(c.getString(c.getColumnIndex("date")));
                 info.setViewed_news(c.getInt(c.getColumnIndex("view_news")));
                 info.setLoved_news(c.getInt(c.getColumnIndex("fav_news")));
-                info.setHighlightWords(c.getInt(c
-                        .getColumnIndex("topic_counts")));
+                info.setTopicWords(c.getInt(c.getColumnIndex("topic_counts")));
                 info.setTimes(c.getInt(c.getColumnIndex("durations")));
                 info.setSelectedWords(c.getInt(c
                         .getColumnIndex("selected_words")));
@@ -159,6 +158,10 @@ public class KPIDao
     public static boolean addSelectedWord(SQLiteDatabase db, int news_id,
             String word)
     {
+        if (isExistSelected(db, news_id, word))
+        {
+            return true;
+        }
         try
         {
             db.execSQL("INSERT INTO select_word_save(news_id,word,create_time) VALUES ("
@@ -176,4 +179,57 @@ public class KPIDao
         return true;
     }
 
+    private static boolean isExistSelected(SQLiteDatabase db, int news_id,
+            String word)
+    {
+        boolean flag = false;
+        try
+        {
+            String sql = "select * from select_word_save where news_id="
+                    + news_id + " and word='" + word + "'";
+            return db.rawQuery(sql, null).getCount() > 0;
+        }
+        catch (Exception e)
+        {
+            log.error(word, e);
+        }
+        return flag;
+    }
+
+    public static boolean hasViewed(SQLiteDatabase db, int news_id)
+    {
+        try
+        {
+            String sql = "select * from view_history where news_id=" + news_id;
+            return db.rawQuery(sql, null).getCount() > 0;
+        }
+        catch (Exception e)
+        {
+            log.error(news_id, e);
+        }
+        return false;
+    }
+
+    public static List<String> getLatelyWords(SQLiteDatabase db)
+    {
+        List<String> list = new ArrayList<String>();
+        try
+        {
+            Cursor c = db
+                    .rawQuery(
+                            "SELECT DISTINCT word FROM SELECT_WORD_SAVE ORDER BY CREATE_TIME DESC LIMIT 0, 200",
+                            null);
+            c.moveToFirst();
+            while (!c.isAfterLast())
+            {
+                list.add(c.getString(c.getColumnIndex("word")));
+                c.moveToNext();
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("findall", e);
+        }
+        return list;
+    }
 }

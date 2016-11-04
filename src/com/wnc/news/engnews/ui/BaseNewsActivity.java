@@ -205,7 +205,9 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             super.handleMessage(msg);
             if (msg.what == MESSAGE_ON_WORDMEAN_TEXT)
             {
-                wordTipTv.append(" " + msg.obj.toString());
+                final String mean = msg.obj.toString();
+                wordTipTv.append(" " + mean);
+                DictionaryDao.insertNewWord(getCurrentWord(), mean);
                 messagePopWindow.dismiss();
             }
             else if (msg.what == MESSAGE_ON_DOWNSOUND_ERROR_TEXT)
@@ -772,6 +774,15 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         return allFind != null && allFind.size() > 0;
     }
 
+    protected void showTopicCounts()
+    {
+        if (allFind.size() > 0)
+        {
+            topicListBt.setVisibility(View.VISIBLE);
+            topicListBt.setText("" + allFind.size());
+        }
+    }
+
     @SuppressLint("NewApi")
     protected void showTopicList()
     {
@@ -901,7 +912,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             String selectedText = NewsContentUtil.getSuitWordAndSetPos(
                     mTextView, start);
             log.info("selectedText:" + selectedText);
-            increaseSlectedCounts();
+            increaseSlectedCounts(selectedText);
             ActivityMgr.selectedWordRecord(this, news_info, selectedText);
             wordTipTextThread.refresh();
             showWordZone(selectedText);
@@ -912,6 +923,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
     {
         wordMenuBtn.setVisibility(View.INVISIBLE);
         wordTipTv.setVisibility(View.INVISIBLE);
+        switchWordTipColor(false);
     }
 
     protected void showWordZone(final String selectedText)
@@ -949,8 +961,6 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
 
         if (findWord != null)
         {
-            kPIHelper.addSelectedWord(news_info.getDb_id(),
-                    findWord.getBase_word());
             wordTipTv.setText(findWord.getBase_word() + " "
                     + findWord.getCn_mean());
             OptedDictData.getSeekWordList().push(findWord);
@@ -1014,8 +1024,27 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                 .getCursorSelection().getEnd());
     }
 
-    public void increaseSlectedCounts()
+    public void increaseSlectedCounts(String selectedText)
     {
+        if (kPIHelper.getLatelyWords().contains(selectedText))
+        {
+            switchWordTipColor(true);
+        }
+        kPIHelper.addToLatelyWords(selectedText);
+        kPIHelper.addSelectedWord(news_info.getDb_id(), selectedText);
         selected_count++;
+    }
+
+    private void switchWordTipColor(boolean b)
+    {
+        if (b)
+        {
+            wordTipTv.setTextColor(0xffff0000);
+        }
+        else
+        {
+            wordTipTv.setTextColor(0xff000000);
+        }
+
     }
 }
