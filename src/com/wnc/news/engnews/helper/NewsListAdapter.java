@@ -14,7 +14,7 @@ import android.widget.TextView;
 import com.example.engnews.R;
 import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.api.common.NewsInfo;
-import com.wnc.news.engnews.kpi.KPIHelper;
+import com.wnc.news.engnews.kpi.KPIService;
 
 public class NewsListAdapter extends SimpleAdapter
 {
@@ -56,7 +56,7 @@ public class NewsListAdapter extends SimpleAdapter
         }
         final NewsInfo item = (NewsInfo) ((HashMap) this.getItem(position))
                 .get("news_info");
-        if (KPIHelper.getInstance().hasViewed(item.getDb_id()))
+        if (KPIService.getInstance().hasViewed(item.getDb_id()))
         {
             System.out.println("已经阅读过!");
             titleTv.setTextColor(0xff666666);

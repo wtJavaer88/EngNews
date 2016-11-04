@@ -58,6 +58,44 @@ public class DictionaryDao
         return database != null && database.isOpen();
     }
 
+    public synchronized static DicWord findWordById(int topic_id)
+    {
+        DicWord dicWord = null;
+        try
+        {
+            openDatabase();
+            String sql = "select e.word_done,e.word_er,e.word_est,e.word_ing,e.word_pl,e.word_past,e.word_third,d.topic_id,d.topic_word,d.mean_cn FROM  dictionary D LEFT JOIN word_exchange E  ON E.topic_id=D.topic_id where D.topic_id="
+                    + topic_id;
+            Cursor c = database.rawQuery(sql, null);
+            c.moveToFirst();
+            while (!c.isAfterLast())
+            {
+                dicWord = new DicWord();
+                dicWord.setBase_word(c.getString(c.getColumnIndex("topic_word")));
+                dicWord.setTopic_id(c.getInt(c.getColumnIndex("topic_id")));
+                dicWord.setWord_third(c.getString(c
+                        .getColumnIndex("word_third")));
+                dicWord.setWord_done(c.getString(c.getColumnIndex("word_done")));
+                dicWord.setWord_er(c.getString(c.getColumnIndex("word_er")));
+                dicWord.setWord_est(c.getString(c.getColumnIndex("word_est")));
+                dicWord.setWord_ing(c.getString(c.getColumnIndex("word_ing")));
+                dicWord.setWord_pl(c.getString(c.getColumnIndex("word_pl")));
+                dicWord.setWord_past(c.getString(c.getColumnIndex("word_past")));
+                dicWord.setCn_mean(c.getString(c.getColumnIndex("mean_cn")));
+                return dicWord;
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(topic_id, e);
+        }
+        finally
+        {
+            closeDatabase();
+        }
+        return dicWord;
+    }
+
     public synchronized static DicWord findWord(String word)
     {
         DicWord dicWord = null;
@@ -66,7 +104,7 @@ public class DictionaryDao
         {
             openDatabase();
 
-            String sql = "select e.*,d.topic_word,d.mean_cn FROM  dictionary D LEFT JOIN word_exchange E  ON E.topic_id=D.topic_id where LOWER(topic_word)='"
+            String sql = "select e.word_done,e.word_er,e.word_est,e.word_ing,e.word_pl,e.word_past,e.word_third,d.topic_id,d.topic_word,d.mean_cn FROM  dictionary D LEFT JOIN word_exchange E  ON E.topic_id=D.topic_id where LOWER(topic_word)='"
                     + word
                     + "' or  word_third='"
                     + word

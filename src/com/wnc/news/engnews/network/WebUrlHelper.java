@@ -1,4 +1,4 @@
-package com.wnc.news.engnews.helper;
+package com.wnc.news.engnews.network;
 
 public class WebUrlHelper
 {

@@ -508,8 +508,9 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int newsmenu_popup_dialog=0x7f030009;
         public static final int section_popup_dialog=0x7f03000a;
         public static final int setting_add_tags_dialg=0x7f03000b;
-        public static final int topic_tip_wdailog=0x7f03000c;
-        public static final int voa_setting=0x7f03000d;
+        public static final int topic_tip_ndailog=0x7f03000c;
+        public static final int topic_tip_wdailog=0x7f03000d;
+        public static final int voa_setting=0x7f03000e;
     }
     public static final class menu {
         public static final int main=0x7f0c0000;

@@ -1,18 +1,24 @@
 package com.wnc.news.engnews.ui;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,13 +33,15 @@ import com.wnc.news.api.common.ErrSiteNewsInfo;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.engnews.helper.NewsTest;
 import com.wnc.news.engnews.kpi.KPIData;
-import com.wnc.news.engnews.kpi.KPIHelper;
+import com.wnc.news.engnews.kpi.KPIService;
+import com.wnc.news.engnews.kpi.SelectedWord;
+import com.wnc.news.engnews.kpi.ViewedNews;
+import com.wnc.news.richtext.HtmlRichText;
 import com.wnc.string.PatternUtil;
+import common.app.BasicPhoneUtil;
 import common.app.ConfirmUtil;
-import common.app.Log4jUtil;
 import common.app.SysInit;
 import common.app.ToastUtil;
-import common.uihelper.MyAppParams;
 import common.uihelper.PositiveEvent;
 import common.utils.TimeUtil;
 
@@ -57,12 +65,9 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         super.onCreate(icicle);
         setContentView(R.layout.activity_main);
         Thread.setDefaultUncaughtExceptionHandler(this);
-
-        Log4jUtil.configLog(MyAppParams.LOG_FOLDER
-                + BasicDateUtil.getCurrentDateString() + ".txt");
         log.info("App Start...");
-
         initView();
+
         SysInit.init(MainActivity.this);
         bgUpdate();
     }
@@ -74,7 +79,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
             @Override
             public void run()
             {
-                KPIData findTodayData = KPIHelper.getInstance().findTodayData();
+                KPIData findTodayData = KPIService.getInstance()
+                        .findTodayData();
                 if (findTodayData != null)
                 {
                     log.info(findTodayData);
@@ -156,6 +162,83 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         btn_cache_clear.setOnClickListener(this);
         findViewById(R.id.btn_theme).setOnClickListener(this);
         findViewById(R.id.btn_search).setOnClickListener(this);
+        findViewById(R.id.imgbutton_head_sel).setOnClickListener(this);
+        findViewById(R.id.imgbutton_head_his).setOnClickListener(this);
+    }
+
+    private void showSelected()
+    {
+        final Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
+        dialog.setContentView(R.layout.topic_tip_ndailog);
+        dialog.setCanceledOnTouchOutside(true);
+        Window window = dialog.getWindow();
+
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.width = (int) (0.85 * BasicPhoneUtil.getScreenWidth(this));
+        lp.height = (int) (0.85 * BasicPhoneUtil.getScreenHeight(this));
+
+        final TextView tvTopic = (TextView) dialog
+                .findViewById(R.id.tvTopicInfo);
+
+        final Set<SelectedWord> findSelectedWordsToday = KPIService
+                .getInstance().findSelectedWordsToday();
+        Iterator<SelectedWord> iterator = findSelectedWordsToday.iterator();
+        String tpContent = "";
+        while (iterator.hasNext())
+        {
+            SelectedWord next = iterator.next();
+            String mean = next.getCn_mean();
+            if (mean == null)
+            {
+                mean = "";
+            }
+            tpContent += next.getWord() + "  " + mean.replace("\n", "\n    ")
+                    + "\n\n";
+        }
+        if (tpContent.length() > 2)
+        {
+            tpContent = tpContent.substring(0, tpContent.length() - 2);
+        }
+        tvTopic.setText(tpContent);
+        dialog.show();
+    }
+
+    private void showHistory()
+    {
+        final Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
+        dialog.setContentView(R.layout.topic_tip_ndailog);
+        dialog.setCanceledOnTouchOutside(true);
+        Window window = dialog.getWindow();
+
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.width = (int) (0.85 * BasicPhoneUtil.getScreenWidth(this));
+        lp.height = (int) (0.85 * BasicPhoneUtil.getScreenHeight(this));
+
+        final TextView tvTopic = (TextView) dialog
+                .findViewById(R.id.tvTopicInfo);
+
+        Iterator<ViewedNews> iterator = KPIService.getInstance()
+                .findHistoryToday().iterator();
+        String tpContent = "";
+        while (iterator.hasNext())
+        {
+            ViewedNews next = iterator.next();
+            final String timeToText = TimeUtil.timeToText(next
+                    .getView_duration());
+            System.out.println(timeToText);
+            tpContent += "<p>浏览:" + next.getView_time() + "  用时:" + timeToText
+                    + "<br>";
+            tpContent += "<font color=blue><a href=\"" + next.getUrl() + "\">"
+                    + next.getTitle() + "</a></font></p>";
+        }
+        if (tpContent.length() > 2)
+        {
+            tpContent = tpContent.substring(0,
+                    tpContent.length() - "</br>".length() * 2);
+        }
+        tvTopic.setMovementMethod(LinkMovementMethod.getInstance());
+        tvTopic.setText(new HtmlRichText(tpContent).getCharSequence());
+        dialog.show();
     }
 
     Thread cacheWatchThread1;
@@ -168,6 +251,12 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         final CacheSchedule cacheSchedule = new CacheSchedule();
         switch (v.getId())
         {
+        case R.id.imgbutton_head_sel:
+            showSelected();
+            break;
+        case R.id.imgbutton_head_his:
+            showHistory();
+            break;
         case R.id.btn_theme:
             startActivity(new Intent(this, TabsActivity.class));
             break;
@@ -393,7 +482,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
     @Override
     protected void onDestroy()
     {
-        KPIHelper.getInstance().closeDb();
+        KPIService.getInstance().closeDb();
         super.onDestroy();
     }
 

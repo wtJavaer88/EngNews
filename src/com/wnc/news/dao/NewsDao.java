@@ -511,7 +511,7 @@ public class NewsDao
         return findAllNewsBySql(sql);
     }
 
-    private synchronized static List<NewsInfo> findAllNewsBySql(String sql)
+    public synchronized static List<NewsInfo> findAllNewsBySql(String sql)
     {
         List<NewsInfo> list = new ArrayList<NewsInfo>();
         try

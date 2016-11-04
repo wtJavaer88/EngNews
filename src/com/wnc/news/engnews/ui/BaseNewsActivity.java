@@ -13,7 +13,6 @@ import net.selectabletv.SelectableTextView.OnCursorStateChangedListener;
 
 import org.apache.log4j.Logger;
 
-import translate.site.iciba.CibaWordTranslate;
 import word.DicWord;
 import word.Topic;
 import word.WordExpand;
@@ -54,9 +53,10 @@ import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.OptedDictData;
 import com.wnc.news.engnews.helper.SrtVoiceHelper;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
-import com.wnc.news.engnews.helper.WebUrlHelper;
 import com.wnc.news.engnews.helper.WordTipTextThread;
-import com.wnc.news.engnews.kpi.KPIHelper;
+import com.wnc.news.engnews.kpi.KPIService;
+import com.wnc.news.engnews.network.CibaCacheHelper;
+import com.wnc.news.engnews.network.WebUrlHelper;
 import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow;
 import com.wnc.news.engnews.ui.popup.NewsMenuPopWindow.NewsMenuListener;
 import com.wnc.news.engnews.ui.popup.SectionPopWindow;
@@ -119,11 +119,10 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
     MessagePopWindow messagePopWindow;
 
     public int totalWords;
-    private int selected_count = 0;
 
     ActivityTimeUtil activityTimeUtil = new ActivityTimeUtil();
     public volatile boolean runtimeWatch = true;
-    KPIHelper kPIHelper = KPIHelper.getInstance();
+    KPIService kPIHelper = KPIService.getInstance();
     int mTouchX2;
     int mTouchY2;
     int topicBtClickCount = 0;
@@ -318,7 +317,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             ActivityMgr.viewedNewsRecord(this, news_info,
                     activityTimeUtil.getRunTime());
             kPIHelper.increaseViewed(activityTimeUtil.getRunTime(),
-                    selected_count, allFind.size(), news_info);
+                    allFind.size(), news_info);
         }
     }
 
@@ -377,8 +376,9 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                             try
                             {
                                 Thread.sleep(1000);
-                                final String soundUrl = new CibaWordTranslate(
-                                        getCurrentWord()).getSoundStr();
+                                final String soundUrl = CibaCacheHelper
+                                        .getCibaTranslate(getCurrentWord())
+                                        .getSoundStr();
                                 UrlPicDownloader.download(soundUrl, voicePath);
                             }
                             catch (Exception e)
@@ -431,7 +431,6 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             @Override
             public void doExpand()
             {
-                System.out.println("doexpand");
                 final Dialog dialog = new Dialog(BaseNewsActivity.this,
                         R.style.CustomDialogStyle);
                 dialog.setContentView(R.layout.topic_tip_wdailog);
@@ -510,7 +509,6 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                     }
                     else
                     {
-                        System.out.println("not contains");
                         WordExpand wordExpand = DictionaryDao
                                 .findSameAntonym(OptedDictData
                                         .getSeekWordList().peek().getTopic_id());
@@ -562,7 +560,6 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             @Override
             public void doFavorite()
             {
-                System.out.println(getCurrentSectionAndSetPos());
                 BasicFileUtil.writeFileString(MyAppParams.FAVORITE_TXT,
                         getCurrentSectionAndSetPos() + "\r\n", "UTF-8", true);
                 common.app.ToastUtil.showShortToast(getApplicationContext(),
@@ -753,7 +750,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
 
         if (requestCode == REQUEST_SEARCH_CODE && newsStack.size() > 0)
         {
-            System.out.println("newsStack.size():" + newsStack.size());
+            // System.out.println("newsStack.size():" + newsStack.size());
             ViewNewsHolder.refrehList(newsStack.pop());
             ViewNewsHolder.refreh(news_info);
         }
@@ -912,7 +909,6 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
             String selectedText = NewsContentUtil.getSuitWordAndSetPos(
                     mTextView, start);
             log.info("selectedText:" + selectedText);
-            increaseSlectedCounts(selectedText);
             ActivityMgr.selectedWordRecord(this, news_info, selectedText);
             wordTipTextThread.refresh();
             showWordZone(selectedText);
@@ -961,6 +957,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
 
         if (findWord != null)
         {
+            increaseSlectedCounts(selectedText, findWord.getTopic_id());
             wordTipTv.setText(findWord.getBase_word() + " "
                     + findWord.getCn_mean());
             OptedDictData.getSeekWordList().push(findWord);
@@ -975,6 +972,7 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
         }
         else
         {
+            increaseSlectedCounts(selectedText, -1);
             wordTipTv.setText(selectedText);
             messagePopWindow.setMsgAndShow("字典中没有, 将去网络查找!", mTextView);
             new Thread(new Runnable()
@@ -984,8 +982,8 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                 {
                     try
                     {
-                        String basicInfo = new CibaWordTranslate(selectedText)
-                                .getBasicInfo();
+                        String basicInfo = CibaCacheHelper.getCibaTranslate(
+                                getCurrentWord()).getBasicInfo();
                         if (BasicStringUtil.isNotNullString(basicInfo))
                         {
                             log.info("获取释义成功!" + basicInfo);
@@ -1024,15 +1022,15 @@ public abstract class BaseNewsActivity extends BaseVerActivity implements
                 .getCursorSelection().getEnd());
     }
 
-    public void increaseSlectedCounts(String selectedText)
+    public void increaseSlectedCounts(String selectedText, int topic_id)
     {
         if (kPIHelper.getLatelyWords().contains(selectedText))
         {
             switchWordTipColor(true);
         }
-        kPIHelper.addToLatelyWords(selectedText);
-        kPIHelper.addSelectedWord(news_info.getDb_id(), selectedText);
-        selected_count++;
+        kPIHelper.addToLatelyWords(selectedText, topic_id);
+        kPIHelper.addSelectedWord(news_info.getDb_id(), selectedText, topic_id);
+        kPIHelper.updateKPISelected(1);
     }
 
     private void switchWordTipColor(boolean b)

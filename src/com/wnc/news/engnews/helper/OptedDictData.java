@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import net.widget.act.abs.AutoCompletable;
@@ -14,6 +16,7 @@ import android.annotation.SuppressLint;
 
 import com.wnc.news.act.ActTeam;
 import com.wnc.news.dao.DictionaryDao;
+import com.wnc.news.engnews.kpi.SelectedWord;
 
 @SuppressLint("DefaultLocale")
 public class OptedDictData
@@ -21,14 +24,14 @@ public class OptedDictData
     private static Stack<DicWord> seekWordList = new Stack<DicWord>();
     private static Map<Integer, CharSequence> wordExpandContentMap = new HashMap<Integer, CharSequence>();
     private static List<AutoCompletable> items = new ArrayList<AutoCompletable>();
-    private static List<String> latelyWords = new ArrayList<String>();
+    private static Set<SelectedWord> latelyWords = new HashSet<SelectedWord>();
 
-    public static void setLatelyWords(List<String> lws)
+    public static void setLatelyWords(Set<SelectedWord> lws)
     {
         latelyWords = lws;
     }
 
-    public static List<String> getLatelyWords()
+    public static Set<SelectedWord> getLatelyWords()
     {
         return latelyWords;
     }

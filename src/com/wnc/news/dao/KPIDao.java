@@ -1,7 +1,9 @@
 package com.wnc.news.dao;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -10,7 +12,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.wnc.basic.BasicDateUtil;
+import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.engnews.kpi.KPIData;
+import com.wnc.news.engnews.kpi.SelectedWord;
+import com.wnc.news.engnews.kpi.ViewedNews;
 
 public class KPIDao
 {
@@ -67,7 +72,7 @@ public class KPIDao
     }
 
     public static boolean increaseViewed(SQLiteDatabase db, String today,
-            int topic_counts, int times, int selected_count)
+            int topic_counts, int times)
     {
         try
         {
@@ -75,8 +80,6 @@ public class KPIDao
                     + topic_counts
                     + ",durations=durations+"
                     + times
-                    + ",selected_words=selected_words+"
-                    + selected_count
                     + ",update_time='"
                     + BasicDateUtil.getCurrentDateTimeString()
                     + "' WHERE DATE='" + today + "'");
@@ -156,7 +159,7 @@ public class KPIDao
     }
 
     public static boolean addSelectedWord(SQLiteDatabase db, int news_id,
-            String word)
+            String word, int topic_id)
     {
         if (isExistSelected(db, news_id, word))
         {
@@ -164,16 +167,38 @@ public class KPIDao
         }
         try
         {
-            db.execSQL("INSERT INTO select_word_save(news_id,word,create_time) VALUES ("
+            final String sql = "INSERT INTO select_word_save(news_id,topic_id,word,create_time) VALUES ("
                     + news_id
+                    + ","
+                    + topic_id
                     + ",'"
                     + word
                     + "','"
-                    + BasicDateUtil.getCurrentDateTimeString() + "')");
+                    + BasicDateUtil.getCurrentDateTimeString() + "')";
+            System.out.println(sql);
+            db.execSQL(sql);
         }
         catch (Exception e)
         {
             log.error(news_id, e);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean updateKPISelected(SQLiteDatabase db, int count,
+            String today)
+    {
+        try
+        {
+            final String sql = "UPDATE NEWS_KPI SET selected_words=selected_words+"
+                    + count + " WHERE date='" + today + "'";
+            System.out.println(sql);
+            db.execSQL(sql);
+        }
+        catch (Exception e)
+        {
+            log.error(today, e);
             return false;
         }
         return true;
@@ -210,19 +235,99 @@ public class KPIDao
         return false;
     }
 
-    public static List<String> getLatelyWords(SQLiteDatabase db)
+    public static Set<SelectedWord> getLatelyWords(SQLiteDatabase db)
     {
-        List<String> list = new ArrayList<String>();
+        return findSelectedWordsBySQL(db,
+                "SELECT * FROM SELECT_WORD_SAVE ORDER BY CREATE_TIME DESC LIMIT 0, 200");
+    }
+
+    public static Set<SelectedWord> findSelectedWordsByDay(SQLiteDatabase db,
+            String day)
+    {
+        if (day.length() == 8)
+        {
+            day = day.substring(0, 4) + "-" + day.substring(4, 6) + "-"
+                    + day.substring(6, 8);
+        }
+        return findSelectedWordsBySQL(db,
+                "SELECT  * FROM SELECT_WORD_SAVE WHERE create_time like '"
+                        + day + "%' ORDER BY CREATE_TIME ASC");
+    }
+
+    public static Set<SelectedWord> findSelectedWordsBySQL(SQLiteDatabase db,
+            String sql)
+    {
+        Set<SelectedWord> list = new HashSet<SelectedWord>();
         try
         {
-            Cursor c = db
-                    .rawQuery(
-                            "SELECT DISTINCT word FROM SELECT_WORD_SAVE ORDER BY CREATE_TIME DESC LIMIT 0, 200",
-                            null);
+            Cursor c = db.rawQuery(sql, null);
             c.moveToFirst();
+            SelectedWord sword;
             while (!c.isAfterLast())
             {
-                list.add(c.getString(c.getColumnIndex("word")));
+                sword = new SelectedWord();
+                sword.setTopic_id(c.getInt(c.getColumnIndex("topic_id")));
+                sword.setWord(c.getString(c.getColumnIndex("word")));
+                list.add(sword);
+                c.moveToNext();
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(sql, e);
+        }
+        return list;
+    }
+
+    public static List<ViewedNews> findNewsByDay(SQLiteDatabase db, String day)
+    {
+        if (day.length() == 8)
+        {
+            day = day.substring(0, 4) + "-" + day.substring(4, 6) + "-"
+                    + day.substring(6, 8);
+        }
+
+        return findAllNewsBySql(
+                db,
+                "SELECT n.*,h.view_duration,h.create_time view_time FROM VIEW_HISTORY H,NEWS N where h.news_id=n.id and h.create_time like '"
+                        + day + "%'");
+    }
+
+    public synchronized static List<ViewedNews> findAllNewsBySql(
+            SQLiteDatabase db, String sql)
+    {
+        List<ViewedNews> list = new ArrayList<ViewedNews>();
+        try
+        {
+            Cursor c = db.rawQuery(sql, null);
+            c.moveToFirst();
+            ViewedNews info;
+            while (!c.isAfterLast())
+            {
+                info = new ViewedNews();
+                info.setHtml_content(c.getString(c
+                        .getColumnIndex("html_content")));
+                info.setCet_topics(c.getString(c.getColumnIndex("cet_topics")));
+                info.setHead_pic(c.getString(c.getColumnIndex("head_pic")));
+                info.setSub_text(c.getString(c.getColumnIndex("sub_text")));
+                info.setTitle(c.getString(c.getColumnIndex("title")));
+                info.setDate(c.getString(c.getColumnIndex("date")));
+                info.setDb_id(c.getInt(c.getColumnIndex("id")));
+                info.setUrl(c.getString(c.getColumnIndex("url")));
+                info.setCreate_time(c.getString(c.getColumnIndex("create_time")));
+                info.setTopic_counts(c.getInt(c.getColumnIndex("topic_counts")));
+                info.setComment_counts(c.getInt(c
+                        .getColumnIndex("comment_counts")));
+                info.setView_duration(c.getInt(c
+                        .getColumnIndex("view_duration")));
+                info.setView_time(c.getString(c.getColumnIndex("view_time")));
+
+                String kw = c.getString(c.getColumnIndex("keywords"));
+                if (BasicStringUtil.isNotNullString(kw))
+                {
+                    info.addKeyWord(kw);
+                }
+                list.add(info);
                 c.moveToNext();
             }
         }

@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.wnc.basic.BasicDateUtil;
 import com.wnc.basic.BasicFileUtil;
 import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.dao.DictionaryDao;
@@ -21,6 +22,8 @@ public class SysInit
 
     public static void init(Activity context2)
     {
+        Log4jUtil.configLog(MyAppParams.LOG_FOLDER
+                + BasicDateUtil.getCurrentDateString() + ".txt");
         SharedPreferenceUtil.init(context2);
         MyAppParams.mainActivity = context2;
         MyAppParams.getInstance().setPackageName(context2.getPackageName());

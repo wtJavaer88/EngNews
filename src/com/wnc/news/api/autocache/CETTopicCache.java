@@ -18,7 +18,7 @@ import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.NewsDao;
-import com.wnc.news.engnews.helper.WebUrlHelper;
+import com.wnc.news.engnews.network.WebUrlHelper;
 import com.wnc.string.PatternUtil;
 
 public class CETTopicCache
