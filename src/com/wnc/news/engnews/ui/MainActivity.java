@@ -35,7 +35,6 @@ import com.wnc.news.engnews.kpi.KPIData;
 import com.wnc.news.engnews.kpi.KPIService;
 import com.wnc.news.engnews.kpi.KPI_TYPE;
 import com.wnc.news.richtext.ClickableMovementMethod;
-import com.wnc.news.richtext.HtmlRichText;
 import com.wnc.string.PatternUtil;
 import common.app.BasicPhoneUtil;
 import common.app.ConfirmUtil;
@@ -135,7 +134,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 				tvKPI_item_desc.append("          " + kPIChangeDayListener.getCurDay() + "          ");
 				tvKPI_item_desc.append(new ClickableKPIRichText(false, kPIChangeDayListener).getCharSequence());
 				tvKPI_item_desc.append("\n");
-				tvKPI_item_desc.append(new HtmlRichText(msg.obj.toString()).getCharSequence());
+				tvKPI_item_desc.append((CharSequence) msg.obj);
 				tvKPI_item_desc.setMovementMethod(ClickableMovementMethod.getInstance());
 				break;
 			case MESSAGE_KPI_SEL_CODE:
@@ -144,7 +143,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 				tvKPI_item_desc.append("          " + kPIChangeDayListener.getCurDay() + "          ");
 				tvKPI_item_desc.append(new ClickableKPIRichText(false, kPIChangeDayListener).getCharSequence());
 				tvKPI_item_desc.append("\n");
-				tvKPI_item_desc.append(msg.obj.toString());
+				tvKPI_item_desc.append((CharSequence) msg.obj);
 				tvKPI_item_desc.setMovementMethod(ClickableMovementMethod.getInstance());
 				break;
 			case MESSAGE_KPI_CHANGE_CODE:

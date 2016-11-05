@@ -8,6 +8,7 @@ import android.os.Message;
 
 import com.wnc.news.engnews.kpi.ClickableKPIRichText.KPIChangeDayEvent;
 import com.wnc.news.engnews.ui.MainActivity;
+import com.wnc.news.richtext.HtmlRichText;
 import common.utils.TimeUtil;
 
 public class KPIChangeDayListener implements KPIChangeDayEvent
@@ -104,7 +105,7 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
 				}
 				Message msg = new Message();
 				msg.what = MainActivity.MESSAGE_KPI_HIS_CODE;
-				msg.obj = tpContent;
+				msg.obj = new HtmlRichText(tpContent).getCharSequence();
 				handler.sendMessage(msg);
 			}
 		}).start();
