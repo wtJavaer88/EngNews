@@ -70,4 +70,11 @@
         <item name="android:typeface">monospace</item>
         <item name="android:textColor">@drawable/selector_tabtext</item>
     </style>
+    
+    <style name="DayTheme" parent="@android:style/Theme.Light">
+        <item name="colorValue">@color/white</item>
+    </style>
+    <style name="NightTheme" parent="@android:style/Theme.Light">
+        <item name="colorValue">@color/yellow_light</item>
+    </style>
 </resources>

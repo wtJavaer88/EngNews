@@ -36,7 +36,7 @@ public class TabsActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         // 禁止横屏
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_tabs);
         Thread.setDefaultUncaughtExceptionHandler(this);
 
         initFragments();

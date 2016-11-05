@@ -52,7 +52,9 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:background="?attr/colorValue"
+         >
 
         <TextView
             android:id="@+id/tv_img"
@@ -105,6 +107,7 @@
         android:id="@+id/scrollView_news_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?attr/colorValue"
         android:fillViewport="true" >
 
         <net.selectabletv.SelectableTextView
@@ -112,6 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:bufferType="spannable"
+            android:background="?attr/colorValue"
             android:textColor="#000000"
             android:textSize="20sp" />
     </net.selectabletv.ObservableScrollView>

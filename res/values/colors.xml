@@ -27,6 +27,7 @@
     <color name="textColor">#15C0C9</color>
     <color name="purple">#820072</color>
     <color name="yellow">#fa800a</color>
+    <color name="yellow_light">#55ffff90</color>
     <color name="sky_blue">#0070a2</color>
     <color name="dark_blue">#1c2252</color>
 </resources>
