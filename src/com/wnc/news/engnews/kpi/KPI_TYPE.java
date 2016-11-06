@@ -2,5 +2,5 @@ package com.wnc.news.engnews.kpi;
 
 public enum KPI_TYPE
 {
-	HIS, SEL
+	HIS, SEL, FAV, ALL
 }

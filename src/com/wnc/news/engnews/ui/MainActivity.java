@@ -52,7 +52,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 	private final int MESSAGE_EXIT_CODE = 0;
 	private final int MESSAGE_PROCESS_CODE = 1;
 	private final int MESSAGE_DIRECTLINK_CODE = 2;
-	private final int MESSAGE_KPI_ALL_CODE = 3;
+	public static final int MESSAGE_KPI_ALL_CODE = 3;
 	public static final int MESSAGE_KPI_HIS_CODE = 4;
 	public static final int MESSAGE_KPI_SEL_CODE = 5;
 	public static final int MESSAGE_KPI_CHANGE_CODE = 6;
@@ -75,20 +75,12 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 
 	private void bgUpdate()
 	{
+		kPIChangeDayListener.updateKPIHeader();
 		new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				KPIData findTodayData = KPIService.getInstance().findTodayData();
-				if (findTodayData != null)
-				{
-					log.info(findTodayData);
-					Message msg = new Message();
-					msg.what = MESSAGE_KPI_ALL_CODE;
-					msg.obj = findTodayData;
-					handler.sendMessage(msg);
-				}
 				if (BasicDateUtil.getCurrentHour() > 7 && BasicDateUtil.getCurrentHour() < 10)
 				{
 					new NewsTest().topicUpdate();
@@ -129,14 +121,6 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 				((TextView) findViewById(R.id.tv_head_wor)).setText(data.getTopicWords() + "");
 				break;
 			case MESSAGE_KPI_HIS_CODE:
-				tvKPI_item_desc.setText("");
-				tvKPI_item_desc.append(new ClickableKPIRichText(true, kPIChangeDayListener).getCharSequence());
-				tvKPI_item_desc.append("          " + kPIChangeDayListener.getCurDay() + "          ");
-				tvKPI_item_desc.append(new ClickableKPIRichText(false, kPIChangeDayListener).getCharSequence());
-				tvKPI_item_desc.append("\n");
-				tvKPI_item_desc.append((CharSequence) msg.obj);
-				tvKPI_item_desc.setMovementMethod(ClickableMovementMethod.getInstance());
-				break;
 			case MESSAGE_KPI_SEL_CODE:
 				tvKPI_item_desc.setText("");
 				tvKPI_item_desc.append(new ClickableKPIRichText(true, kPIChangeDayListener).getCharSequence());
@@ -152,7 +136,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 			}
 		}
 	};
-	KPIChangeDayListener kPIChangeDayListener;
+	KPIChangeDayListener kPIChangeDayListener = new KPIChangeDayListener(handler, KPI_TYPE.ALL);
+	TextView tvKPI_item_desc;
 
 	Button bt_web_parse;
 
@@ -180,11 +165,12 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		findViewById(R.id.btn_search).setOnClickListener(this);
 		findViewById(R.id.imgbutton_head_sel).setOnClickListener(this);
 		findViewById(R.id.imgbutton_head_his).setOnClickListener(this);
+		findViewById(R.id.imgbutton_head_fav).setOnClickListener(this);
 	}
 
-	private void showSelected()
+	private void showKPIDialog(KPI_TYPE kpi_type)
 	{
-		kPIChangeDayListener = new KPIChangeDayListener(handler, KPI_TYPE.SEL);
+		kPIChangeDayListener = new KPIChangeDayListener(handler, kpi_type);
 		final Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
 		dialog.setContentView(R.layout.topic_tip_ndailog);
 		dialog.setCanceledOnTouchOutside(true);
@@ -200,25 +186,6 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		dialog.show();
 	}
 
-	TextView tvKPI_item_desc;
-
-	private void showHistory()
-	{
-		kPIChangeDayListener = new KPIChangeDayListener(handler, KPI_TYPE.HIS);
-		final Dialog dialog = new Dialog(this, R.style.CustomDialogStyle);
-		dialog.setContentView(R.layout.topic_tip_ndailog);
-		dialog.setCanceledOnTouchOutside(true);
-		Window window = dialog.getWindow();
-
-		WindowManager.LayoutParams lp = window.getAttributes();
-		lp.width = (int) (0.85 * BasicPhoneUtil.getScreenWidth(this));
-		lp.height = (int) (0.85 * BasicPhoneUtil.getScreenHeight(this));
-
-		tvKPI_item_desc = (TextView) dialog.findViewById(R.id.tvTopicInfo);
-		kPIChangeDayListener.performChange();
-		dialog.show();
-	}
-
 	Thread cacheWatchThread1;
 	Thread cacheWatchThread2;
 	public volatile boolean cachedExit = false;
@@ -230,10 +197,14 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		switch (v.getId())
 		{
 		case R.id.imgbutton_head_sel:
-			showSelected();
+			showKPIDialog(KPI_TYPE.SEL);
+			break;
+		case R.id.imgbutton_head_fav:
+			System.out.println("fav...........");
+			showKPIDialog(KPI_TYPE.FAV);
 			break;
 		case R.id.imgbutton_head_his:
-			showHistory();
+			showKPIDialog(KPI_TYPE.HIS);
 			break;
 		case R.id.btn_theme:
 			startActivity(new Intent(this, TabsActivity.class));

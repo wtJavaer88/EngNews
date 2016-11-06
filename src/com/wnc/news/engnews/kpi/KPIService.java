@@ -45,12 +45,12 @@ public class KPIService
 
 	public KPIData findTodayData()
 	{
-		return KPIDao.findByDay(db, BasicDateUtil.getCurrentDateString());
+		return KPIDao.findKPIDataByDay(db, BasicDateUtil.getCurrentDateString());
 	}
 
-	public KPIData getHeadData(String data)
+	public KPIData findDataByDay(String day)
 	{
-		return new KPIData();
+		return KPIDao.findKPIDataByDay(db, day);
 	}
 
 	public boolean increaseLoved(int news_id)
@@ -69,7 +69,7 @@ public class KPIService
 	// 在退出某个新闻页面的时候调用,或者在前一页后一页的时候
 	public void increaseViewed(int times, int topic_counts, NewsInfo newsInfo)
 	{
-		// TODO 如果不存在date记录,insert
+		// 如果不存在date记录,insert
 		// 否则update, viewed+1, highlights=getHLCounts,
 		// times+view_time,selected_words = selected_count
 		KPIDao.insertViewHistory(db, newsInfo.getDb_id(), topic_counts, times);
@@ -151,9 +151,14 @@ public class KPIService
 		return selectedWords;
 	}
 
-	public List<ViewedNews> findHistory(String day)
+	public List<ViewedNews> findViewHistory(String day)
 	{
-		return KPIDao.findNewsByDay(db, day);
+		return KPIDao.findViewedNewsByDay(db, day);
+	}
+
+	public List<ViewedNews> findLoveHistory(String day)
+	{
+		return KPIDao.findLovedNewsByDay(db, day);
 	}
 
 	public Set<SelectedWord> findSelectedWordsToday()
@@ -174,8 +179,8 @@ public class KPIService
 		KPIDao.updateKPISelected(db, count, today);
 	}
 
-	public List<ViewedNews> findHistoryToday()
+	public List<ViewedNews> findViewHistoryToday()
 	{
-		return findHistory(today);
+		return findViewHistory(today);
 	}
 }

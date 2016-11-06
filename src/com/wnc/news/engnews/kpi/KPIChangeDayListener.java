@@ -28,6 +28,26 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
 		return ClickableKPIRichText.getCurDay();
 	}
 
+	public void updateKPIHeader()
+	{
+		new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				KPIData findTodayData = KPIService.getInstance().findDataByDay(getCurDay());
+				if (findTodayData != null)
+				{
+					Message msg = new Message();
+					msg.what = MainActivity.MESSAGE_KPI_ALL_CODE;
+					msg.obj = findTodayData;
+					handler.sendMessage(msg);
+				}
+			}
+		}).start();
+	}
+
 	public void performChange()
 	{
 		performChange(getCurDay());
@@ -36,6 +56,7 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
 	@Override
 	public void performChange(String kpi_date)
 	{
+		updateKPIHeader();
 		handler.sendEmptyMessage(MainActivity.MESSAGE_KPI_CHANGE_CODE);
 		curday = kpi_date;
 		switch (kpi_type)
@@ -45,7 +66,41 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
 			break;
 		case SEL:
 			postSelected(kpi_date);
+			break;
+		case FAV:
+			postLoved(kpi_date);
+			break;
+		default:
+			break;
 		}
+	}
+
+	private void postLoved(final String kpi_date)
+	{
+		new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				Iterator<ViewedNews> iterator = KPIService.getInstance().findLoveHistory(kpi_date).iterator();
+				String tpContent = "";
+				while (iterator.hasNext())
+				{
+					ViewedNews next = iterator.next();
+					tpContent += "<p>收藏:" + next.getView_time() + "<br>";
+					tpContent += "<font color=blue><a href=\"" + next.getUrl() + "\">" + next.getTitle() + "</a></font></p>";
+				}
+				if (tpContent.length() > 2)
+				{
+					tpContent = tpContent.substring(0, tpContent.length() - "</br>".length() * 2);
+				}
+				Message msg = new Message();
+				msg.what = MainActivity.MESSAGE_KPI_HIS_CODE;
+				msg.obj = new HtmlRichText(tpContent).getCharSequence();
+				handler.sendMessage(msg);
+			}
+		}).start();
 	}
 
 	private void postSelected(final String kpi_date)
@@ -90,7 +145,7 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
 			@Override
 			public void run()
 			{
-				Iterator<ViewedNews> iterator = KPIService.getInstance().findHistory(kpi_date).iterator();
+				Iterator<ViewedNews> iterator = KPIService.getInstance().findViewHistory(kpi_date).iterator();
 				String tpContent = "";
 				while (iterator.hasNext())
 				{
