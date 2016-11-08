@@ -9,17 +9,15 @@ public class ActivityTimeUtil
     private volatile boolean isPaused = false;
     private volatile boolean isStoped = false;
 
-    public ActivityTimeUtil()
-    {
-
-    }
+    Thread timerThread;
 
     public void begin()
     {
-        duration = 0;
-        isPaused = false;
-        isStoped = false;
-        new Thread(new Runnable()
+        if (timerThread != null)
+        {
+            return;
+        }
+        timerThread = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -40,8 +38,9 @@ public class ActivityTimeUtil
                     }
                 }
             }
-        }).start();
-
+        });
+        timerThread.setDaemon(true);
+        timerThread.start();
     }
 
     public void pause()
@@ -54,15 +53,20 @@ public class ActivityTimeUtil
         isPaused = false;
     }
 
+    /**
+     * 在Activity销毁的时候才能调用,代表后台线程终止
+     */
     public void stop()
     {
         isStoped = true;
     }
 
+    /**
+     * 从0开始, 重新计时
+     */
     public void restart()
     {
-        stop();
-        begin();
+        duration = 0;
     }
 
     public int getRunTime()

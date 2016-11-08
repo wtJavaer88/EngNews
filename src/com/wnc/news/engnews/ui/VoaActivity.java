@@ -18,7 +18,6 @@ import android.view.MotionEvent;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
-import android.widget.TextView;
 
 import com.alibaba.fastjson.JSONArray;
 import com.example.engnews.R;
@@ -27,6 +26,7 @@ import com.wnc.news.api.autocache.CETTopicCache;
 import com.wnc.news.engnews.helper.PlaySevice;
 import com.wnc.news.richtext.ClickableVoiceRichText;
 import com.wnc.news.richtext.HtmlRichText;
+import com.wnc.news.richtext.WebImgText;
 import com.wnc.string.PatternUtil;
 import common.uihelper.MyAppParams;
 import common.uihelper.gesture.CtrlableDoubleClickGestureDetectorListener;
@@ -39,6 +39,7 @@ public class VoaActivity extends BaseNewsActivity implements
         CtrlableDoubleClickGestureDetectorListener
 {
 
+    private static final int MESSAGE_TOPIC_COUNT_CODE = 999;
     boolean isAutoStop = true;
     public final int MESSAGE_DOWNLOAD_OK_CODE = 13;
     public final int MESSAGE_DOWNLOAD_ERR_CODE = 14;
@@ -62,48 +63,91 @@ public class VoaActivity extends BaseNewsActivity implements
         }
     }
 
+    Thread dataThread1;
+
     @Override
     protected void initData()
     {
-        try
+        if (dataThread1 != null)
         {
-            String json = news_info.getHtml_content();
-            List<VINFO> infos = JSONArray.parseArray(json, VINFO.class);
-            for (int i = 0; i < infos.size(); i++)
+            dataThread1.interrupt();
+        }
+        dataThread1 = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
             {
-                VINFO vinfo = infos.get(i);
-                final int seektime = vinfo.getTime() * 100;
-                int stoptime = (i == (infos.size() - 1) ? seektime : (infos
-                        .get(i + 1).getTime() * 100));
-                mTextView.append(new ClickableVoiceRichText(this, seektime,
-                        stoptime).getCharSequence());
-                mTextView.append("  ");
-                final ArrayList<Topic> allFind2 = new ArrayList<Topic>();
-                mTextView.append(new HtmlRichText(new CETTopicCache()
-                        .splitArticle(vinfo.getEn(), allFind2))
-                        .getCharSequence());
-                mTextView.append("\n" + vinfo.getCh() + "\n\n");
-
-                if (allFind2.size() > 0)
+                Message msg = new Message();
+                msg.what = MESSAGE_ON_IMG_TEXT;
+                msg.obj = new WebImgText("<img src=\""
+                        + news_info.getHead_pic() + "\"/>").getCharSequence();
+                if (Thread.currentThread().isInterrupted())
                 {
-                    for (Topic t : allFind2)
+                    System.out.println("should stop thread1 no send msg");
+                    return;
+                }
+                handler.sendMessage(msg);
+            }
+        });
+        dataThread1.setDaemon(true);
+        dataThread1.start();
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    timeCountBegin();
+                    String json = news_info.getHtml_content();
+                    List<VINFO> infos = JSONArray.parseArray(json, VINFO.class);
+                    for (int i = 0; i < infos.size(); i++)
                     {
-                        if (!allFind.contains(t))
+                        VINFO vinfo = infos.get(i);
+                        final int seektime = vinfo.getTime() * 100;
+                        int stoptime = (i == (infos.size() - 1) ? seektime
+                                : (infos.get(i + 1).getTime() * 100));
+                        final ArrayList<Topic> allFind2 = new ArrayList<Topic>();
+                        sendContentMsg(new ClickableVoiceRichText(
+                                VoaActivity.this, seektime, stoptime)
+                                .getCharSequence());
+                        sendContentMsg("   ");
+                        sendContentMsg(new HtmlRichText(new CETTopicCache()
+                                .splitArticle(vinfo.getEn(), allFind2))
+                                .getCharSequence());
+                        sendContentMsg("\n" + vinfo.getCh() + "\n\n");
+                        if (allFind2.size() > 0)
                         {
-                            allFind.add(t);
+                            for (Topic t : allFind2)
+                            {
+                                if (!allFind.contains(t))
+                                {
+                                    allFind.add(t);
+                                }
+                            }
                         }
+                        totalWords += PatternUtil.getAllPatternGroup(
+                                vinfo.getEn(), "['\\w]+").size();
+                    }
+                    if (allFind.size() > 0)
+                    {
+                        handler.sendEmptyMessage(MESSAGE_TOPIC_COUNT_CODE);
                     }
                 }
-                showTopicCounts();
-                totalWords += PatternUtil.getAllPatternGroup(vinfo.getEn(),
-                        "['\\w]+").size();
+                catch (Exception e)
+                {
+                    log.error("initData", e);
+                }
             }
 
-        }
-        catch (Exception e)
-        {
-            log.error("initData", e);
-        }
+            public void sendContentMsg(CharSequence obj)
+            {
+                Message msg = new Message();
+                msg.what = MESSAGE_ON_CONTEXT_TEXT;
+                msg.obj = obj;
+                handler.sendMessage(msg);
+            }
+        }).start();
 
     }
 
@@ -112,15 +156,18 @@ public class VoaActivity extends BaseNewsActivity implements
     {
         switch (msg.what)
         {
+        case MESSAGE_ON_CONTEXT_TEXT:
+            mTextView.append((CharSequence) msg.obj);
+            break;
         case MESSAGE_DOWNLOAD_OK_CODE:
             messagePopWindow.setMsgAndShow("MP3下载已经完成.", mTextView);
             break;
         case MESSAGE_DOWNLOAD_ERR_CODE:
             messagePopWindow.setMsgAndShow("MP3下载失败.", mTextView);
             break;
-        case MESSAGE_ON_RUNTIME_TEXT:
-            ((TextView) findViewById(R.id.bt_activity_runtime))
-                    .setText(activityTimeUtil.getTranedRunTime());
+        case MESSAGE_TOPIC_COUNT_CODE:
+            showTopicCounts();
+            break;
         }
     }
 

@@ -50,7 +50,7 @@ public class IyubaApi extends AbstractVoaHtmlPicker implements VoaApi
             newsInfo.setDate(mainDiv.select(".date").first().text()
                     .replace("-", ""));
             newsInfo.setUrl(mainDiv.select("a").first().absUrl("href"));
-            newsInfo.setHead_pic(mainDiv.select("img").first().absUrl("href"));
+            newsInfo.setHead_pic(mainDiv.select("img").first().absUrl("src"));
             newsInfo.setTitle(mainDiv.select(".desc_en").first().text());
         }
         catch (Exception e)

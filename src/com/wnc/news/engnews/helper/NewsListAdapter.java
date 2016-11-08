@@ -58,7 +58,7 @@ public class NewsListAdapter extends SimpleAdapter
                 .get("news_info");
         if (KPIService.getInstance().hasViewed(item.getDb_id()))
         {
-            System.out.println("已经阅读过!");
+            // System.out.println("已经阅读过!");
             titleTv.setTextColor(0xff666666);
             view.setBackgroundColor(0xffffffff);
 

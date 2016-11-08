@@ -101,10 +101,18 @@ public abstract class AbstractForumsHtmlPicker
         newsInfo.setComment_counts(select.size());
 
         String content = "";
+        int i = 1;
         for (Element element : select)
         {
             content += element.toString();
-            content += "</br>" + SPlIT_LINE + "</br>";
+            if (i % 10 == 0)
+            {
+                content += "</br>" + SPlIT_LINE + (i++) + "</br>";
+            }
+            else
+            {
+                content += "</br>" + SPlIT_LINE + "</br>";
+            }
             if (content.length() > MAX_CONTENT_SIZE)
             {
                 break;

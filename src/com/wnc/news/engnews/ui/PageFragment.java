@@ -219,6 +219,10 @@ public class PageFragment extends ListFragment implements
                             news.get(i).getCreate_time().replace("-", "")
                                     .substring(4, 8));
                 }
+                else
+                {
+                    map.put("date", "");
+                }
             }
             map.put("image", R.drawable.ic_launcher); // 图片
             listItems.add(map);

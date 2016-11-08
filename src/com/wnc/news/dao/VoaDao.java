@@ -92,16 +92,6 @@ public class VoaDao
         }
     }
 
-    public static VoaNewsInfo findtest()
-    {
-        List<VoaNewsInfo> findAllNewsBySql = findAllNewsBySql("SELECT * FROM ARTICLE ORDER BY DATE DESC LIMIT 0,1 ");
-        if (findAllNewsBySql.size() > 0)
-        {
-            return findAllNewsBySql.get(0);
-        }
-        return null;
-    }
-
     private synchronized static List<VoaNewsInfo> findAllNewsBySql(String sql)
     {
         List<VoaNewsInfo> list = new ArrayList<VoaNewsInfo>();
