@@ -1,30 +1,31 @@
 package com.wnc.news.engnews.kpi;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AssortKPI
 {
     private int count;
     private String date;
-    private CharSequence content;
+    private List<CharSequence> contents = new ArrayList<CharSequence>();
     private KPI_TYPE kpi_type;
 
-    public AssortKPI(int count, String date, CharSequence content,
-            KPI_TYPE kpi_type)
+    public AssortKPI(int count, String date, KPI_TYPE kpi_type)
     {
         super();
         this.count = count;
         this.date = date;
-        this.content = content;
         this.kpi_type = kpi_type;
     }
 
-    public CharSequence getContent()
+    public List<CharSequence> getContents()
     {
-        return content;
+        return contents;
     }
 
-    public void setContent(CharSequence content)
+    public void addContent(CharSequence content)
     {
-        this.content = content;
+        this.contents.add(content);
     }
 
     public int getCount()

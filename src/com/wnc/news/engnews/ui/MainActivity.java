@@ -146,7 +146,10 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
                 tvKPI_item_desc.append(new ClickableKPIRichText(false,
                         kPIChangeDayListener).getCharSequence());
                 tvKPI_item_desc.append("\n");
-                tvKPI_item_desc.append(assortKPI.getContent());
+                for (CharSequence content : assortKPI.getContents())
+                {
+                    tvKPI_item_desc.append(content);
+                }
                 tvKPI_item_desc.setMovementMethod(ClickableMovementMethod
                         .getInstance());
                 // tvKPI_item_desc.scrollTo(0, 0);

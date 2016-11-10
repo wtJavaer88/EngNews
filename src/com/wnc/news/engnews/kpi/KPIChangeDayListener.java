@@ -86,6 +86,8 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
                         .getInstance().findLoveHistory(kpi_date);
                 Iterator<ViewedNews> iterator = findLoveHistory.iterator();
                 String tpContent = "";
+                AssortKPI assortKPI = new AssortKPI(findLoveHistory.size(),
+                        getCurDay(), KPI_TYPE.FAV);
                 while (iterator.hasNext())
                 {
                     ViewedNews next = iterator.next();
@@ -98,11 +100,11 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
                     tpContent = tpContent.substring(0, tpContent.length()
                             - "</br>".length() * 2);
                 }
+                assortKPI.addContent(new HtmlRichText(tpContent)
+                        .getCharSequence());
                 Message msg = new Message();
                 msg.what = MainActivity.MESSAGE_KPI_FAV_CODE;
-                msg.obj = new AssortKPI(findLoveHistory.size(), getCurDay(),
-                        new HtmlRichText(tpContent).getCharSequence(),
-                        KPI_TYPE.FAV);
+                msg.obj = assortKPI;
                 handler.sendMessage(msg);
             }
         }).start();
@@ -121,6 +123,8 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
                 Iterator<SelectedWord> iterator = findSelectedWordsToday
                         .iterator();
                 String tpContent = "";
+                AssortKPI assortKPI = new AssortKPI(findSelectedWordsToday
+                        .size(), getCurDay(), KPI_TYPE.SEL);
                 while (iterator.hasNext())
                 {
                     SelectedWord next = iterator.next();
@@ -136,10 +140,10 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
                 {
                     tpContent = tpContent.substring(0, tpContent.length() - 2);
                 }
+                assortKPI.addContent(tpContent);
                 Message msg = new Message();
                 msg.what = MainActivity.MESSAGE_KPI_SEL_CODE;
-                msg.obj = new AssortKPI(findSelectedWordsToday.size(),
-                        getCurDay(), tpContent, KPI_TYPE.SEL);
+                msg.obj = assortKPI;
                 handler.sendMessage(msg);
             }
         }).start();
@@ -157,6 +161,8 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
                         .getInstance().findViewHistory(kpi_date);
                 Iterator<ViewedNews> iterator = findViewHistory.iterator();
                 String tpContent = "";
+                AssortKPI assortKPI = new AssortKPI(findViewHistory.size(),
+                        getCurDay(), KPI_TYPE.HIS);
                 while (iterator.hasNext())
                 {
                     ViewedNews next = iterator.next();
@@ -172,11 +178,11 @@ public class KPIChangeDayListener implements KPIChangeDayEvent
                     tpContent = tpContent.substring(0, tpContent.length()
                             - "</br>".length() * 2);
                 }
+                assortKPI.addContent(new HtmlRichText(tpContent)
+                        .getCharSequence());
                 Message msg = new Message();
                 msg.what = MainActivity.MESSAGE_KPI_HIS_CODE;
-                msg.obj = new AssortKPI(findViewHistory.size(), getCurDay(),
-                        new HtmlRichText(tpContent).getCharSequence(),
-                        KPI_TYPE.HIS);
+                msg.obj = assortKPI;
                 handler.sendMessage(msg);
             }
         }).start();

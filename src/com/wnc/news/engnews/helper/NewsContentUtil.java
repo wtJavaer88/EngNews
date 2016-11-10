@@ -22,13 +22,13 @@ public class NewsContentUtil
             String content = mTextView.getText().toString();
             j--;
             while (i > -1 && i < content.length()
-                    && (content.charAt(i) + "").matches("[a-zA-z'‘’]{1}"))
+                    && (content.charAt(i) + "").matches("[a-zA-z'‘’0-9\\-]{1}"))
             {
                 i--;
             }
             i++;
             while (j > -1 && j < content.length()
-                    && (content.charAt(j) + "").matches("[a-zA-z'‘’]{1}"))
+                    && (content.charAt(j) + "").matches("[a-zA-z'‘’0-9\\-]{1}"))
             {
                 j++;
             }
@@ -57,7 +57,7 @@ public class NewsContentUtil
         try
         {
             String text = mTextView.getText().toString();
-            while (!(text.charAt(start) + "").matches("[0-9a-zA-Z]{1}"))
+            while (!isWordChar(start, text))
             {
                 start++;
             }
@@ -66,7 +66,7 @@ public class NewsContentUtil
                 return "";
             }
             int end = start;
-            while ((text.charAt(end) + "").matches("[0-9a-zA-Z]{1}"))
+            while (isWordChar(end, text))
             {
                 end++;
                 if (end >= text.length())
@@ -76,7 +76,7 @@ public class NewsContentUtil
                 }
 
             }
-            while ((text.charAt(start) + "").matches("[0-9a-zA-Z]{1}"))
+            while (isWordChar(start, text))
             {
                 start--;
                 if (start < 0)
@@ -94,6 +94,11 @@ public class NewsContentUtil
             e.printStackTrace();
         }
         return "";
+    }
+
+    private static boolean isWordChar(int start, String text)
+    {
+        return (text.charAt(start) + "").matches("[0-9a-zA-Z]{1}");
     }
 
     public static CharSequence getSection(String content, String selected)
@@ -114,14 +119,12 @@ public class NewsContentUtil
         }
         try
         {
-            while (i > -1 && i < content.length()
-                    && (content.charAt(i) + "").matches("[a-zA-Z0-9' ]{1}"))
+            while (i > -1 && i < content.length() && isSectionChar(content, i))
             {
                 i--;
             }
             i++;
-            while (j > -1 && j < content.length()
-                    && (content.charAt(j) + "").matches("[a-zA-Z0-9' ]{1}"))
+            while (j > -1 && j < content.length() && isSectionChar(content, j))
             {
                 j++;
             }
@@ -136,5 +139,10 @@ public class NewsContentUtil
             e.printStackTrace();
         }
         return "";
+    }
+
+    private static boolean isSectionChar(String content, int j)
+    {
+        return (content.charAt(j) + "").matches("[a-zA-Z0-9\\-‘’' ]{1}");
     }
 }
