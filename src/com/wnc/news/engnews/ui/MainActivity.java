@@ -30,6 +30,7 @@ import com.wnc.news.api.autocache.CacheSchedule;
 import com.wnc.news.api.common.DirectLinkNewsFactory;
 import com.wnc.news.api.common.ErrSiteNewsInfo;
 import com.wnc.news.api.common.NewsInfo;
+import com.wnc.news.engnews.helper.CBService;
 import com.wnc.news.engnews.helper.NewsTest;
 import com.wnc.news.engnews.kpi.AssortKPI;
 import com.wnc.news.engnews.kpi.ClickableKPIRichText;
@@ -40,6 +41,7 @@ import com.wnc.news.engnews.kpi.KPI_TYPE;
 import com.wnc.news.richtext.ClickableMovementMethod;
 import com.wnc.string.PatternUtil;
 import common.app.BasicPhoneUtil;
+import common.app.ClipBoardUtil;
 import common.app.ConfirmUtil;
 import common.app.SysInit;
 import common.app.ToastUtil;
@@ -73,11 +75,53 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
         setContentView(R.layout.activity_main);
         Thread.setDefaultUncaughtExceptionHandler(this);
 
-        log.info("App Start...");
         initView();
         initDialog();
 
         SysInit.init(MainActivity.this);
+        log.info("App Start...");
+        cbListen();
+
+    }
+
+    private void cbListen()
+    {
+        Intent startIntent = new Intent(this, CBService.class);
+        startService(startIntent);// 启动服务
+        // final ClipboardManager clipboardManager = (ClipboardManager)
+        // getSystemService(Context.CLIPBOARD_SERVICE);
+        // clipboardManager
+        // .addPrimaryClipChangedListener(new OnPrimaryClipChangedListener()
+        // {
+        //
+        // @Override
+        // public void onPrimaryClipChanged()
+        // {
+        // String content = clipboardManager.getPrimaryClip()
+        // .getItemAt(0).getText().toString();
+        // log.info(content);
+        // }
+        // });
+        // new Thread(new Runnable()
+        // {
+        // @Override
+        // public void run()
+        // {
+        // while (true)
+        // {
+        // System.out.println("run...");
+        // handler.sendEmptyMessage(990);
+        // try
+        // {
+        // TimeUnit.SECONDS.sleep(5);
+        // }
+        // catch (InterruptedException e)
+        // {
+        // e.printStackTrace();
+        // }
+        // }
+        // }
+        // }).start();
     }
 
     private void bgUpdate()
@@ -110,6 +154,11 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
             super.handleMessage(msg);
             switch (msg.what)
             {
+            case 990:
+                String clipBoardContent = ClipBoardUtil
+                        .getClipBoardContent(getApplicationContext());
+                log.info(clipBoardContent);
+                break;
             case MESSAGE_PROCESS_CODE:
                 proTv.setText(msg.obj.toString());
                 break;
