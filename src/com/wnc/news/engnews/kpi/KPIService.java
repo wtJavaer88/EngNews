@@ -10,15 +10,13 @@ import com.wnc.basic.BasicDateUtil;
 import com.wnc.news.api.common.NewsInfo;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.KPIDao;
-import com.wnc.news.db.DatabaseManager;
-import com.wnc.news.db.DatabaseManager_VOA;
+import com.wnc.news.db.DatabaseManager_Main;
 import com.wnc.news.engnews.helper.OptedDictData;
 
 public class KPIService
 {
 	private String today = BasicDateUtil.getCurrentDateString();
-	SQLiteDatabase db = DatabaseManager.getInstance().openDatabase();
-	SQLiteDatabase db_voa = DatabaseManager.getInstance().openDatabase();
+	SQLiteDatabase db = DatabaseManager_Main.getInstance().openDatabase();
 	boolean todayExist = false;
 	private static KPIService kPIHelper = new KPIService();
 
@@ -29,8 +27,7 @@ public class KPIService
 
 	public void closeDb()
 	{
-		DatabaseManager.getInstance().closeDatabase();
-		DatabaseManager_VOA.getInstance().closeDatabase();
+		DatabaseManager_Main.getInstance().closeDatabase();
 	}
 
 	public static KPIService getInstance()

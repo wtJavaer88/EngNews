@@ -7,13 +7,13 @@ import org.apache.log4j.Logger;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class DatabaseManager
+public class DatabaseManager_ZB8
 {
 
     private AtomicInteger mOpenCounter = new AtomicInteger();
-    Logger log = Logger.getLogger(DatabaseManager.class);
+    Logger log = Logger.getLogger(DatabaseManager_ZB8.class);
 
-    private static DatabaseManager instance;
+    private static DatabaseManager_ZB8 instance;
     private static SQLiteOpenHelper mDatabaseHelper;
     private SQLiteDatabase mDatabase;
 
@@ -21,17 +21,17 @@ public class DatabaseManager
     {
         if (instance == null)
         {
-            instance = new DatabaseManager();
+            instance = new DatabaseManager_ZB8();
             mDatabaseHelper = helper;
         }
     }
 
-    public static synchronized DatabaseManager getInstance()
+    public static synchronized DatabaseManager_ZB8 getInstance()
     {
         if (instance == null)
         {
             throw new IllegalStateException(
-                    DatabaseManager.class.getSimpleName()
+                    DatabaseManager_ZB8.class.getSimpleName()
                             + " is not initialized, call initializeInstance(..) method first.");
         }
 

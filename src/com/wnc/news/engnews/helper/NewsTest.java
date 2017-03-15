@@ -18,7 +18,7 @@ import com.wnc.news.api.forums.RealGmApi;
 import com.wnc.news.api.soccer.SquawkaLeagueApi;
 import com.wnc.news.dao.DictionaryDao;
 import com.wnc.news.dao.NewsDao;
-import com.wnc.news.db.DatabaseManager;
+import com.wnc.news.db.DatabaseManager_Main;
 import common.utils.JsoupHelper;
 
 public class NewsTest
@@ -36,7 +36,7 @@ public class NewsTest
 
 	public void getClubs()
 	{
-		SQLiteDatabase db = DatabaseManager.getInstance().openDatabase();
+		SQLiteDatabase db = DatabaseManager_Main.getInstance().openDatabase();
 
 		List<Club> allClubs = new SquawkaLeagueApi(712).getAllClubs();
 		log.info("allClubs数量:" + allClubs.size());
@@ -47,7 +47,7 @@ public class NewsTest
 		allClubs = new SquawkaLeagueApi(717).getAllClubs();
 		log.info("allClubs数量:" + allClubs.size());
 		NewsDao.insertClubs(db, allClubs);
-		DatabaseManager.getInstance().closeDatabase();
+		DatabaseManager_Main.getInstance().closeDatabase();
 
 	}
 
@@ -64,8 +64,8 @@ public class NewsTest
 
 	public void ifSoccerTeam()
 	{
-		log.info(NewsDao.isSoccerTeam(DatabaseManager.getInstance().openDatabase(), "barcelona"));
-		DatabaseManager.getInstance().closeDatabase();
+		log.info(NewsDao.isSoccerTeam(DatabaseManager_Main.getInstance().openDatabase(), "barcelona"));
+		DatabaseManager_Main.getInstance().closeDatabase();
 	}
 
 	public void cacheArsenal(CacheSchedule cacheSchedule)
