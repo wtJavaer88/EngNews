@@ -68,6 +68,11 @@ public class MyAppParams
 		return getResources().getString(R.string.model_f);
 	}
 
+	public String getZb8ModelName()
+	{
+		return getResources().getString(R.string.model_z);
+	}
+
 	public String getVoaModelName()
 	{
 		return getResources().getString(R.string.model_v);

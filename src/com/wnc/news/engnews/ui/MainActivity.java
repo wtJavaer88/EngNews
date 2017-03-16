@@ -102,7 +102,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 					SQLiteDatabase db = DatabaseManager_ZB8.getInstance().openDatabase();
 					boolean existUrl = Zb8Dao.isExistUrl(db, "AAAa");
 					log.info("existUrl:" + existUrl);
-					List<Zb8News> zuqiuNewsByDay = new NewsExtract().getZuqiuNewsByDay("2017-01-03");
+					List<Zb8News> zuqiuNewsByDay = new NewsExtract().getZuqiuNewsByDay(BasicDateUtil.getCurrentDateString());
 					List<Zb8News> filterOutSide = NewsFilter.filterOutSide(zuqiuNewsByDay);
 					for (Zb8News zb8News : filterOutSide)
 					{

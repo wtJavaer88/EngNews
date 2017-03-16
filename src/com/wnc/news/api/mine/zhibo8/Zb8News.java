@@ -1,6 +1,8 @@
 package com.wnc.news.api.mine.zhibo8;
 
-public class Zb8News
+import com.wnc.news.api.common.NewsInfo;
+
+public class Zb8News extends NewsInfo
 {
 	private long id;
 	private String url;
@@ -20,6 +22,23 @@ public class Zb8News
 	private int sport_type;
 	private int comments;
 	private int hotComments;
+
+	@Override
+	public String getHtml_content()
+	{
+		return this.eng_content;
+	}
+
+	@Override
+	public String getHead_pic()
+	{
+		return thumbnail;
+	}
+
+	public int getDb_id()
+	{
+		return (int) id;
+	}
 
 	public String getUrl()
 	{

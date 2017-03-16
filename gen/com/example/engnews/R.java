@@ -599,6 +599,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int model_f=0x7f0b0005;
         public static final int model_s=0x7f0b0004;
         public static final int model_v=0x7f0b0006;
+        public static final int model_z=0x7f0b0007;
     }
     public static final class style {
         public static final int AnimationPreview=0x7f0a0008;
