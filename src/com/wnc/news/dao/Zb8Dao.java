@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.wnc.news.api.common.Comment;
 import com.wnc.news.api.mine.zhibo8.Zb8News;
 import com.wnc.news.db.DatabaseManager_ZB8;
 
@@ -32,7 +33,8 @@ public class Zb8Dao
 		boolean flag = false;
 		try
 		{
-			String sql = "select * from article where url='" + StringEscapeUtils.escapeSql(url) + "'";
+			String sql = "select * from article where url='"
+					+ StringEscapeUtils.escapeSql(url) + "'";
 			Cursor c = db.rawQuery(sql, null);
 			c.moveToFirst();
 			while (!c.isAfterLast())
@@ -45,6 +47,29 @@ public class Zb8Dao
 		catch (Exception e)
 		{
 			log.error(url, e);
+		}
+		return flag;
+	}
+
+	public static boolean isExistComment(SQLiteDatabase db, String content)
+	{
+		boolean flag = false;
+		try
+		{
+			String sql = "select * from comment where content='"
+					+ StringEscapeUtils.escapeSql(content) + "'";
+			Cursor c = db.rawQuery(sql, null);
+			c.moveToFirst();
+			while (!c.isAfterLast())
+			{
+				System.out.println("find content:" + content);
+				flag = true;
+				break;
+			}
+		}
+		catch (Exception e)
+		{
+			log.error(content, e);
 		}
 		return flag;
 	}
@@ -69,19 +94,108 @@ public class Zb8Dao
 		}
 	}
 
-	public synchronized static void insertSingleZb8News(SQLiteDatabase db, Zb8News newsInfo)
+	public synchronized static int insertSingleZb8News(SQLiteDatabase db,
+			Zb8News newsInfo)
 	{
 		try
 		{
 			db.execSQL(
-					"INSERT INTO Article(title,url,day,sub_text,news_time,chs_content,eng_content,keyword,thumbnail,from_url,from_website,from_name,create_time,sport_type," + "comments,hot_comments,update_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-					new Object[] { newsInfo.getTitle(), newsInfo.getUrl(), newsInfo.getDay(), newsInfo.getSub_text(), newsInfo.getNews_time(), newsInfo.getChs_content(), newsInfo.getEng_content(), newsInfo.getKeyword(), newsInfo.getThumbnail(), newsInfo.getFrom_url(),
-							newsInfo.getFrom_website(), newsInfo.getFrom_name(), newsInfo.getCreate_time(), newsInfo.getSport_type(), newsInfo.getComments(), newsInfo.getHotComments(), newsInfo.getUpdate_time() });
+					"INSERT INTO Article(title,url,day,sub_text,news_time,chs_content,eng_content,keyword,thumbnail,from_url,from_website,from_name,create_time,sport_type,"
+							+ "comments,hot_comments,update_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+					new Object[] { newsInfo.getTitle(), newsInfo.getUrl(),
+							newsInfo.getDay(), newsInfo.getSub_text(),
+							newsInfo.getNews_time(), newsInfo.getChs_content(),
+							newsInfo.getEng_content(), newsInfo.getKeyword(),
+							newsInfo.getThumbnail(), newsInfo.getFrom_url(),
+							newsInfo.getFrom_website(),
+							newsInfo.getFrom_name(), newsInfo.getCreate_time(),
+							newsInfo.getSport_type(), newsInfo.getComments(),
+							newsInfo.getHotComments(),
+							newsInfo.getUpdate_time() });
+			String sql = "select max(id) MAXID from article";
+			Cursor c = db.rawQuery(sql, null);
+			c.moveToFirst();
+			while (!c.isAfterLast())
+			{
+				return c.getInt(c.getColumnIndex("MAXID"));
+			}
 		}
 		catch (Exception e)
 		{
 			log.error(newsInfo.getUrl(), e);
 		}
+		return 0;
+	}
+
+	public synchronized static void updateNews(SQLiteDatabase db,
+			Zb8News newsInfo)
+	{
+		try
+		{
+			db.execSQL(
+					"Update Article set comments=?,hot_comments=?,update_time=? Where url=?",
+					new Object[] { newsInfo.getComments(),
+							newsInfo.getHotComments(),
+							newsInfo.getUpdate_time(), newsInfo.getUrl() });
+		}
+		catch (Exception e)
+		{
+			log.error(newsInfo.getUrl(), e);
+		}
+	}
+
+	public synchronized static void insertComment(SQLiteDatabase db,
+			Comment comment)
+	{
+		if (isExistComment(db, comment.getContent()))
+		{
+			return;
+		}
+		try
+		{
+			db.execSQL(
+					"INSERT INTO Comment(article_id,user_id,content,priority,up,down,create_time) VALUES (?,?,?,?,?,?,?)",
+					new Object[] { comment.getArticleId(), comment.getUserId(),
+							comment.getContent(), comment.getPriority(),
+							comment.getUp(), comment.getDown(),
+							comment.getCreateTime() });
+		}
+		catch (Exception e)
+		{
+			log.error(comment.getContent(), e);
+		}
+	}
+
+	public synchronized static List<Comment> findComments(int artId)
+	{
+		List<Comment> list = new ArrayList<Comment>();
+		String sql = "SELECT * FROM COMMENT WHERE Article_Id=" + artId;
+		try
+		{
+			openDatabase();
+			Cursor c = database.rawQuery(sql, null);
+			c.moveToFirst();
+			Comment info;
+			while (!c.isAfterLast())
+			{
+				info = new Comment();
+				info.setArticleId(c.getLong(c.getColumnIndex("id")));
+				info.setContent(c.getString(c.getColumnIndex("content")));
+				info.setDown(c.getInt(c.getColumnIndex("down")));
+				info.setUp(c.getInt(c.getColumnIndex("up")));
+				list.add(info);
+				c.moveToNext();
+			}
+		}
+		catch (Exception e)
+		{
+			log.error("findall", e);
+		}
+		finally
+		{
+			closeDatabase();
+		}
+		return list;
 	}
 
 	private synchronized static List<Zb8News> findAllNewsBySql(String sql)
@@ -129,9 +243,19 @@ public class Zb8Dao
 		return list;
 	}
 
+	public static List<Zb8News> search(String keyword)
+	{
+		return findAllNewsBySql("SELECT * FROM ARTICLE where eng_content like '%"
+				+ keyword
+				+ "%' OR chs_content like '%"
+				+ keyword
+				+ "%' ORDER BY NEWS_TIME DESC LIMIT " + 0 + "," + 50);
+	}
+
 	public static List<Zb8News> findAllNewsInfos(int from, int counts)
 	{
-		return findAllNewsBySql("SELECT * FROM ARTICLE ORDER BY NEWS_TIME DESC LIMIT " + from + "," + counts);
+		return findAllNewsBySql("SELECT * FROM ARTICLE ORDER BY NEWS_TIME DESC LIMIT "
+				+ from + "," + counts);
 	}
 
 	public static boolean hasViewed(SQLiteDatabase db, int news_id)
@@ -148,4 +272,44 @@ public class Zb8Dao
 		return false;
 	}
 
+	/**
+	 * 1: zh8, 2: hupu
+	 * 
+	 * @param site
+	 * @return
+	 */
+	public static String getLastUpdateTime(int site)
+	{
+		String ret = "2017-05-30 00:00:00";
+		try
+		{
+			String sitekey = ".zhibo8.";
+			switch (site)
+			{
+			case 1:
+				sitekey = ".zhibo8.";
+				break;
+			case 2:
+				sitekey = ".hupu.";
+				break;
+			default:
+				break;
+			}
+			openDatabase();
+			Cursor c = database.rawQuery(
+					"SELECT news_time FROM ARTICLE WHERE URL LIKE '%" + sitekey
+							+ "%' ORDER BY news_time DESC", null);
+			c.moveToFirst();
+			if (!c.isAfterLast())
+			{
+				ret = c.getString(c.getColumnIndex("news_time"));
+			}
+			closeDatabase();
+		}
+		catch (Exception e)
+		{
+			log.error(site, e);
+		}
+		return ret;
+	}
 }

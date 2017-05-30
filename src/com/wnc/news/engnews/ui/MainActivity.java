@@ -3,6 +3,8 @@ package com.wnc.news.engnews.ui;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 
@@ -31,13 +33,17 @@ import com.wnc.basic.BasicNumberUtil;
 import com.wnc.basic.BasicStringUtil;
 import com.wnc.news.api.autocache.CETTopicCache;
 import com.wnc.news.api.autocache.CacheSchedule;
+import com.wnc.news.api.common.Comment;
 import com.wnc.news.api.common.DirectLinkNewsFactory;
 import com.wnc.news.api.common.ErrSiteNewsInfo;
 import com.wnc.news.api.common.NewsInfo;
+import com.wnc.news.api.mine.hupu.HpNewsExtract;
 import com.wnc.news.api.mine.zhibo8.HtmlContentHelper;
 import com.wnc.news.api.mine.zhibo8.NewsExtract;
 import com.wnc.news.api.mine.zhibo8.NewsFilter;
+import com.wnc.news.api.mine.zhibo8.SportType;
 import com.wnc.news.api.mine.zhibo8.Zb8News;
+import com.wnc.news.api.mine.zhibo8.comments_analyse.Zb8CommentsAnalyseTool;
 import com.wnc.news.dao.Zb8Dao;
 import com.wnc.news.db.DatabaseManager_ZB8;
 import com.wnc.news.engnews.helper.CBService;
@@ -59,7 +65,8 @@ import common.uihelper.PositiveEvent;
 import common.utils.TimeUtil;
 
 @SuppressLint("HandlerLeak")
-public class MainActivity extends BaseVerActivity implements OnClickListener, UncaughtExceptionHandler
+public class MainActivity extends BaseVerActivity implements OnClickListener,
+		UncaughtExceptionHandler
 {
 	private Button bt_pick;
 	private Button btn_cache1, btn_cache2, btn_cache_clear;
@@ -88,8 +95,18 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		initDialog();
 
 		SysInit.init(MainActivity.this);
-		log.info("App Start...");
+		log.info("App Start... ");
 		cbListen();
+
+		System.out.println(Zb8Dao.getLastUpdateTime(1));
+		System.out.println(Zb8Dao.getLastUpdateTime(2));
+		initEngNews();
+	}
+
+	private void initEngNews()
+	{
+		final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors
+				.newFixedThreadPool(4);
 
 		new Thread(new Runnable()
 		{
@@ -99,39 +116,103 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 			{
 				try
 				{
-					SQLiteDatabase db = DatabaseManager_ZB8.getInstance().openDatabase();
-					boolean existUrl = Zb8Dao.isExistUrl(db, "AAAa");
-					log.info("existUrl:" + existUrl);
-					List<Zb8News> zuqiuNewsByDay = new NewsExtract().getZuqiuNewsByDay(BasicDateUtil.getCurrentDateString());
-					List<Zb8News> filterOutSide = NewsFilter.filterOutSide(zuqiuNewsByDay);
-					for (Zb8News zb8News : filterOutSide)
+
+					String lastZbday = Zb8Dao.getLastUpdateTime(1).substring(0,
+							10);
+					List<Zb8News> zuqiuNewsByDay = new NewsExtract()
+							.getNewsAfterDay(lastZbday, SportType.Zuqiu);
+					zuqiuNewsByDay.addAll(new NewsExtract().getNewsAfterDay(
+							lastZbday, SportType.NBA));
+
+					String lastHptime = Zb8Dao.getLastUpdateTime(2);
+					zuqiuNewsByDay.addAll(new HpNewsExtract()
+							.getZb8NewsAfterDateTime(lastHptime,
+									SportType.Soccer));
+					zuqiuNewsByDay.addAll(new HpNewsExtract()
+							.getZb8NewsAfterDateTime(lastHptime, SportType.NBA));
+					List<Zb8News> filterOutSide = NewsFilter
+							.filterOutSide(zuqiuNewsByDay);
+					for (final Zb8News zb8News : filterOutSide)
 					{
-						String url = zb8News.getUrl();
-						if (!Zb8Dao.isExistUrl(db, url))
+						executor.execute(new Runnable()
 						{
-							HtmlContentHelper htmlContentHelper = new HtmlContentHelper();
-							htmlContentHelper.initEngHtmlContent(zb8News);
-							htmlContentHelper.initChsHtmlContent(zb8News);
-							if (zb8News.getEng_content() != null)
+
+							@Override
+							public void run()
 							{
-								String splitArticle = new CETTopicCache().splitArticle(zb8News.getEng_content(), new ArrayList<Topic>());
-								zb8News.setEng_content(splitArticle);
+								SQLiteDatabase db = DatabaseManager_ZB8
+										.getInstance().openDatabase();
+								newsContentInit(db, zb8News);
+								DatabaseManager_ZB8.getInstance()
+										.closeDatabase();
 							}
-							Zb8Dao.insertSingleZb8News(db, zb8News);
-						}
-						else
-							log.info(url + " 已经存在...");
+						});
 					}
 
-					for (Zb8News zb8News : Zb8Dao.findAllNewsInfos(0, 10))
-					{
-						System.out.println(zb8News.getFrom_name() + ":" + zb8News.getEng_content());
-					}
 				}
 				catch (Exception e)
 				{
 					e.printStackTrace();
 				}
+			}
+
+			private void newsContentInit(SQLiteDatabase db, Zb8News zb8News)
+			{
+				log.info(zb8News.getTitle() + " " + zb8News.getNews_time()
+						+ " " + zb8News.getFrom_name() + " " + zb8News.getUrl());
+				String url = zb8News.getUrl();
+				if (!Zb8Dao.isExistUrl(db, url))
+				{
+					HtmlContentHelper htmlContentHelper = new HtmlContentHelper();
+					htmlContentHelper.initEngHtmlContent(zb8News);
+					htmlContentHelper.initChsHtmlContent(zb8News);
+					if (zb8News.getEng_content() != null)
+					{
+						String splitArticle = new CETTopicCache().splitArticle(
+								zb8News.getEng_content(),
+								new ArrayList<Topic>());
+						zb8News.setEng_content(splitArticle);
+					}
+					int articleId = Zb8Dao.insertSingleZb8News(db, zb8News);
+					if (articleId == 0)
+					{
+						return;
+					}
+
+					// 寻找评论
+					try
+					{
+						if (zb8News.getUrl().contains(".hupu."))
+						{
+							return;
+						}
+						Zb8CommentsAnalyseTool tool = new Zb8CommentsAnalyseTool(
+								zb8News.getUrl());
+						zb8News.setComments(tool.getAllCommentCount());
+						zb8News.setHotComments(tool.getHotCommentCount());
+						zb8News.setUpdate_time(BasicDateUtil
+								.getCurrentDateTimeString());
+						if (tool.getHotCommentCount() > 0
+								&& tool.getAllCommentCount() > 0)
+						{
+							List<Comment> top5Comments = tool
+									.getTop5Comments(5);
+							Zb8Dao.updateNews(db, zb8News);
+							for (Comment comment : top5Comments)
+							{
+								comment.setArticleId(articleId);
+								Zb8Dao.insertComment(db, comment);
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						log.error(zb8News.getUrl() + " 生成评论内容失败!", e);
+						e.printStackTrace();
+					}
+				}
+				else
+					log.info(url + " 已经存在...");
 			}
 		}).start();
 	}
@@ -184,7 +265,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 			@Override
 			public void run()
 			{
-				if (BasicDateUtil.getCurrentHour() > 7 && BasicDateUtil.getCurrentHour() < 10)
+				if (BasicDateUtil.getCurrentHour() > 7
+						&& BasicDateUtil.getCurrentHour() < 10)
 				{
 					new NewsTest().topicUpdate();
 				}
@@ -206,7 +288,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 			switch (msg.what)
 			{
 			case 990:
-				String clipBoardContent = ClipBoardUtil.getClipBoardContent(getApplicationContext());
+				String clipBoardContent = ClipBoardUtil
+						.getClipBoardContent(getApplicationContext());
 				log.info(clipBoardContent);
 				break;
 			case MESSAGE_PROCESS_CODE:
@@ -217,30 +300,40 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 				break;
 			case MESSAGE_DIRECTLINK_CODE:
 				NewsContentActivity.news_info = (NewsInfo) msg.obj;
-				startActivity(new Intent(getApplicationContext(), NewsContentActivity.class));
+				startActivity(new Intent(getApplicationContext(),
+						NewsContentActivity.class));
 				break;
 			case MESSAGE_KPI_ALL_CODE:
 				KPIData data = (KPIData) msg.obj;
-				((TextView) findViewById(R.id.tv_head_fav)).setText(data.getLoved_news() + "");
-				((TextView) findViewById(R.id.tv_head_sel)).setText(data.getSelectedWords() + "");
-				((TextView) findViewById(R.id.tv_head_his)).setText(data.getViewed_news() + "");
-				((TextView) findViewById(R.id.tv_head_tim)).setText(TimeUtil.timeToText(data.getTimes()));
-				((TextView) findViewById(R.id.tv_head_wor)).setText(data.getTopicWords() + "");
+				((TextView) findViewById(R.id.tv_head_fav)).setText(data
+						.getLoved_news() + "");
+				((TextView) findViewById(R.id.tv_head_sel)).setText(data
+						.getSelectedWords() + "");
+				((TextView) findViewById(R.id.tv_head_his)).setText(data
+						.getViewed_news() + "");
+				((TextView) findViewById(R.id.tv_head_tim)).setText(TimeUtil
+						.timeToText(data.getTimes()));
+				((TextView) findViewById(R.id.tv_head_wor)).setText(data
+						.getTopicWords() + "");
 				break;
 			case MESSAGE_KPI_FAV_CODE:
 			case MESSAGE_KPI_HIS_CODE:
 			case MESSAGE_KPI_SEL_CODE:
 				AssortKPI assortKPI = (AssortKPI) msg.obj;
 				tvKPI_item_desc.setText("");
-				tvKPI_item_desc.append(new ClickableKPIRichText(true, kPIChangeDayListener).getCharSequence());
-				tvKPI_item_desc.append("        " + assortKPI.getDate() + " (" + assortKPI.getCount() + ")        ");
-				tvKPI_item_desc.append(new ClickableKPIRichText(false, kPIChangeDayListener).getCharSequence());
+				tvKPI_item_desc.append(new ClickableKPIRichText(true,
+						kPIChangeDayListener).getCharSequence());
+				tvKPI_item_desc.append("        " + assortKPI.getDate() + " ("
+						+ assortKPI.getCount() + ")        ");
+				tvKPI_item_desc.append(new ClickableKPIRichText(false,
+						kPIChangeDayListener).getCharSequence());
 				tvKPI_item_desc.append("\n");
 				for (CharSequence content : assortKPI.getContents())
 				{
 					tvKPI_item_desc.append(content);
 				}
-				tvKPI_item_desc.setMovementMethod(ClickableMovementMethod.getInstance());
+				tvKPI_item_desc.setMovementMethod(ClickableMovementMethod
+						.getInstance());
 				// tvKPI_item_desc.scrollTo(0, 0);
 				handler.post(new Runnable()
 				{
@@ -256,12 +349,14 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 				tvKPI_item_desc.setText("\n\n\n正在寻找数据...\n\n\n");
 				break;
 			case MESSAGE_TOAST_CODE:
-				ToastUtil.showLongToast(getApplicationContext(), msg.obj.toString());
+				ToastUtil.showLongToast(getApplicationContext(),
+						msg.obj.toString());
 				break;
 			}
 		}
 	};
-	KPIChangeDayListener kPIChangeDayListener = new KPIChangeDayListener(handler, KPI_TYPE.ALL);
+	KPIChangeDayListener kPIChangeDayListener = new KPIChangeDayListener(
+			handler, KPI_TYPE.ALL);
 	TextView tvKPI_item_desc;
 
 	Button bt_web_parse;
@@ -306,7 +401,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 		lp.width = (int) (0.85 * BasicPhoneUtil.getScreenWidth(this));
 		lp.height = (int) (0.85 * BasicPhoneUtil.getScreenHeight(this));
 		tvKPI_item_desc = (TextView) dialog.findViewById(R.id.tvTopicInfo);
-		scrollView_news_content = (ScrollView) dialog.findViewById(R.id.scrollView_news_content);
+		scrollView_news_content = (ScrollView) dialog
+				.findViewById(R.id.scrollView_news_content);
 	}
 
 	private void showKPIDialog(KPI_TYPE kpi_type)
@@ -364,7 +460,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 					msg.what = MESSAGE_TOAST_CODE;
 					msg.obj = "正在解析网页!";
 					handler.sendMessage(msg);
-					final NewsInfo newsFromUrl = DirectLinkNewsFactory.getNewsFromUrl(url);
+					final NewsInfo newsFromUrl = DirectLinkNewsFactory
+							.getNewsFromUrl(url);
 					if (newsFromUrl instanceof ErrSiteNewsInfo)
 					{
 						msg = new Message();
@@ -373,7 +470,9 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 						msg.obj = "不支持该网站!";
 						handler.sendMessage(msg);
 					}
-					else if (newsFromUrl != null && newsFromUrl.getHtml_content() != null && newsFromUrl.getHtml_content().length() > 200)
+					else if (newsFromUrl != null
+							&& newsFromUrl.getHtml_content() != null
+							&& newsFromUrl.getHtml_content().length() > 200)
 					{
 						msg = new Message();
 						msg.what = MESSAGE_DIRECTLINK_CODE;
@@ -414,7 +513,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 						for (String s : list)
 						{
 							process += s + "  \n";
-							sum += BasicNumberUtil.getNumber(PatternUtil.getFirstPattern(s, "\\d+"));
+							sum += BasicNumberUtil.getNumber(PatternUtil
+									.getFirstPattern(s, "\\d+"));
 						}
 						String head = "";
 						Message msg = new Message();
@@ -470,7 +570,8 @@ public class MainActivity extends BaseVerActivity implements OnClickListener, Un
 						for (String s : list)
 						{
 							process += s + "  \n";
-							sum += BasicNumberUtil.getNumber(PatternUtil.getFirstPattern(s, "\\d+"));
+							sum += BasicNumberUtil.getNumber(PatternUtil
+									.getFirstPattern(s, "\\d+"));
 						}
 						String head = "";
 						Message msg = new Message();

@@ -11,17 +11,21 @@ import com.wnc.news.api.mine.handler.MirrorHtmlHandler;
 import com.wnc.news.api.mine.handler.NormalHtmlHandler;
 import com.wnc.news.api.mine.handler.SkyHtmlHandler;
 
-public class WebSiteClassFactory {
+public class WebSiteClassFactory
+{
 	private static Map<String, String> websites = new HashMap<String, String>();
 	static Map<String, Class<? extends HtmlHandler>> customHtmlHandlers = new HashMap<String, Class<? extends HtmlHandler>>();
-	static {
+	static
+	{
 		websites.put(".zhibo8.", "#signals p");// 直播吧
+		websites.put(".hupu.", ".artical-main-content > p");// 虎扑
 		websites.put(".skysports.", ".article__body");// 天空体育
 		websites.put(".squawka.", ".entry-content");
 		websites.put(".fourfourtwo.", ".node-content p");// 442
 		websites.put(".goal.", ".article-text p");// 进球网
 		websites.put(".bbc.", "#story-body p");// BBC
-		websites.put(".dailymail.", "div [itemprop=articleBody] p[class=mol-para-with-font]");// 每日邮报
+		websites.put(".dailymail.",
+				"div [itemprop=articleBody] p[class=mol-para-with-font]");// 每日邮报
 		websites.put(".arsenal.", "section[class=article-text] p");// 阿森纳官网
 		websites.put(".cbssports.", "div [itemprop=articleBody] p");// 每日邮报
 		websites.put(".nba.", ".field-name-body p");// NBA官网
@@ -47,19 +51,28 @@ public class WebSiteClassFactory {
 		customHtmlHandlers.put(".skysports.", SkyHtmlHandler.class);
 	}
 
-	public static Map<String, String> getWebsites() {
+	public static Map<String, String> getWebsites()
+	{
 		return websites;
 	}
 
-	public static HtmlHandler getCustomHandler(String url) {
+	public static HtmlHandler getCustomHandler(String url)
+	{
 		HtmlHandler handler = new NormalHtmlHandler();
 
-		for (Entry<String, Class<? extends HtmlHandler>> entry : customHtmlHandlers.entrySet()) {
-			if (url.contains(entry.getKey())) {
-				if (entry.getValue() != null) {
-					try {
+		for (Entry<String, Class<? extends HtmlHandler>> entry : customHtmlHandlers
+				.entrySet())
+		{
+			if (url.contains(entry.getKey()))
+			{
+				if (entry.getValue() != null)
+				{
+					try
+					{
 						handler = (HtmlHandler) entry.getValue().newInstance();
-					} catch (Exception e) {
+					}
+					catch (Exception e)
+					{
 						e.printStackTrace();
 					}
 				}
@@ -69,13 +82,17 @@ public class WebSiteClassFactory {
 		return handler;
 	}
 
-	public static String getHtmlClass(String url) throws MalformedURLException {
-		if (BasicStringUtil.isNullString(url)) {
+	public static String getHtmlClass(String url) throws MalformedURLException
+	{
+		if (BasicStringUtil.isNullString(url))
+		{
 			return null;
 		}
 		String host = new java.net.URL(url).getHost();
-		for (Entry<String, String> entry : websites.entrySet()) {
-			if (host.toLowerCase().contains(entry.getKey())) {
+		for (Entry<String, String> entry : websites.entrySet())
+		{
+			if (host.toLowerCase().contains(entry.getKey()))
+			{
 				return entry.getValue();
 			}
 		}
