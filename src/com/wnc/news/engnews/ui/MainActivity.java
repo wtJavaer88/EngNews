@@ -2,6 +2,8 @@ package com.wnc.news.engnews.ui;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -132,6 +134,25 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 							.getZb8NewsAfterDateTime(lastHptime, SportType.NBA));
 					List<Zb8News> filterOutSide = NewsFilter
 							.filterOutSide(zuqiuNewsByDay);
+					Collections.sort(filterOutSide, new Comparator<Zb8News>()
+					{
+
+						@Override
+						public int compare(Zb8News arg0, Zb8News arg1)
+						{
+							if (arg0.getNews_time() == null)
+							{
+								return -1;
+							}
+							if (arg1.getNews_time() == null)
+							{
+								return 1;
+							}
+							return arg0.getNews_time().compareTo(
+									arg1.getNews_time());
+						}
+
+					});
 					for (final Zb8News zb8News : filterOutSide)
 					{
 						executor.execute(new Runnable()
