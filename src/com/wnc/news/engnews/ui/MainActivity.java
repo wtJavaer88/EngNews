@@ -64,6 +64,7 @@ import common.app.ConfirmUtil;
 import common.app.SysInit;
 import common.app.ToastUtil;
 import common.uihelper.PositiveEvent;
+import common.utils.NewsUrlUtil;
 import common.utils.TimeUtil;
 
 @SuppressLint("HandlerLeak")
@@ -203,7 +204,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 					// 寻找评论
 					try
 					{
-						if (zb8News.getUrl().contains(".hupu."))
+						if (NewsUrlUtil.isHupuUrl(zb8News.getUrl()))
 						{
 							return;
 						}

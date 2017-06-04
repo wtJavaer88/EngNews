@@ -39,9 +39,11 @@ import com.wnc.news.engnews.helper.NewsListAdapter;
 import com.wnc.news.engnews.helper.OptedDictData;
 import com.wnc.news.engnews.helper.ViewNewsHolder;
 import common.uihelper.MyAppParams;
+import common.utils.NewsUrlUtil;
 
 @SuppressLint("ValidFragment")
-public class PageFragment extends ListFragment implements UncaughtExceptionHandler, OnClickListener
+public class PageFragment extends ListFragment implements
+		UncaughtExceptionHandler, OnClickListener
 {
 	View view;
 	public boolean hasExecute = false;
@@ -65,7 +67,8 @@ public class PageFragment extends ListFragment implements UncaughtExceptionHandl
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState)
 	{
 		this.view = inflater.inflate(R.layout.activity_newslist, null);
 		return this.view;
@@ -88,23 +91,28 @@ public class PageFragment extends ListFragment implements UncaughtExceptionHandl
 			{
 				Message msg = new Message();
 				msg.what = 1;
-				if (type.equalsIgnoreCase(MyAppParams.getInstance().getBaskModelName()))
+				if (type.equalsIgnoreCase(MyAppParams.getInstance()
+						.getBaskModelName()))
 				{
 					msg.obj = NewsDao.findAllNBANews();
 				}
-				else if (type.equalsIgnoreCase(MyAppParams.getInstance().getSoccModelName()))
+				else if (type.equalsIgnoreCase(MyAppParams.getInstance()
+						.getSoccModelName()))
 				{
 					msg.obj = NewsDao.findAllSoccerNews();
 				}
-				else if (type.equalsIgnoreCase(MyAppParams.getInstance().getForuModelName()))
+				else if (type.equalsIgnoreCase(MyAppParams.getInstance()
+						.getForuModelName()))
 				{
 					msg.obj = NewsDao.findAllForumInfos();
 				}
-				else if (type.equalsIgnoreCase(MyAppParams.getInstance().getVoaModelName()))
+				else if (type.equalsIgnoreCase(MyAppParams.getInstance()
+						.getVoaModelName()))
 				{
 					msg.obj = VoaDao.findAllNewsInfos(0, 100);
 				}
-				else if (type.equalsIgnoreCase(MyAppParams.getInstance().getZb8ModelName()))
+				else if (type.equalsIgnoreCase(MyAppParams.getInstance()
+						.getZb8ModelName()))
 				{
 					msg.obj = Zb8Dao.findAllNewsInfos(0, 100);
 				}
@@ -202,25 +210,41 @@ public class PageFragment extends ListFragment implements UncaughtExceptionHandl
 		for (int i = 0; i < news.size(); i++)
 		{
 			HashMap<String, Object> map = new HashMap<String, Object>();
-			map.put("news_info", news.get(i));
-			map.put("title", news.get(i).getTitle() + "(" + news.get(i).getTopic_counts() + ")"); // 标题
-			final String date = news.get(i).getDate();
+			NewsInfo newsInfo = news.get(i);
+			map.put("news_info", newsInfo);
+			map.put("title",
+					newsInfo.getTitle() + "(" + newsInfo.getTopic_counts()
+							+ ")"); // 标题
+			final String date = newsInfo.getDate();
 			if (date != null && date.length() >= 8)
 			{
 				map.put("date", date.replace("-", "").substring(4, 8)); // 日期
 			}
 			else
 			{
-				if (news.get(i).getCreate_time() != null && news.get(i).getCreate_time().length() >= 8)
+				if (newsInfo.getCreate_time() != null
+						&& newsInfo.getCreate_time().length() >= 8)
 				{
-					map.put("date", news.get(i).getCreate_time().replace("-", "").substring(4, 8));
+					map.put("date", newsInfo.getCreate_time().replace("-", "")
+							.substring(4, 8));
 				}
 				else
 				{
 					map.put("date", "");
 				}
 			}
-			map.put("image", R.drawable.ic_launcher); // 图片
+			// 新闻前方logo
+			int imgId = R.drawable.ic_launcher;
+			String url = newsInfo.getUrl();
+			if (NewsUrlUtil.isZhibo8Url(url))
+			{
+				imgId = R.drawable.icon_zb8_logo;
+			}
+			else if (NewsUrlUtil.isHupuUrl(url))
+			{
+				imgId = R.drawable.icon_hp_logo;
+			}
+			map.put("image", imgId); // 图片
 			listItems.add(map);
 		}
 		// 生成适配器的Item和动态数组对应的元素
@@ -236,14 +260,16 @@ public class PageFragment extends ListFragment implements UncaughtExceptionHandl
 	@Override
 	public void onListItemClick(ListView lv, View v, int position, long id)
 	{
-		HashMap<String, Object> map = (HashMap<String, Object>) lv.getItemAtPosition(position);
+		HashMap<String, Object> map = (HashMap<String, Object>) lv
+				.getItemAtPosition(position);
 		ViewNewsHolder.refreh((NewsInfo) map.get("news_info"));
 		if (type.equalsIgnoreCase(MyAppParams.getInstance().getVoaModelName()))
 		{
 			VoaActivity.news_info = (VoaNewsInfo) map.get("news_info");
 			startActivity(new Intent(getActivity(), VoaActivity.class));
 		}
-		else if (type.equalsIgnoreCase(MyAppParams.getInstance().getZb8ModelName()))
+		else if (type.equalsIgnoreCase(MyAppParams.getInstance()
+				.getZb8ModelName()))
 		{
 			Zb8Activity.news_info = (Zb8News) map.get("news_info");
 			startActivity(new Intent(getActivity(), Zb8Activity.class));
@@ -269,7 +295,8 @@ public class PageFragment extends ListFragment implements UncaughtExceptionHandl
 					final String text = actv.getText().toString();
 					Message msg = new Message();
 					msg.what = 1;
-					final List<NewsInfo> search = NewsDao.search(text + " " + type);
+					final List<NewsInfo> search = NewsDao.search(text + " "
+							+ type);
 					log.info("搜索" + text + "结果:" + search.size());
 					msg.obj = search;
 					handler.sendMessage(msg);

@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wnc.basic.BasicDateUtil;
 import common.utils.JsoupHelper;
+import common.utils.NewsUrlUtil;
 
 public class DayNewsThread implements Runnable
 {
@@ -21,7 +22,8 @@ public class DayNewsThread implements Runnable
 		this.type = type;
 		if (today.length() == 8)
 		{
-			today = today.substring(0, 4) + "-" + today.substring(4, 6) + "-" + today.substring(6);
+			today = today.substring(0, 4) + "-" + today.substring(4, 6) + "-"
+					+ today.substring(6);
 		}
 		this.today = today;
 		this.list = list;
@@ -31,7 +33,8 @@ public class DayNewsThread implements Runnable
 	@Override
 	public void run()
 	{
-		if (today.replace("-", "").compareTo(BasicDateUtil.getCurrentDateString()) > 0)
+		if (today.replace("-", "").compareTo(
+				BasicDateUtil.getCurrentDateString()) > 0)
 		{
 			return;
 		}
@@ -57,7 +60,7 @@ public class DayNewsThread implements Runnable
 		{
 			JSONObject object = jsonArray.getJSONObject(i);
 			String from_url = object.getString("from_url");
-			if (from_url.contains(".zhibo8."))
+			if (NewsUrlUtil.isZhibo8Url(from_url))
 			{
 				continue;
 			}
@@ -84,7 +87,8 @@ public class DayNewsThread implements Runnable
 
 	private boolean isValid(Zb8News news)
 	{
-		return !news.getKeyword().contains("中超") && !news.getKeyword().toUpperCase().contains("CBA");
+		return !news.getKeyword().contains("中超")
+				&& !news.getKeyword().toUpperCase().contains("CBA");
 	}
 
 }
