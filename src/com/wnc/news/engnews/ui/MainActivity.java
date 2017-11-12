@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
+import org.jsoup.nodes.Document;
 
 import word.Topic;
 import android.annotation.SuppressLint;
@@ -64,6 +65,7 @@ import common.app.ConfirmUtil;
 import common.app.SysInit;
 import common.app.ToastUtil;
 import common.uihelper.PositiveEvent;
+import common.utils.JsoupHelper;
 import common.utils.NewsUrlUtil;
 import common.utils.TimeUtil;
 
@@ -84,6 +86,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 	public static final int MESSAGE_KPI_FAV_CODE = 6;
 	public static final int MESSAGE_KPI_CHANGE_CODE = 7;
 	public static final int MESSAGE_TOAST_CODE = 8;
+
 	EditText linkEt;
 	Logger log = Logger.getLogger(MainActivity.class);
 
@@ -103,7 +106,38 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 
 		System.out.println(Zb8Dao.getLastUpdateTime(1));
 		System.out.println(Zb8Dao.getLastUpdateTime(2));
-		initEngNews();
+
+		// initEngNews();
+		// inittwitter();
+		// new MaFengWoCityWrap(MaFengWoCityWrap.JING_DIAN).grabData();
+		// new MaFengWoCityWrap(MaFengWoCityWrap.MEI_SHI).grabData();
+		// new MaFengWoCityWrap(MaFengWoCityWrap.GOU_WU).grabData();
+
+	}
+
+	private void inittwitter()
+	{
+		// TODO Auto-generated method stub
+		new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				try
+				{
+					Document documentResult = JsoupHelper
+							.getDocumentResult("http://www.twitter.com");
+					System.out.println(documentResult);
+				}
+				catch (Exception e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+		}).start();
 	}
 
 	private void initEngNews()
@@ -466,51 +500,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 			startActivity(new Intent(this, VoaActivity.class));
 			break;
 		case R.id.btn_web_parse:
-			new Thread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					String url = "http://forums.realgm.com/boards/viewtopic.php?f=6&t=1486328";
-					url = "https://www.reddit.com/r/NBASpurs/comments/59fpi7/careerhighkawhi/";
-					url = linkEt.getText().toString();
-					if (BasicStringUtil.isNullString(url))
-					{
-						return;
-					}
-					Message msg = new Message();
-					msg.what = MESSAGE_TOAST_CODE;
-					msg.obj = "正在解析网页!";
-					handler.sendMessage(msg);
-					final NewsInfo newsFromUrl = DirectLinkNewsFactory
-							.getNewsFromUrl(url);
-					if (newsFromUrl instanceof ErrSiteNewsInfo)
-					{
-						msg = new Message();
-						msg.what = MESSAGE_TOAST_CODE;
-						log.error("不支持该网站!");
-						msg.obj = "不支持该网站!";
-						handler.sendMessage(msg);
-					}
-					else if (newsFromUrl != null
-							&& newsFromUrl.getHtml_content() != null
-							&& newsFromUrl.getHtml_content().length() > 200)
-					{
-						msg = new Message();
-						msg.what = MESSAGE_DIRECTLINK_CODE;
-						msg.obj = newsFromUrl;
-						handler.sendMessage(msg);
-					}
-					else
-					{
-						msg = new Message();
-						log.error(url + "解析有误!");
-						msg.what = MESSAGE_TOAST_CODE;
-						msg.obj = "解析有误!";
-						handler.sendMessage(msg);
-					}
-				}
-			}).start();
+			parseWebHtml();
 			break;
 		case R.id.btn_cache_team:
 			System.out.println("开始缓存!");
@@ -641,6 +631,55 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 		default:
 			break;
 		}
+	}
+
+	private void parseWebHtml()
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				String url = "http://forums.realgm.com/boards/viewtopic.php?f=6&t=1486328";
+				url = "https://www.reddit.com/r/NBASpurs/comments/59fpi7/careerhighkawhi/";
+				url = linkEt.getText().toString();
+				if (BasicStringUtil.isNullString(url))
+				{
+					return;
+				}
+				Message msg = new Message();
+				msg.what = MESSAGE_TOAST_CODE;
+				msg.obj = "正在解析网页!";
+				handler.sendMessage(msg);
+				final NewsInfo newsFromUrl = DirectLinkNewsFactory
+						.getNewsFromUrl(url);
+				if (newsFromUrl instanceof ErrSiteNewsInfo)
+				{
+					msg = new Message();
+					msg.what = MESSAGE_TOAST_CODE;
+					log.error("不支持该网站!");
+					msg.obj = "不支持该网站!";
+					handler.sendMessage(msg);
+				}
+				else if (newsFromUrl != null
+						&& newsFromUrl.getHtml_content() != null
+						&& newsFromUrl.getHtml_content().length() > 200)
+				{
+					msg = new Message();
+					msg.what = MESSAGE_DIRECTLINK_CODE;
+					msg.obj = newsFromUrl;
+					handler.sendMessage(msg);
+				}
+				else
+				{
+					msg = new Message();
+					log.error(url + "解析有误!");
+					msg.what = MESSAGE_TOAST_CODE;
+					msg.obj = "解析有误!";
+					handler.sendMessage(msg);
+				}
+			}
+		}).start();
 	}
 
 	@Override
