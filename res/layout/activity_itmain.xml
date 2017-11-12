@@ -17,6 +17,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="KPI" />
+        
+        <Button
+            android:id="@+id/btn_it_readbook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Read" />
 
         <Button
             android:id="@+id/btn_news_main"

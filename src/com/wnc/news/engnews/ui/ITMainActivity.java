@@ -72,6 +72,8 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 	private Button wordClearBt;
 	private Button explainBt;
 	private Button itKpiBt;
+	private Button btn_it_readbook;
+	private Button toNewsBt;
 	private TextView wordTipTv;
 	ListView listView;
 	Logger log = Logger.getLogger(ITMainActivity.class);
@@ -503,6 +505,12 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		itKpiBt.setOnClickListener(this);
 		listView = (ListView) findViewById(R.id.lv_words);
 		wordTipTv = (TextView) findViewById(R.id.tv_itword_tip);
+
+		btn_it_readbook = (Button) findViewById(R.id.btn_it_readbook);
+		btn_it_readbook.setOnClickListener(this);
+
+		toNewsBt = (Button) findViewById(R.id.btn_news_main);
+		toNewsBt.setOnClickListener(this);
 	}
 
 	private void createWordListView()
@@ -558,11 +566,13 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			showWordMenu();
 			break;
 		case R.id.btn_it_kpi:
-			createWordListView();
 			break;
 		case R.id.btn_news_main:
 			startActivity(new Intent(getApplicationContext(),
 					MainActivity.class));
+			break;
+		case R.id.btn_it_readbook:
+
 			break;
 		}
 	}
