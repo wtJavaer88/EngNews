@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -62,12 +63,12 @@ import common.utils.UrlPicDownloader;
 public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		UncaughtExceptionHandler
 {
+	private final int MESSAGE_EXIT_CODE = 0;
 	private static final int MESSAGE_ON_DOWNSOUND_ERROR_TEXT = 201;
 	private static final int MESSAGE_ON_DOWNSOUND_SUCCESS_TEXT = 202;
 
 	private static final int MESSAGE_ON_DISPLAY_MEANING = 301;
 	private static final int MESSAGE_ON_DISPLAY_MEANING_NULL = 302;
-
 	private EditText wordEt;
 	private Button wordClearBt;
 	private Button explainBt;
@@ -511,6 +512,8 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 		toNewsBt = (Button) findViewById(R.id.btn_news_main);
 		toNewsBt.setOnClickListener(this);
+		// 禁止自动聚焦到输入框, 转移到textview
+		wordTipTv.requestFocus();
 	}
 
 	private void createWordListView()
@@ -592,6 +595,9 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			super.handleMessage(msg);
 			switch (msg.what)
 			{
+			case MESSAGE_EXIT_CODE:
+				isExit = false;
+				break;
 			case MESSAGE_ON_DOWNSOUND_ERROR_TEXT:
 				messagePopWindow.setMsgAndShow("下载音频异常!", wordEt);
 				break;
@@ -615,4 +621,34 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		super.onResume();
 		createWordListView();
 	};
+
+	// 定义一个变量，来标识是否退出
+	private static boolean isExit = false;
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event)
+	{
+		if (keyCode == KeyEvent.KEYCODE_BACK)
+		{
+			exit();
+			return false;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	private void exit()
+	{
+		if (!isExit)
+		{
+			isExit = true;
+			ToastUtil.showShortToast(this, "再按一次退出程序");
+			// 利用handler延迟发送更改状态信息
+			handler.sendEmptyMessageDelayed(MESSAGE_EXIT_CODE, 2000);
+		}
+		else
+		{
+			finish();
+			System.exit(0);
+		}
+	}
 }

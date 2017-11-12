@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="KPI" />
-        
+
         <Button
             android:id="@+id/btn_it_readbook"
             android:layout_width="wrap_content"
@@ -40,7 +40,7 @@
 
         <EditText
             android:id="@+id/et_word"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.8" />
 
@@ -66,6 +66,8 @@
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/bt_topics"
         android:background="@drawable/setbar_bg"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:visibility="visible" />
 
     <ListView

@@ -20,7 +20,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.method.ScrollingMovementMethod;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -351,9 +350,7 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 			case MESSAGE_PROCESS_CODE:
 				proTv.setText(msg.obj.toString());
 				break;
-			case MESSAGE_EXIT_CODE:
-				isExit = false;
-				break;
+
 			case MESSAGE_DIRECTLINK_CODE:
 				NewsContentActivity.news_info = (NewsInfo) msg.obj;
 				startActivity(new Intent(getApplicationContext(),
@@ -686,36 +683,6 @@ public class MainActivity extends BaseVerActivity implements OnClickListener,
 	public void uncaughtException(Thread arg0, Throwable ex)
 	{
 		log.error("uncaughtException   ", ex);
-	}
-
-	// 定义一个变量，来标识是否退出
-	private static boolean isExit = false;
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event)
-	{
-		if (keyCode == KeyEvent.KEYCODE_BACK)
-		{
-			exit();
-			return false;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-
-	private void exit()
-	{
-		if (!isExit)
-		{
-			isExit = true;
-			ToastUtil.showShortToast(this, "再按一次退出程序");
-			// 利用handler延迟发送更改状态信息
-			handler.sendEmptyMessageDelayed(MESSAGE_EXIT_CODE, 2000);
-		}
-		else
-		{
-			finish();
-			System.exit(0);
-		}
 	}
 
 	@Override
