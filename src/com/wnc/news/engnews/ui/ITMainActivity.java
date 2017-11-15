@@ -362,28 +362,32 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 							String clipBoardContent = ClipBoardUtil
 									.getClipBoardContent(
 											getApplicationContext()).trim();
-							if (isSequence(clipBoardContent))
+							if (StringUtils.isNotBlank(last))
 							{
-								writeToBookLog(clipBoardContent);
-							}
-							else if (isSingleWord(clipBoardContent))
-							{
-								try
+								if (isSequence(clipBoardContent))
 								{
-									DicWord findWord = findDicWord(clipBoardContent);
-									if (findWord != null)
-									{
-										findSuccess(clipBoardContent, findWord);
-									}
-									else
-									{
-										findFailed(clipBoardContent);
-									}
-
+									writeToBookLog(clipBoardContent);
 								}
-								catch (Exception e)
+								else if (isSingleWord(clipBoardContent))
 								{
-									e.printStackTrace();
+									try
+									{
+										DicWord findWord = findDicWord(clipBoardContent);
+										if (findWord != null)
+										{
+											findSuccess(clipBoardContent,
+													findWord);
+										}
+										else
+										{
+											findFailed(clipBoardContent);
+										}
+
+									}
+									catch (Exception e)
+									{
+										e.printStackTrace();
+									}
 								}
 							}
 							last = clipBoardContent;
@@ -391,22 +395,20 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 						private boolean isSequence(String clipBoardContent)
 						{
-							return StringUtils.isNotBlank(last)
-									&& !clipBoardContent.equals(last)
+							int size = PatternUtil.getAllPatternGroup(
+									clipBoardContent, "([a-zA-Z'\\-_\\,\\.]+)")
+									.size();
+							return !clipBoardContent.equals(last)
 									&& !clipBoardContent.startsWith("http")
 									&& !TextFormatUtil
 											.containsChinese(clipBoardContent)
-									&& PatternUtil.getAllPatternGroup(
-											clipBoardContent, "([a-zA-Z]+)")
-											.size() > 1;
+									&& size > 1 && size < 50;
 						}
 
 						private boolean isSingleWord(String clipBoardContent)
 						{
-							return StringUtils.isNotBlank(last)
-									&& !clipBoardContent.equals(last)
-									&& clipBoardContent
-											.matches("[a-zA-Z_\\-]+");
+							return !clipBoardContent.equals(last)
+									&& clipBoardContent.matches("[a-zA-Z]+");
 						}
 
 						private void findFailed(String clipBoardContent)
@@ -424,7 +426,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 									.getCn_mean());
 
 							ToastUtil.showLongToast(getApplicationContext(),
-									"翻译:" + basicInfo);
+									basicInfo);
 
 							writeToBookLog(clipBoardContent, findWord, 1);
 						}
