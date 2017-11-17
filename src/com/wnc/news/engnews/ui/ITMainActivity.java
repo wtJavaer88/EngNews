@@ -1,5 +1,7 @@
 package com.wnc.news.engnews.ui;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -8,6 +10,8 @@ import net.selectabletv.SelectableTextView;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jsoup.Connection.Method;
+import org.jsoup.Jsoup;
 
 import word.DicWord;
 import word.Topic;
@@ -41,6 +45,7 @@ import com.wnc.basic.BasicFileUtil;
 import com.wnc.news.api.autocache.CETTopicCache;
 import com.wnc.news.api.autocache.PassedTopicCache;
 import com.wnc.news.dao.DictionaryDao;
+import com.wnc.news.dao.ITDictDao;
 import com.wnc.news.engnews.helper.ActivityMgr;
 import com.wnc.news.engnews.helper.NewsContentUtil;
 import com.wnc.news.engnews.helper.OptedDictData;
@@ -69,11 +74,14 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 	private static final int MESSAGE_ON_DISPLAY_MEANING = 301;
 	private static final int MESSAGE_ON_DISPLAY_MEANING_NULL = 302;
+
+	private static final int MESSAGE_ON_UPLOAD_SUCCESS = 401;
+	private static final int MESSAGE_ON_UPLOAD_FAIL = 402;
+
 	private EditText wordEt;
 	private Button wordClearBt;
 	private Button explainBt;
-	private Button itKpiBt;
-	private Button btn_it_readbook;
+	private Button itKpiBt, readbookBtn, itUploadBt;
 	private Button toNewsBt;
 	private TextView wordTipTv;
 	ListView listView;
@@ -328,9 +336,13 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 	}
 
-	private void showWordMenu()
+	private void showWordMean()
 	{
 		displayMeaning(this.wordEt.getText().toString().trim());
+	}
+
+	private void showWordMenu()
+	{
 		wordMenuPopWindow.showPopupWindow(explainBt);
 	}
 
@@ -445,14 +457,16 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 							jobj.put("type", type);
 							if (object != null)
 							{
-								jobj.put("topic", object.getTopic_id());
+								jobj.put("topic", object.getId());
 							}
 							jobj.put("time",
 									BasicDateUtil.getCurrentDateTimeString());
 
 							BasicFileUtil.writeFileString(
-									MyAppParams.getInstance().getWorkPath()
-											+ "itword.txt", jobj.toJSONString()
+									MyAppParams.ITBOOK_PATH
+											+ BasicDateUtil
+													.getCurrentDateString()
+											+ ".txt", jobj.toJSONString()
 											+ "\r\n", null, true);
 						}
 					});
@@ -491,7 +505,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		DicWord fw = findFromCache(clipBoardContent);
 		if (fw == null)
 		{
-			fw = DictionaryDao.findWord(clipBoardContent);
+			fw = ITDictDao.findWord(clipBoardContent);
 		}
 		return fw;
 	}
@@ -504,14 +518,16 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		wordClearBt.setOnClickListener(this);
 		explainBt = (Button) findViewById(R.id.btn_explain);
 		explainBt.setOnClickListener(this);
-		itKpiBt = (Button) findViewById(R.id.btn_it_kpi);
-		itKpiBt.setOnClickListener(this);
+
 		listView = (ListView) findViewById(R.id.lv_words);
 		wordTipTv = (TextView) findViewById(R.id.tv_itword_tip);
 
-		btn_it_readbook = (Button) findViewById(R.id.btn_it_readbook);
-		btn_it_readbook.setOnClickListener(this);
-
+		itKpiBt = (Button) findViewById(R.id.btn_it_kpi);
+		itKpiBt.setOnClickListener(this);
+		itUploadBt = (Button) findViewById(R.id.btn_it_upload);
+		itUploadBt.setOnClickListener(this);
+		readbookBtn = (Button) findViewById(R.id.btn_it_readbook);
+		readbookBtn.setOnClickListener(this);
 		toNewsBt = (Button) findViewById(R.id.btn_news_main);
 		toNewsBt.setOnClickListener(this);
 		// 禁止自动聚焦到输入框, 转移到textview
@@ -535,7 +551,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 						int arg2, long arg3)
 				{
 					wordEt.setText(data[arg2]);
-					showWordMenu();
+					showWordMean();
 				}
 			});
 		}
@@ -572,6 +588,16 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			break;
 		case R.id.btn_it_kpi:
 			break;
+		case R.id.btn_it_upload:
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					uploadBookLog();
+				}
+			}).start();
+			break;
 		case R.id.btn_news_main:
 			startActivity(new Intent(getApplicationContext(),
 					MainActivity.class));
@@ -579,6 +605,55 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		case R.id.btn_it_readbook:
 
 			break;
+		}
+	}
+
+	private void uploadBookLog()
+	{
+		System.out.println("uuuuuuuuuuuuuuuuuu:" + android.os.Build.MODEL);
+		Message msg = new Message();
+		try
+		{
+			String day = BasicDateUtil.getCurrentDateString();
+			// 凌晨两点前的上传前一天的.
+			if (BasicDateUtil.getCurrentHour() < 2)
+			{
+				day = BasicDateUtil.getDateBeforeDayDateString(day, 1);
+			}
+			File file = new File(MyAppParams.ITBOOK_PATH + day + ".txt");
+			if (!file.exists())
+			{
+				msg.what = MESSAGE_ON_UPLOAD_SUCCESS;
+				msg.obj = "找不到上传文件-" + day + ".txt";
+				handler.sendMessage(msg);
+				return;
+			}
+			String post = Jsoup.connect("http://192.168.0.106:8080/upload/txt")
+					.data("file", file.getName(), new FileInputStream(file))
+					.data("client", android.os.Build.MODEL).method(Method.POST)
+					.ignoreContentType(true).execute().body();
+			System.out.println(post);
+			if (post.contains("成功!"))
+			{
+				msg.what = MESSAGE_ON_UPLOAD_SUCCESS;
+				msg.obj = "上传成功!";
+				System.out.println("上传成功!");
+				handler.sendMessage(msg);
+			}
+			else
+			{
+				msg.what = MESSAGE_ON_UPLOAD_FAIL;
+				msg.obj = "上传失败-" + post;
+				System.out.println("上传失败!");
+				handler.sendMessage(msg);
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			msg.what = MESSAGE_ON_UPLOAD_FAIL;
+			msg.obj = "上传失败-" + e.toString();
+			handler.sendMessage(msg);
 		}
 	}
 
@@ -613,6 +688,10 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 				break;
 			case MESSAGE_ON_DISPLAY_MEANING_NULL:
 				wordTipTv.setText("没有释义可以提供!");
+				break;
+			case MESSAGE_ON_UPLOAD_SUCCESS:
+			case MESSAGE_ON_UPLOAD_FAIL:
+				ToastUtil.showLongToast(getApplicationContext(), msg.obj);
 				break;
 			}
 		}

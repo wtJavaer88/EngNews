@@ -25,10 +25,17 @@
             android:text="Read" />
 
         <Button
+            android:id="@+id/btn_it_upload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload" />
+
+        <Button
             android:id="@+id/btn_news_main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="News" />
+            android:text="News"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
@@ -59,21 +66,27 @@
             android:text="解释" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tv_itword_tip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@+id/bt_topics"
-        android:background="@drawable/setbar_bg"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:visibility="visible" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical" >
 
-    <ListView
-        android:id="@+id/lv_words"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-    </ListView>
+        <TextView
+            android:id="@+id/tv_itword_tip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/setbar_bg"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:visibility="visible" />
+
+        <ListView
+            android:id="@+id/lv_words"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+        </ListView>
+    </LinearLayout>
 
 </LinearLayout>

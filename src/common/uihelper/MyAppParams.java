@@ -13,22 +13,32 @@ public class MyAppParams
 	private Resources resources;
 	private String appPath;
 
-	private final static String workPath = Environment.getExternalStorageDirectory().getPath() + "/wnc/app/news/";
+	private final static String workPath = Environment
+			.getExternalStorageDirectory().getPath() + "/wnc/app/news/";
 
-	public final static String SELECTED_WORDS_TXT = workPath + "selected_words.txt";
+	public final static String SELECTED_WORDS_TXT = workPath
+			+ "selected_words.txt";
 	public final static String FAVORITE_TXT = workPath + "favorite.txt";
 	public final static String LOVE_NEWS_TXT = workPath + "love_news.txt";
 	public final static String VIEWED_NEWS_TXT = workPath + "viewed_news.txt";
 
 	public final static String PASS_TXT = workPath + "pass.txt";
-	public final static String VOA_MP3_PATH = Environment.getExternalStorageDirectory().getPath() + "/wnc/res/voa/";
+	public final static String VOA_MP3_PATH = Environment
+			.getExternalStorageDirectory().getPath() + "/wnc/res/voa/";
 	public final static String NEWS_DB = workPath + "news.db";
 	public final static String VOA_DB = workPath + "voa.db";
 	public final static String ZB8_DB = workPath + "zb8.db";
-	public final static String VOICE_FOLDER = Environment.getExternalStorageDirectory().getPath() + "/wnc/res/voice/";
+	public final static String VOICE_FOLDER = Environment
+			.getExternalStorageDirectory().getPath() + "/wnc/res/voice/";
 	public final static String LOG_FOLDER = workPath + "/logs/";
+	public final static String ITBOOK_PATH = workPath + "itbook/";
 
-	public final static String DICTIONARY_DB = Environment.getExternalStorageDirectory().getPath() + "/wnc/app/srtlearn/dictionary.db";
+	public final static String DICTIONARY_DB = Environment
+			.getExternalStorageDirectory().getPath()
+			+ "/wnc/app/srtlearn/dictionary.db";
+	public final static String IT_DICT_DB = Environment
+			.getExternalStorageDirectory().getPath()
+			+ "/wnc/app/srtlearn/itdict.db";
 	public final static String FAVORITE_DB = workPath + "favorite.db";
 
 	public static Activity mainActivity;
@@ -51,6 +61,7 @@ public class MyAppParams
 		BasicFileUtil.makeDirectory(this.backupDbPath);
 		BasicFileUtil.makeDirectory(LOG_FOLDER);
 		BasicFileUtil.makeDirectory(this.zipPath);
+		BasicFileUtil.makeDirectory(ITBOOK_PATH);
 	}
 
 	public String getBaskModelName()
