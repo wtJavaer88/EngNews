@@ -2,6 +2,8 @@ package com.wnc.news.engnews.ui;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -359,7 +361,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 				{
 					try
 					{
-						Thread.sleep(500);
+						Thread.sleep(100);
 					}
 					catch (InterruptedException e)
 					{
@@ -427,7 +429,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 						{
 							ToastUtil.showLongToast(getApplicationContext(),
 									"无法找到该单词");
-							writeToBookLog(clipBoardContent, null, 1);
+							writeToBookLog(clipBoardContent, null, 2);
 						}
 
 						private void findSuccess(String clipBoardContent,
@@ -445,9 +447,16 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 						private void writeToBookLog(String clipBoardContent)
 						{
-							writeToBookLog(clipBoardContent, null, 2);
+							writeToBookLog(clipBoardContent, null, 3);
 						}
 
+						/**
+						 * 
+						 * @param clipBoardContent
+						 * @param object
+						 * @param type
+						 *            1为找到单词, 2为没找到单词, 3为句子
+						 */
 						private void writeToBookLog(String clipBoardContent,
 								DicWord object, int type)
 						{
@@ -608,44 +617,45 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		}
 	}
 
+	String ipport = "http://122.112.219.62:8080/sboot1";
+
 	private void uploadBookLog()
 	{
-		System.out.println("uuuuuuuuuuuuuuuuuu:" + android.os.Build.MODEL);
+		// ipport = "http://192.168.0.103:8080";
+		String device = android.os.Build.MODEL;
+		if (this.wordEt.getText().toString().startsWith("http"))
+		{
+			ipport = this.wordEt.getText().toString();
+			System.out.println(ipport);
+		}
+
+		System.out.println("uuuuuuuuuuuuuuuuuu:" + device);
 		Message msg = new Message();
 		try
 		{
-			String day = BasicDateUtil.getCurrentDateString();
-			// 凌晨两点前的上传前一天的.
-			if (BasicDateUtil.getCurrentHour() < 2)
-			{
-				day = BasicDateUtil.getDateBeforeDayDateString(day, 1);
-			}
-			File file = new File(MyAppParams.ITBOOK_PATH + day + ".txt");
-			if (!file.exists())
-			{
-				msg.what = MESSAGE_ON_UPLOAD_SUCCESS;
-				msg.obj = "找不到上传文件-" + day + ".txt";
-				handler.sendMessage(msg);
-				return;
-			}
-			String post = Jsoup.connect("http://192.168.0.106:8080/upload/txt")
-					.data("file", file.getName(), new FileInputStream(file))
-					.data("client", android.os.Build.MODEL).method(Method.POST)
+			String body = Jsoup
+					.connect(ipport + "/upload/lastTime?device=" + device)
 					.ignoreContentType(true).execute().body();
-			System.out.println(post);
-			if (post.contains("成功!"))
+			String lastTime = JSONObject.parseObject(body).getString("data");
+			if (lastTime != null)
 			{
-				msg.what = MESSAGE_ON_UPLOAD_SUCCESS;
-				msg.obj = "上传成功!";
-				System.out.println("上传成功!");
-				handler.sendMessage(msg);
+				String lastDay = lastTime.substring(0, 10).replace("-", "");
+				System.out.println(lastDay);
+				checkLastDay(device, lastDay, lastTime);
+				lastDay = BasicDateUtil.getDateBeforeDayDateString(lastDay, -1);
+				while (lastDay.compareTo(BasicDateUtil.getCurrentDateString()) <= 0)
+				{
+					upload(device, lastDay);
+					lastDay = BasicDateUtil.getDateBeforeDayDateString(lastDay,
+							-1);
+				}
 			}
 			else
 			{
-				msg.what = MESSAGE_ON_UPLOAD_FAIL;
-				msg.obj = "上传失败-" + post;
-				System.out.println("上传失败!");
-				handler.sendMessage(msg);
+				for (File f : new File(MyAppParams.ITBOOK_PATH).listFiles())
+				{
+					upload(device, f.getName().replace(".txt", ""));
+				}
 			}
 		}
 		catch (Exception e)
@@ -654,6 +664,43 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			msg.what = MESSAGE_ON_UPLOAD_FAIL;
 			msg.obj = "上传失败-" + e.toString();
 			handler.sendMessage(msg);
+		}
+		msg.what = MESSAGE_ON_UPLOAD_SUCCESS;
+		msg.obj = "上传成功!";
+		System.out.println("上传成功!");
+		handler.sendMessage(msg);
+	}
+
+	private void upload(String device, String lastDay)
+			throws FileNotFoundException, IOException
+	{
+		Message msg = new Message();
+		System.out.println("upload:" + lastDay);
+		File file = new File(MyAppParams.ITBOOK_PATH + lastDay + ".txt");
+		if (!file.exists())
+		{
+			return;
+		}
+		String post = Jsoup.connect(ipport + "/upload/txt")
+				.data("file", file.getName(), new FileInputStream(file))
+				.data("client", device).method(Method.POST)
+				.ignoreContentType(true).execute().body();
+		System.out.println(post);
+
+	}
+
+	private void checkLastDay(String device, String lastDay, String lastTime)
+			throws FileNotFoundException, IOException
+	{
+		long lastTimeTicks = BasicDateUtil.getDateTimeFromString(lastTime,
+				"yyyy-MM-dd HH:mm:ss").getTime();
+		if (new File(MyAppParams.ITBOOK_PATH + lastDay + ".txt").lastModified() >= lastTimeTicks)
+		{
+			upload(device, lastDay);
+		}
+		else
+		{
+			System.out.println("文件已上传");
 		}
 	}
 
