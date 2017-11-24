@@ -79,6 +79,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 	private static final int MESSAGE_ON_UPLOAD_SUCCESS = 401;
 	private static final int MESSAGE_ON_UPLOAD_FAIL = 402;
+	private static final int MESSAGE_ON_AUTO_UPLOAD = 403;
 
 	private EditText wordEt;
 	private Button wordClearBt;
@@ -101,6 +102,38 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 
 		initClipListener();
 		initMenu();
+		initAutoSend();
+	}
+
+	private void initAutoSend()
+	{
+		new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				while (true)
+				{
+					try
+					{
+						Thread.sleep(40 * 1000);
+						int currentHour = BasicDateUtil.getCurrentHour();
+						if (currentHour > 7
+								&& (currentHour + 1) % 3 == 0
+								&& BasicDateUtil.getCurrentTimeString()
+										.startsWith("23:58:"))
+						{
+							uploadBookLog();
+						}
+					}
+					catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}
+		}).start();
 	}
 
 	WordMenuPopWindow wordMenuPopWindow;
@@ -596,6 +629,8 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			showWordMenu();
 			break;
 		case R.id.btn_it_kpi:
+			ActivityMgr
+					.gotoIE(ITMainActivity.this, ipport + "/kpi/booklog_kpi");
 			break;
 		case R.id.btn_it_upload:
 			new Thread(new Runnable()
@@ -636,17 +671,24 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			String body = Jsoup
 					.connect(ipport + "/upload/lastTime?device=" + device)
 					.ignoreContentType(true).execute().body();
-			String lastTime = JSONObject.parseObject(body).getString("data");
+			JSONObject parseObject = JSONObject.parseObject(body)
+					.getJSONObject("data");
+			String lastTime = parseObject.getString("TIME");
 			if (lastTime != null)
 			{
-				String lastDay = lastTime.substring(0, 10).replace("-", "");
-				System.out.println(lastDay);
-				checkLastDay(device, lastDay, lastTime);
-				lastDay = BasicDateUtil.getDateBeforeDayDateString(lastDay, -1);
-				while (lastDay.compareTo(BasicDateUtil.getCurrentDateString()) <= 0)
+				String lastLogDay = parseObject.getString("FILE_NAME")
+						.substring(0, 8);
+				System.out.println(lastLogDay);
+				// 判断是否上传lastDay同名的文件
+				checkLastDay(device, lastLogDay, lastTime);
+
+				String tmpDay = BasicDateUtil.getDateBeforeDayDateString(
+						lastLogDay, -1);
+				String today = BasicDateUtil.getCurrentDateString();
+				while (tmpDay.compareTo(today) <= 0)
 				{
-					upload(device, lastDay);
-					lastDay = BasicDateUtil.getDateBeforeDayDateString(lastDay,
+					upload(device, tmpDay);
+					tmpDay = BasicDateUtil.getDateBeforeDayDateString(tmpDay,
 							-1);
 				}
 			}
@@ -739,6 +781,10 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 			case MESSAGE_ON_UPLOAD_SUCCESS:
 			case MESSAGE_ON_UPLOAD_FAIL:
 				ToastUtil.showLongToast(getApplicationContext(), msg.obj);
+				break;
+
+			case MESSAGE_ON_AUTO_UPLOAD:
+				uploadBookLog();
 				break;
 			}
 		}
