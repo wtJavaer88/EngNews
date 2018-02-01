@@ -3,7 +3,8 @@
     package="com.example.engnews"
     android:versionCode="1"
     android:versionName="1.0" >
-
+    <!--打电话  -->
+	<uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />

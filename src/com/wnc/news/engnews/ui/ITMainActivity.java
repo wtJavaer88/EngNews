@@ -117,14 +117,15 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 				{
 					try
 					{
-						Thread.sleep(40 * 1000);
+						Thread.sleep(10 * 1000);
 						int currentHour = BasicDateUtil.getCurrentHour();
 						if (currentHour > 7
 								&& (currentHour + 1) % 3 == 0
 								&& BasicDateUtil.getCurrentTimeString()
-										.startsWith("23:58:"))
+										.matches("\\d+:58:\\d+"))
 						{
 							uploadBookLog();
+							Thread.sleep(3600 * 1000);
 						}
 					}
 					catch (InterruptedException e)
@@ -652,7 +653,7 @@ public class ITMainActivity extends BaseVerActivity implements OnClickListener,
 		}
 	}
 
-	String ipport = "http://122.112.219.62:8080/sboot1";
+	String ipport = "http://118.126.116.16:8080/sboot1";
 
 	private void uploadBookLog()
 	{
